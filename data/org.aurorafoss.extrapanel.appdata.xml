@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.aurorafoss.extrapanel.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <name>Extra Panel</name>
+  <summary>Enhance your computer experience using mobile devices.</summary>
+  <kudos>
+    <kudo>AppMenu</kudo>
+    <kudo>HiDpiIcon</kudo>
+    <kudo>ModernToolkit</kudo>
+  </kudos>
+  <categories>
+    <category>Developer</category>
+  </categories>
+  <project_group>GNOME</project_group>
+  <update_contact>subtil@aurorafoss.org</update_contact>
+  <url type="homepage">https://gitlab.com/aurorafossorg/p/extra-panel/pc-app</url>
+  <url type="bugtracker">https://gitlab.com/aurorafossorg/p/extra-panel/pc-app/issues</url>
+  <translation type="gettext">extrapanel</translation>
+</component>

@@ -1,0 +1,7 @@
+- Launching the application
+	- Opening the GUI if it's set to open (default yes)
+	- Add icon to system tray
+	- Start service
+		- Open communication options
+		- Listen to ports
+		- Call each corresponding plugin when info changes

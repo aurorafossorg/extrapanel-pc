@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=ExtraPanel
+Comment=Enhance your computer experience using mobile devices
+Exec=extrapanel
+Icon=input-mouse
+Type=Application
+StartupNotify=true

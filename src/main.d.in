@@ -1,0 +1,25 @@
+module main;
+
+import std.string;
+import std.path;
+import std.stdio;
+
+import gio.Resource;
+import gtk.Main;
+
+import app.app;
+
+string pkgdatadir = "@pkgdatadir@";
+
+void main (string[] args)
+{
+    writeln("Starting extrapanel...");
+
+    auto resource = Resource.load(buildPath(pkgdatadir,
+                                            "org.aurorafoss.extrapanel.gresource"));
+    Resource.register(resource);
+
+    Main.init(args);
+    auto app = new ExtraPanelGUI();
+    app.run(args);
+}
