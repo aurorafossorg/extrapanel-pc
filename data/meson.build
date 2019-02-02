@@ -1,3 +1,5 @@
+subdir('icons')
+
 data_dir = include_directories('.')
 ui_dir = include_directories('ui')
 

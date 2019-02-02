@@ -6,6 +6,7 @@ project('extrapanel', 'd',
 datadir = get_option('datadir')
 prefix = get_option('prefix')
 appdatadir = join_paths (datadir, 'appdata')
+icondir = join_paths (datadir, 'icons')
 desktopdir = join_paths (datadir, 'applications')
 pkgdatadir = join_paths(prefix, datadir, meson.project_name())
 
@@ -26,7 +27,8 @@ subdir('src')
 src_include_dir = include_directories('src')
 
 exec = executable('extrapanel', sources, dependencies: [gtkd_dep],
-					include_directories: src_include_dir, install: true)
+					d_args: '-d', include_directories: src_include_dir,
+					install: true)
 
 # Postbuild
 meson.add_install_script('build-aux/meson/postinstall.py')

@@ -13,4 +13,5 @@ sources += ['src/app/app.d',
             'src/connection/connection.d',
             'src/connection/wifi.d',
             'src/plugin/plugin.d',
+            'src/util/util.d',
             generated_main]

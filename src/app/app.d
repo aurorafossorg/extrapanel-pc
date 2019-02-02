@@ -1,5 +1,7 @@
 module extrapanel.app;
 
+import util.util : createTrayMenu;
+
 // STD
 import std.stdio;
 import std.file;
@@ -33,6 +35,8 @@ import gtk.Notebook;
 import gtk.ScrolledWindow;
 import gtk.CheckButton;
 import gtk.ToggleButton;
+import gtk.StatusIcon;
+import gtk.Menu;
 
 // Top level
 import gio.Application : GApplication = Application;
@@ -70,6 +74,8 @@ public:
 	}
 
 private:
+	StatusIcon iconTest;
+
 	void onAppActivate(GApplication app)
 	{
 		trace("Activate App Signal");
@@ -185,6 +191,10 @@ private:
 		ccuEnableCheck = cast(CheckButton) builder.getObject("ccuEnableCheck");
 		cPluginsInterface = cast(Box) builder.getObject("cPluginsInterface");
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
+
+		iconTest = new StatusIcon("input-mouse");
+		iconTest.setTooltipText("Extra Panel is running...");
+		iconTest.addOnPopupMenu(&sysTrayMenu);
 	}
 
 	void updateElements()
@@ -307,5 +317,11 @@ private:
 			usbState = state;
 			setConnectionButtonState(usbButton, usbState);
 		}
+	}
+
+	void sysTrayMenu(uint btn, uint timestamp, StatusIcon icon)
+	{
+		Menu menu = createTrayMenu();
+		menu.popupAtPointer(null);
 	}
 }

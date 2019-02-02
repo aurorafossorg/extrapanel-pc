@@ -1,3 +1,5 @@
 /build
 /data/conf
 /data/structure
+/data/ui/#window.ui#
+/data/ui/window.ui~
