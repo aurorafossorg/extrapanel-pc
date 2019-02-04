@@ -1,5 +1,10 @@
+# Build files
+build.ninja
 /build
-/data/conf
-/data/structure
+
+# Temporary Glade Files
 /data/ui/#window.ui#
 /data/ui/window.ui~
+
+/data/conf
+/data/structure
