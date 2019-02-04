@@ -21,3 +21,7 @@ ninja -C build install
 ```
 
 You can now run the app with `extrapanel` command. *(alternatively under the Utility/Accessories section of your menu bar)*
+
+## Credits
+
+[**UUIDGenerator**](https://www.uuidgenerator.net/) - UUID Generator

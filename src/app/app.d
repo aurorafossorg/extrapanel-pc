@@ -1,6 +1,7 @@
 module extrapanel.app;
 
 import util.util : createTrayMenu;
+import util.config;
 
 // STD
 import std.stdio;
@@ -37,6 +38,7 @@ import gtk.CheckButton;
 import gtk.ToggleButton;
 import gtk.StatusIcon;
 import gtk.Menu;
+import gtk.SpinButton;
 
 // Top level
 import gio.Application : GApplication = Application;
@@ -67,17 +69,18 @@ public:
 	/// Constructor
 	this()
 	{
+		Configuration.load();
 		ApplicationFlags flags = ApplicationFlags.FLAGS_NONE;
 		super("org.aurorafoss.extrapanel", flags);
 		this.window = null;
 		this.addOnActivate(&onAppActivate);
+		this.addOnShutdown(&onAppDestroy);
 	}
 
 private:
 	StatusIcon iconTest;
 
-	void onAppActivate(GApplication app)
-	{
+	void onAppActivate(GApplication app) {
 		trace("Activate App Signal");
 		if (!app.getIsRemote())
 		{
@@ -96,6 +99,12 @@ private:
 
 		// Show
 		this.window.present();
+	}
+
+	void onAppDestroy(GApplication app) {
+		// Saves Configs
+		Configuration.save();
+
 	}
 
 	// Constructor
@@ -128,9 +137,12 @@ private:
 	Stack mainInterface;
 		Box generalInterface;
 			Button wifiButton, bluetoothButton, usbButton;
+			Label uuidLabel;
 		Stack pluginsInterface;
 		Stack configInterface;
 			ScrolledWindow cGeneralInterface;
+				CheckButton cgOpenAppStartup;
+				SpinButton cgCommDelay;
 			Notebook cConnectionInterface;
 				Box ccWifiInterface;
 					CheckButton ccwEnableCheck;
@@ -155,10 +167,11 @@ private:
 		stopButton = cast(Button) builder.getObject("stopButton");
 		status = cast(Label) builder.getObject("status");
 
-		// General Tab Buttons
+		// General Tab Elements
 		wifiButton = cast(Button) builder.getObject("wifiButton");
 		bluetoothButton = cast(Button) builder.getObject("bluetoothButton");
 		usbButton = cast(Button) builder.getObject("usbButton");
+		uuidLabel = cast(Label) builder.getObject("uuidLabel");
 
 		// Sidebar
 		sidebar = cast(Stack) builder.getObject("sidebar");
@@ -182,6 +195,8 @@ private:
 		pluginsInterface = cast(Stack) builder.getObject("pluginsInterface");
 		configInterface = cast(Stack) builder.getObject("configInterface");
 		cGeneralInterface = cast(ScrolledWindow) builder.getObject("cGeneralInterface");
+		cgOpenAppStartup = cast(CheckButton) builder.getObject("cgOpenAppStartup");
+		cgCommDelay = cast(SpinButton) builder.getObject("cgCommDelay");
 		cConnectionInterface = cast(Notebook) builder.getObject("cConnectionInterface");
 		ccWifiInterface = cast(Box) builder.getObject("ccWifiInterface");
 		ccwEnableCheck = cast(CheckButton) builder.getObject("ccwEnableCheck");
@@ -195,10 +210,23 @@ private:
 		iconTest = new StatusIcon("input-mouse");
 		iconTest.setTooltipText("Extra Panel is running...");
 		iconTest.addOnPopupMenu(&sysTrayMenu);
+
+		
 	}
 
 	void updateElements()
 	{
+		wifiState = Configuration.getOption!(bool)(Options.WiFiEnabled) ? State.Offline : State.Disabled;
+		bluetoothState = Configuration.getOption!(bool)(Options.BluetoothEnabled) ? State.Offline : State.Disabled;
+		usbState = Configuration.getOption!(bool)(Options.UsbEnabled) ? State.Offline : State.Disabled;
+
+		ccwEnableCheck.setActive(Configuration.getOption!(bool)(Options.WiFiEnabled));
+		ccbEnableCheck.setActive(Configuration.getOption!(bool)(Options.BluetoothEnabled));
+		ccuEnableCheck.setActive(Configuration.getOption!(bool)(Options.UsbEnabled));
+
+		cgOpenAppStartup.setActive(Configuration.getOption!(bool)(Options.LoadOnBoot));
+		uuidLabel.setLabel("UUID: " ~ Configuration.getOption!(string)(Options.DeviceUUID));
+
 		setConnectionButtonState(wifiButton, wifiState);
 		setConnectionButtonState(bluetoothButton, bluetoothState);
 		setConnectionButtonState(usbButton, usbState);
@@ -210,6 +238,8 @@ private:
 		wifiButton.addOnClicked(&communicationButtonCallback);
 		bluetoothButton.addOnClicked(&communicationButtonCallback);
 		usbButton.addOnClicked(&communicationButtonCallback);
+
+		cgOpenAppStartup.addOnToggled(&cgEnableBoxes);
 
 		ccwEnableCheck.addOnToggled(&ccEnableBoxes);
 		ccbEnableCheck.addOnToggled(&ccEnableBoxes);
@@ -305,16 +335,23 @@ private:
 		backButton.setVisible(false);
 	}
 
+	void cgEnableBoxes(ToggleButton tb) {
+		Configuration.setOption(Options.LoadOnBoot, tb.getActive());
+	}
+
 	void ccEnableBoxes(ToggleButton tb) {
 		State state = tb.getActive() ? State.Offline : State.Disabled;
 		if(tb == ccwEnableCheck) {
 			wifiState = state;
+			Configuration.setOption(Options.WiFiEnabled, tb.getActive());
 			setConnectionButtonState(wifiButton, wifiState);
 		} else if(tb == ccbEnableCheck) {
 			bluetoothState = state;
+			Configuration.setOption(Options.BluetoothEnabled, tb.getActive());
 			setConnectionButtonState(bluetoothButton, bluetoothState);
 		} else if(tb == ccuEnableCheck) {
 			usbState = state;
+			Configuration.setOption(Options.UsbEnabled, tb.getActive());
 			setConnectionButtonState(usbButton, usbState);
 		}
 	}

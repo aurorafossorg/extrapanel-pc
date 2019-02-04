@@ -6,7 +6,6 @@ import gtk.SeparatorMenuItem;
 import gtk.Image;
 import gtk.ImageMenuItem;
 import gtk.CheckMenuItem;
-import gtk.c.functions;
 
 import std.stdio;
 

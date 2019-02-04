@@ -275,7 +275,7 @@
                       <object class="GtkLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">placeholder</property>
+                        <property name="label" translatable="yes">Plugins: 0</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -311,7 +311,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="pixel_size">64</property>
-                                    <property name="icon_name">network-idle</property>
+                                    <property name="icon_name">network-wireless-signal-excellent-symbolic</property>
                                     <property name="icon_size">3</property>
                                   </object>
                                   <packing>
@@ -375,7 +375,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="pixel_size">64</property>
-                                    <property name="icon_name">blueberry</property>
+                                    <property name="icon_name">bluetooth</property>
                                     <property name="icon_size">3</property>
                                   </object>
                                   <packing>
@@ -439,7 +439,7 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="pixel_size">64</property>
-                                    <property name="icon_name">drive-removable-media-usb-symbolic-1</property>
+                                    <property name="icon_name">media-removable-symbolic</property>
                                     <property name="icon_size">3</property>
                                   </object>
                                   <packing>
@@ -489,10 +489,10 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="uuidLabel">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">placeholder</property>
+                        <property name="label" translatable="yes">UUID: -1</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -613,7 +613,7 @@
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">8</property>
                                 <child>
-                                  <object class="GtkCheckButton">
+                                  <object class="GtkCheckButton" id="cgOpenAppStartup">
                                     <property name="label" translatable="yes">Automatically open "Extra Panels" on system startup</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -624,20 +624,6 @@
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
                                     <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkCheckButton">
-                                    <property name="label" translatable="yes">Automatically open this UI when the app is launched</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">False</property>
-                                    <property name="draw_indicator">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -658,7 +644,7 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkSpinButton">
+                                      <object class="GtkSpinButton" id="cgCommDelay">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="adjustment">adjustment1</property>
@@ -686,21 +672,14 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
-                                    <property name="position">2</property>
+                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="use_stock">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">3</property>
-                                  </packing>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
                                 </child>
                                 <child>
                                   <placeholder/>

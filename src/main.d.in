@@ -8,6 +8,7 @@ import gio.Resource;
 import gtk.Main;
 
 import app.app;
+import util.config;
 
 string pkgdatadir = "@pkgdatadir@";
 
@@ -19,7 +20,10 @@ void main (string[] args)
                                             "org.aurorafoss.extrapanel.gresource"));
     Resource.register(resource);
 
-    Main.init(args);
+    Configuration.appArgs = args;
+
+    string[] s;
+    Main.init(s);
     auto app = new ExtraPanelGUI();
-    app.run(args);
+    app.run(s);
 }
