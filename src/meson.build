@@ -3,6 +3,7 @@ source_dir = include_directories('.')
 conf = configuration_data()
 conf.set('VERSION', meson.project_version())
 conf.set('pkgdatadir', pkgdatadir)
+conf.set('builddatadir', builddatadir)
 
 generated_main = configure_file(input:  'main.d.in',
                                 output: 'main.d',

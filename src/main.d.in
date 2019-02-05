@@ -3,22 +3,40 @@ module main;
 import std.string;
 import std.path;
 import std.stdio;
+import std.experimental.logger;
 
 import gio.Resource;
+import glib.GException;
 import gtk.Main;
 
 import app.app;
 import util.config;
 
 string pkgdatadir = "@pkgdatadir@";
+string builddatadir = "@builddatadir@";
 
 void main (string[] args)
 {
     writeln("Starting extrapanel...");
 
-    auto resource = Resource.load(buildPath(pkgdatadir,
+    Resource resource;
+    try {
+        resource = Resource.load(buildPath(builddatadir,
                                             "org.aurorafoss.extrapanel.gresource"));
-    Resource.register(resource);
+        info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+    } catch(GException e) {
+        info("No local gresource file found, assuming it's installed...");
+        try {
+            resource = Resource.load(buildPath(pkgdatadir,
+                                            "org.aurorafoss.extrapanel.gresource"));
+            info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+        } catch(GException e) {
+            error("No gresource found! App was not installed correctly!");
+            return;
+        }
+    } finally {
+        Resource.register(resource);
+    }
 
     Configuration.appArgs = args;
 

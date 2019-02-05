@@ -9,6 +9,7 @@ appdatadir = join_paths (datadir, 'appdata')
 icondir = join_paths (datadir, 'icons')
 desktopdir = join_paths (datadir, 'applications')
 pkgdatadir = join_paths(prefix, datadir, meson.project_name())
+builddatadir = join_paths(meson.current_build_dir(), 'data')
 
 # Dependencie Versions
 gtkd_ver = '>=3.6'
