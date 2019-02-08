@@ -20,4 +20,4 @@ resources = gnome.compile_resources(app_id,
                                     install_dir: pkgdatadir,
                                     gresource_bundle: true)
 
-sources += [resources]
+uiSources += [resources]

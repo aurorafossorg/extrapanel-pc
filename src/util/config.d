@@ -1,4 +1,4 @@
-module src.util.config;
+module extrapanel.config;
 
 import std.net.curl;
 import std.file;
@@ -8,6 +8,7 @@ import std.array;
 import std.string;
 import std.conv;
 import core.stdc.stdlib;
+import std.path;
 
 public static immutable string FILE_PATH = "/.config/extrapanel/extrapanel.cfg";
 
@@ -20,56 +21,61 @@ public static enum Options : string {
 	UsbEnabled			= "usb-enabled"
 }
 
-public static class Configuration {
+public static string rootPath() {
+	return expandTilde("~");
+}
+
+public static shared class Configuration {
 
 	static void load() {
-		if(!exists(to!(string)(getenv("HOME")) ~ FILE_PATH) || hasArg("--reconfigure")) {
-			firstTime = true;
-			info("No existing configuration file, creating one...");
-			populate();
-		}
-
-		info("Loading " ~ to!(string)(getenv("HOME")) ~ FILE_PATH);
-		cfgFile = File(to!(string)(getenv("HOME")) ~ FILE_PATH, "r+");
-
-		int i;
-		while(!cfgFile.eof) {
-			i++;
-			std.experimental.logger.trace(i);
-			string[] text = chomp(cfgFile.readln()).split(": ");
-			writeln(text);
-			if(text != []) {
-				string opt = text[0];
-				string data = text[1];
-
-				options[opt] = data;
+		if(!loaded) {
+			if(!exists(rootPath ~ FILE_PATH) || hasArg("--reconfigure")) {
+				firstTime = true;
+				info("No existing configuration file, creating one...");
+				populate();
 			}
-		}
 
-		cfgFile.close();
+			info("Loading " ~ rootPath ~ FILE_PATH);
+			cfgFile = File(rootPath ~ FILE_PATH, "r+");
+
+			int i;
+			while(!cfgFile.eof) {
+				i++;
+				std.experimental.logger.trace(i);
+				string[] text = chomp(cfgFile.readln()).split(": ");
+				writeln(text);
+				if(text != []) {
+					string opt = text[0];
+					string data = text[1];
+
+					options[opt] = data;
+				}
+			}
+
+			loaded = true;
+			cfgFile.close();
+		}
 	}
 
 	static void save() {
-		if(changed) {
+		if(changed && loaded) {
 			writeln("y");
-			cfgFile = File(to!(string)(getenv("HOME")) ~ FILE_PATH, "w");
+			cfgFile = File(rootPath ~ FILE_PATH, "w");
 			foreach(string s; options.keys) {
 				cfgFile.writeln(s ~ ": " ~ options[s]);
 			}
 
 			cfgFile.close();
-		} else {
-			writeln("n");
 		}
 	}
 
 	static T getOption(T)(string data) {
-		return to!(T)(options[data]);
+		return loaded ? to!(T)(options[data]) : T.init;
 	}
 
 	static void setOption(T)(string op, T data) {
 		changed = true;
-		options[op] = to!string(data);
+		options[op] = loaded ? to!string(data) : T;
 	}
 
 	static bool hasArg(string arg) {
@@ -85,14 +91,14 @@ public static class Configuration {
 private:
 	static void populate() {
 		try {
-			mkdir(to!(string)(getenv("HOME")) ~ "/.config/extrapanel");
-			mkdir(to!(string)(getenv("HOME")) ~ "/.config/extrapanel/plugins");
+			mkdir(rootPath ~ "/.config/extrapanel");
+			mkdir(rootPath ~ "/.config/extrapanel/plugins");
 		} catch(FileException e) {
 
 		}
 
-		cfgFile = File(to!(string)(getenv("HOME")) ~ FILE_PATH, "w");
-		writeln(to!(string)(getenv("HOME")) ~ FILE_PATH);
+		cfgFile = File(rootPath ~ FILE_PATH, "w");
+		writeln(rootPath ~ FILE_PATH);
 
 		// Generates UUID
 		string uuid = "-1";
@@ -115,6 +121,6 @@ private:
 	}
 
 	static File cfgFile;
-	static bool firstTime = false, changed = false;
+	static bool firstTime = false, changed = false, loaded = false;
 	static string[string] options;
 }

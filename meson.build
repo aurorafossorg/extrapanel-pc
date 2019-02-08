@@ -1,6 +1,6 @@
 project('extrapanel', 'd',
 	version: '0.0.1',
-	license: 'AGPLv3')
+	license: 'GPLv3')
 
 # Declare required directories
 datadir = get_option('datadir')
@@ -21,13 +21,18 @@ gtkd_dep = dependency('gtkd-3', version: gtkd_ver)
 app_id = 'org.aurorafoss.extrapanel'
 
 # Subdirs
-sources = []
+uiSources = []
+daemonSources = []
 subdir('data')
 subdir('src')
 
 src_include_dir = include_directories('src')
 
-exec = executable('extrapanel', sources, dependencies: [gtkd_dep],
+xpanel_ui = executable('extrapanel', uiSources, dependencies: [gtkd_dep],
+					d_args: '-d', include_directories: src_include_dir,
+					install: true)
+
+xpanel_daemon = executable('extrapanel-daemon', daemonSources,
 					d_args: '-d', include_directories: src_include_dir,
 					install: true)
 

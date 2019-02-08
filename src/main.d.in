@@ -38,7 +38,7 @@ void main (string[] args)
         Resource.register(resource);
     }
 
-    Configuration.appArgs = args;
+    Configuration.appArgs ~= args;
 
     string[] s;
     Main.init(s);

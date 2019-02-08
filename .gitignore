@@ -1,6 +1,7 @@
 # Build files
 build.ninja
 /build
+/.dub
 
 # Temporary Glade Files
 /data/ui/#window.ui#

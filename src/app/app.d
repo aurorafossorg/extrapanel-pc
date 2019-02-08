@@ -82,9 +82,10 @@ private:
 
 	void onAppActivate(GApplication app) {
 		trace("Activate App Signal");
-		if (!app.getIsRemote())
+		if (!app.getIsRemote() && window is null)
 		{
 			// Loads the UI files
+			trace("Primary instance, loading UI...");
 			builder = new Builder();
 			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/window.ui"))
 			{
@@ -95,6 +96,10 @@ private:
 			// Setup the app
 			initElements();
 			updateElements();
+
+			
+		} else {
+			trace("Another instance exists, taking control...");
 		}
 
 		// Show
