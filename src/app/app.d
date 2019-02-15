@@ -96,8 +96,6 @@ private:
 			// Setup the app
 			initElements();
 			updateElements();
-
-			
 		} else {
 			trace("Another instance exists, taking control...");
 		}
@@ -109,7 +107,6 @@ private:
 	void onAppDestroy(GApplication app) {
 		// Saves Configs
 		Configuration.save();
-
 	}
 
 	// Constructor

@@ -1,9 +1,9 @@
-module extrapanel.wifi;
+module extrapanel.usb;
 
 import connection.boilerplate;
 import plugin.plugin;
 
-class WifiBackend : ConnectionBackend {
+class UsbBackend : ConnectionBackend {
 	override {
 		void queue(PluginInfo pInfo) {
 

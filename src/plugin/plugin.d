@@ -1,7 +1,13 @@
-module pc.src.plugin.plugin;
+module extrapanel.plugin;
+
+public enum PluginType {
+	Official,
+	Community,
+	Other
+}
 
 class PluginInfo {
-
-private:
-	string pName, pMessahe;
+	immutable string id, name, description, icon, strVersion;
+	immutable string[] authors;
+	immutable PluginType type;
 }

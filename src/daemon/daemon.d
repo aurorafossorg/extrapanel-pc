@@ -1,6 +1,7 @@
 module extrapanel.daemon;
 
 import util.config;
+import util.paths;
 
 import core.stdc.stdlib;
 import core.sys.posix.unistd;
@@ -9,7 +10,6 @@ import core.sys.linux.errno;
 import core.thread;
 import core.time;
 
-import std.path;
 import std.file;
 import std.stdio;
 import std.math;
@@ -49,26 +49,17 @@ extern (C) nothrow void signalHandler(int signal) {
 FileLogger logger;
 bool shouldExit = false;
 
-string getConfigFilePath() {
-	return expandTilde(buildPath("~", ".config", "extrapanel/"));
-}
-
-string getLockFilePath() {
-	return getConfigFilePath ~ "daemon.lock";
-}
-
 bool lockFileExists() {
-	return exists(getLockFilePath);
+	return exists(appConfigPath() ~ LOCK_PATH);
 }
 
 void makeLockFile() {
-	writeln(getConfigFilePath);
-	File lockF = File(getLockFilePath, "w");
+	File lockF = File(appConfigPath() ~ LOCK_PATH, "w");
 	lockF.close();
 }
 
 void deleteLockFile() {
-	remove(getLockFilePath);
+	remove(appConfigPath() ~ LOCK_PATH);
 }
 
 int getMsecsDelay() {
@@ -121,10 +112,10 @@ pid_t daemonize() {
 int main(string[] args) {
 	Configuration.appArgs ~= args;
 
-	logger = new FileLogger(getConfigFilePath ~ "daemonLog.log");
+	logger = new FileLogger(appConfigPath ~ LOG_PATH);
 	
 	if(lockFileExists && !Configuration.hasArg("--overwrite")) {
-		critical("Lock file already exists! If you're sure no daemon is running, delete " ~ getLockFilePath ~ " manually");
+		critical("Lock file already exists! If you're sure no daemon is running, delete " ~ appConfigPath() ~ LOCK_PATH ~ " manually");
 		return -1;
 	}
 

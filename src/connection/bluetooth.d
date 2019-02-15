@@ -1,9 +1,9 @@
-module extrapanel.wifi;
+module extrapanel.bluetooth;
 
 import connection.boilerplate;
 import plugin.plugin;
 
-class WifiBackend : ConnectionBackend {
+class BluetoothBackend : ConnectionBackend {
 	override {
 		void queue(PluginInfo pInfo) {
 

@@ -13,12 +13,20 @@ generated_main = configure_file(input:  'main.d.in',
 
 
 uiSources += ['src/app/app.d',
-            'src/connection/connection.d',
-            'src/connection/wifi.d',
             'src/plugin/plugin.d',
+            'src/plugin/browser.d',
             'src/util/util.d',
             'src/util/config.d',
+            'src/util/paths.d',
             generated_main]
 
 daemonSources += ['src/daemon/daemon.d',
-            'src/util/config.d']
+            'src/connection/boilerplate.d',
+            'src/connection/bluetooth.d',
+            'src/connection/wifi.d',
+            'src/connection/usb.d',
+            'src/connection/debug.d',
+            'src/plugin/plugin.d',
+            #'src/plugin/runner.d',
+            'src/util/config.d',
+            'src/util/paths.d']

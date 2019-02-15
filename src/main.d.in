@@ -19,6 +19,15 @@ void main (string[] args)
 {
     writeln("Starting extrapanel...");
 
+    string[] parsedArgs;
+    foreach(arg; args) {
+        if(arg == "--reconfigure") {
+
+        } else {
+            parsedArgs ~= arg;
+        }
+    }
+
     Resource resource;
     try {
         resource = Resource.load(buildPath(builddatadir,
@@ -40,8 +49,7 @@ void main (string[] args)
 
     Configuration.appArgs ~= args;
 
-    string[] s;
-    Main.init(s);
+    Main.init(parsedArgs);
     auto app = new ExtraPanelGUI();
-    app.run(s);
+    app.run(parsedArgs);
 }

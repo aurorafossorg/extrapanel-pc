@@ -16,6 +16,7 @@ gtkd_ver = '>=3.6'
 
 # Dependencies
 gtkd_dep = dependency('gtkd-3', version: gtkd_ver)
+#dlua_dep = dependency('derelict-lua', method: 'dub')
 
 # Declare the app id
 app_id = 'org.aurorafoss.extrapanel'
@@ -32,7 +33,7 @@ xpanel_ui = executable('extrapanel', uiSources, dependencies: [gtkd_dep],
 					d_args: '-d', include_directories: src_include_dir,
 					install: true)
 
-xpanel_daemon = executable('extrapanel-daemon', daemonSources,
+xpanel_daemon = executable('extrapanel-daemon', daemonSources, #dependencies: [dlua_dep],
 					d_args: '-d', include_directories: src_include_dir,
 					install: true)
 
