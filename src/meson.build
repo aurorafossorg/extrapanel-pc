@@ -18,6 +18,7 @@ uiSources += ['src/app/app.d',
             'src/util/util.d',
             'src/util/config.d',
             'src/util/paths.d',
+            'src/util/logger.d',
             generated_main]
 
 daemonSources += ['src/daemon/daemon.d',
@@ -27,6 +28,9 @@ daemonSources += ['src/daemon/daemon.d',
             'src/connection/usb.d',
             'src/connection/debug.d',
             'src/plugin/plugin.d',
-            #'src/plugin/runner.d',
+            'src/plugin/runner.d',
             'src/util/config.d',
-            'src/util/paths.d']
+            'src/util/paths.d',
+            'src/util/logger.d']
+
+traySources += ['src/tray/tray.d']

@@ -2,12 +2,15 @@ module extrapanel.app;
 
 import util.util : createTrayMenu;
 import util.config;
+import util.logger;
+import util.paths;
 
 // STD
 import std.stdio;
 import std.file;
-import std.experimental.logger;
 import std.conv;
+
+import core.thread;
 
 // GTK
 // Types
@@ -18,6 +21,8 @@ import gtk.Application;
 import gtk.ApplicationWindow;
 import gtk.Widget;
 import gtk.Window;
+
+import glib.Timeout;
 
 import pango.PgAttributeList;
 import pango.PgAttribute;
@@ -59,13 +64,14 @@ enum State {
 }
 
 static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
+Timeout timeout;
+
+static bool currentStatus = false;
 
 /// Main application
 class ExtraPanelGUI : Application
 {
-
 public:
-
 	/// Constructor
 	this()
 	{
@@ -75,21 +81,23 @@ public:
 		this.window = null;
 		this.addOnActivate(&onAppActivate);
 		this.addOnShutdown(&onAppDestroy);
+
+		timeout = new Timeout(100, &updateDaemonStatus);
 	}
 
 private:
 	StatusIcon iconTest;
 
 	void onAppActivate(GApplication app) {
-		trace("Activate App Signal");
+		logger.trace("Activate App Signal");
 		if (!app.getIsRemote() && window is null)
 		{
 			// Loads the UI files
-			trace("Primary instance, loading UI...");
+			logger.trace("Primary instance, loading UI...");
 			builder = new Builder();
 			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/window.ui"))
 			{
-				critical("Window resource cannot be found");
+				logger.critical("Window resource cannot be found");
 				return;
 			}
 
@@ -97,7 +105,7 @@ private:
 			initElements();
 			updateElements();
 		} else {
-			trace("Another instance exists, taking control...");
+			logger.trace("Another instance exists, taking control...");
 		}
 
 		// Show
@@ -209,11 +217,9 @@ private:
 		cPluginsInterface = cast(Box) builder.getObject("cPluginsInterface");
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
 
-		iconTest = new StatusIcon("input-mouse");
+		/*iconTest = new StatusIcon("input-mouse");
 		iconTest.setTooltipText("Extra Panel is running...");
-		iconTest.addOnPopupMenu(&sysTrayMenu);
-
-		
+		iconTest.addOnPopupMenu(&sysTrayMenu);*/
 	}
 
 	void updateElements()
@@ -248,6 +254,9 @@ private:
 		ccuEnableCheck.addOnToggled(&ccEnableBoxes);
 
 		backButton.addOnClicked(&backButtonCallback);
+
+		currentStatus = queryDaemon();
+		updateMetaElements();
 	}
 
 	void setConnectionButtonState(Button button, State state) {
@@ -304,7 +313,7 @@ private:
 	}
 
 	void sidebarOnChange(ListBoxRow lbr, ListBox lb) {
-		trace("sidebarOnChange()");
+		logger.trace("sidebarOnChange()");
 		backButton.setVisible(true);
 		if(lb == generalBar) {
 			if(lbr == gConfigOption) {
@@ -331,7 +340,7 @@ private:
 	}
 
 	void backButtonCallback(Button b) {
-		trace("backButtonCallback()");
+		logger.trace("backButtonCallback()");
 		sidebar.setVisibleChild(generalBar);
 		mainInterface.setVisibleChild(generalInterface);
 		backButton.setVisible(false);
@@ -358,9 +367,32 @@ private:
 		}
 	}
 
-	void sysTrayMenu(uint btn, uint timestamp, StatusIcon icon)
+	/*void sysTrayMenu(uint btn, uint timestamp, StatusIcon icon)
 	{
 		Menu menu = createTrayMenu();
 		menu.popupAtPointer(null);
+	}*/
+
+	bool updateDaemonStatus() {
+		bool newStatus = queryDaemon();
+		if(currentStatus != newStatus) {
+			currentStatus = newStatus;
+			updateMetaElements();
+		}
+		return true;
+	}
+
+	void updateMetaElements() {
+		stopButton.setSensitive(currentStatus);
+		startButton.setSensitive(!currentStatus);
+		status.setLabel(currentStatus ? "Running" : "Stopped");
+		
+		PgAttributeList attrs = status.getAttributes() is null ? new PgAttributeList() : status.getAttributes();
+		attrs.change(currentStatus ? PgAttribute.foregroundNew(0x4e4e, 0x9a9a, 0x0606) : PgAttribute.foregroundNew(0xc000, 0x0000, 0x0000));
+		status.setAttributes(attrs);
+	}
+
+	bool queryDaemon() {
+		return exists(appConfigPath ~ LOCK_PATH);
 	}
 }

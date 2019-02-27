@@ -2,6 +2,9 @@ module extrapanel.daemon;
 
 import util.config;
 import util.paths;
+import plugin.plugin;
+import plugin.runner;
+import util.logger;
 
 import core.stdc.stdlib;
 import core.sys.posix.unistd;
@@ -13,7 +16,6 @@ import core.time;
 import std.file;
 import std.stdio;
 import std.math;
-import std.experimental.logger;
 import std.process;
 import std.conv;
 
@@ -21,6 +23,7 @@ extern (C) nothrow
 {
 	// These are for control of termination
 	// druntime rt.critical_
+	// TODO: Investigate what these do and if they're needed
 	void _d_critical_term();
 	// druntime rt.monitor_
 	void _d_monitor_staticdtor();
@@ -46,7 +49,6 @@ extern (C) nothrow void signalHandler(int signal) {
 	shouldExit = true;
 }
 
-FileLogger logger;
 bool shouldExit = false;
 
 bool lockFileExists() {
@@ -84,7 +86,6 @@ pid_t daemonize() {
 	// Forking successfull, leaving parent
 	if(pid > 0) {
 		logger.info("Daemon detached with pid ", pid);
-		info("Daemon detached with pid ", pid);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -109,19 +110,26 @@ pid_t daemonize() {
 	return pid;
 }
 
-int main(string[] args) {
-	Configuration.appArgs ~= args;
+PluginRunner pluginRunner;
 
-	logger = new FileLogger(appConfigPath ~ LOG_PATH);
+int main(string[] args) {
+	// Init logger
+	initLogger();
+
+	// Appends args to global args
+	Configuration.appArgs ~= args;
 	
+	// Check for existence of lock file
 	if(lockFileExists && !Configuration.hasArg("--overwrite")) {
-		critical("Lock file already exists! If you're sure no daemon is running, delete " ~ appConfigPath() ~ LOCK_PATH ~ " manually");
+		writeln("Lock file already exists! If you're sure no daemon is running, delete " ~ appConfigPath() ~ LOCK_PATH ~ " manually");
 		return -1;
 	}
 
+	// Makes lock file and loads general config
 	makeLockFile();
 	Configuration.load();
 
+	// Daemonize
 	auto pid = daemonize();
 
 	// Connect signals to signalHandler
@@ -130,11 +138,18 @@ int main(string[] args) {
 	signal(SIGQUIT, &signalHandler);
 	signal(SIGTERM, &signalHandler);
 
+	// Setup our plugin runner
+	pluginRunner = new PluginRunner(["brightctrl", "volumectrl", "clock"]);
+
+	// Main loop
 	while(!shouldExit) {
-		//logger.trace(Configuration.getOption!(string)(Options.DeviceUUID));
+		logger.info(pluginRunner.query());
+
 		Thread.sleep(getMsecsDelay.dur!"msecs");
 	}
 
+	// Daemon is quitting
+	destroy(pluginRunner);
 	logger.info("Daemon is quitting...");
 	logger.file.close();
 	deleteLockFile();

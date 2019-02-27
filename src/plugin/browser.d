@@ -4,7 +4,7 @@ import plugin.plugin;
 
 import std.json;
 
-public static void retrieveList(PluginType type) {}
+public static void retrieveList(string url) {}
 
 public static void parseInfo(PluginInfo info) {}
 

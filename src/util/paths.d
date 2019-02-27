@@ -20,6 +20,6 @@ public static string appConfigPath() {
 	return buildPath(expandTilde("~"), ".config", "extrapanel/");
 }
 
-public static string pluginConfigPath(string pluginPath) {
+public static string pluginRootPath(string pluginPath) {
 	return buildPath(appConfigPath(), "plugins", pluginPath ~ "/");
 }
