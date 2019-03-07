@@ -2,14 +2,16 @@
 
 PC version of Extra Panel
 
-![Pre-Alpha Screenshot](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha1.png)
+![Pre-Alpha Screenshot 1](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-1.png)
+![Pre-Alpha Screenshot 2](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-2.png)
+![Pre-Alpha Screenshot 3](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-3.png)
 
 ## Compiling
 
 ### Dependencies
 
 - [**gtkd**](https://gtkd.org/) *(=>3.6)*
-- [**meson**](https://mesonbuild.com/) *(<=0.47.2-1)*
+- [**meson**](https://mesonbuild.com/) *(you need to build from [source](https://github.com/mesonbuild/meson) since the latest release doesn't work yet)*
 - [**ninja**](https://ninja-build.org/)
 - [**dmd**](https://dlang.org/)
 
@@ -20,7 +22,11 @@ ninja -C build
 ninja -C build install
 ```
 
-You can now run the app with `extrapanel` command. *(alternatively under the Utility/Accessories section of your menu bar)*
+You have now 3 executables installed:
+
+ - `extrapanel` - **configuration UI** *(alternatively under the Utility/Accessories section of your menu bar)*
+ - `extrapanel-daemon` - **daemon**
+ - `extrapanel-tray` - **tray icon**
 
 ## Credits
 
