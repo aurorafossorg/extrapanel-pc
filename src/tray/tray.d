@@ -12,6 +12,10 @@ import gtk.Main;
 import std.process;
 import std.functional;
 
+/**
+ *	tray.d - Tray icon for the application
+ */
+
 private StatusIcon trayIcon;
 
 TrayApp app;
@@ -22,40 +26,12 @@ void main(string[] args) {
 	app.run(args);
 }
 
-public void createPopupMenu(uint button, uint timestamp, StatusIcon icon) {
-	Menu menu = createTrayMenu();
-	menu.popupAtPointer(null);
-}
-
-public Menu createTrayMenu() {
-	Menu menu = new Menu();
-
-	MenuItem item = new MenuItem("Open config panel");
-	item.addOnActivate(toDelegate(&openMainPanel));
-	menu.append(item);
-
-	item = new MenuItem("Exit");
-	item.addOnActivate(toDelegate(&exit));
-	menu.append(item);
-	menu.showAll();
-	return menu;
-}
-
-public void openMainPanel(MenuItem mi) {
-	spawnProcess("extrapanel");
-}
-
-public void exit(MenuItem mi) {
-	app.release();
-}
-
 private class TrayApp : Application {
 public:
 	this() {
 		ApplicationFlags flags = ApplicationFlags.FLAGS_NONE;
 		super("org.aurorafoss.extrapanel.tray", flags);
 		this.addOnActivate(&onActivate);
-		//initElements();
 	}
 
 private:
@@ -69,4 +45,35 @@ private:
 		trayIcon.setTooltipText("Extra Panel is running...");
 		trayIcon.addOnPopupMenu(toDelegate(&createPopupMenu));
 	}
+}
+
+// Creates the popup menu
+public void createPopupMenu(uint button, uint timestamp, StatusIcon icon) {
+	Menu menu = createTrayMenu();
+	menu.popupAtPointer(null);
+}
+
+// Creates the tray menu
+public Menu createTrayMenu() {
+	Menu menu = new Menu();
+
+	MenuItem item = new MenuItem("Open config panel");
+	item.addOnActivate(toDelegate(&openMainApp));
+	menu.append(item);
+
+	item = new MenuItem("Exit");
+	item.addOnActivate(toDelegate(&exit));
+	menu.append(item);
+	menu.showAll();
+	return menu;
+}
+
+// Opens the main app
+public void openMainApp(MenuItem mi) {
+	spawnProcess("extrapanel");
+}
+
+// Exits the tray app
+public void exit(MenuItem mi) {
+	app.release();
 }

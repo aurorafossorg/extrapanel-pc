@@ -12,6 +12,11 @@ import std.conv;
 
 import core.stdc.stdlib;
 
+/**
+ *	config.d - Configuration framework for the application
+ */
+
+// Default configs for the app
 public static enum Options : string {
 	DeviceUUID 			= "device-uuid",
 	LoadOnBoot 			= "launch-at-startup",
@@ -23,44 +28,56 @@ public static enum Options : string {
 
 public static shared class Configuration {
 
+	// Loads the configuration
 	static void load() {
+		// If config doesn't exist or we need to --reconfigure, generate a clean config file
 		if(!exists(appConfigPath ~ CONFIG_PATH) || hasArg("--reconfigure")) {
 			firstTime = true;
 			logger.info("No existing configuration file, creating one...");
 			populate();
 		}
 
+		// Loads the cfgFile
 		logger.info("Loading " ~ appConfigPath ~ CONFIG_PATH);
 		cfgFile = File(appConfigPath ~ CONFIG_PATH, "r+");
 
+		// Parses each config
 		while(!cfgFile.eof) {
 			parseConfig(cfgFile.readln(), metaOptions);
 		}
 
+		// Closes file
 		cfgFile.close();
+		logger.info("Configuration loaded successfully");
 	}
 
+	// Load plugin config file
 	static bool loadPlugin(string id, string path) {
+		// If the path doesn't exist the plugin wasn't installed properly
 		if(!exists(path)) {
 			logger.critical("No existing configuration file for plugin", id, "! Make sure the plugin was installed properly!");
 			return false;
 		}
 
-		logger.info("Loading " ~ path);
+		// Loads the plugin cfgFile
+		logger.trace("Loading " ~ path);
 		File pluginFile = File(path, "r+");
+		pluginOptions[id] = string[string].init;
 
+		// PArses each config
 		while(!pluginFile.eof) {
-			string source = pluginFile.readln();
-			pluginOptions[id] = string[string].init;
-			parseConfig(source, pluginOptions[id]);
+			parseConfig(pluginFile.readln(), pluginOptions[id]);
 		}
 
+		// Closes file
 		pluginFile.close();
-		logger.info("Finished loading ", path, "config file");
+		logger.trace("Finished loading ", id, "config file");
 		return true;
 	}
 
+	// Saves the configuration
 	static void save() {
+		// Save only if config changed, for optimization
 		if(changed) {
 			cfgFile = File(appConfigPath ~ CONFIG_PATH, "w");
 			foreach(string s; metaOptions.keys) {
@@ -71,35 +88,40 @@ public static shared class Configuration {
 		}
 	}
 
+	// Retrieves a plugin config
 	static T getPluginOption(T)(string id, string data) {
 		return to!(T)(pluginOptions[id][data]);
 	}
 
+	// Retrieves a general config
 	static T getOption(T)(string data) {
 		return to!(T)(metaOptions[data]);
 	}
 
-	static void setOption(T)(string op, T data) {
-		changed = true;
-		metaOptions[op] = to!string(data);
-	}
-
+	// Sets a plugin config
 	static void setPluginOption(T)(string id, string op, T data) {
 		changed = true;
 		pluginOptions[id][op] = to!string(data);
 	}
 
+	// Sets a general config
+	static void setOption(T)(string op, T data) {
+		changed = true;
+		metaOptions[op] = to!string(data);
+	}
+
+	// Parses a plugin configuration for Lua scripts
 	static string parsePlugin(string id) {
 		string parsedConfig;
-		logger.info("Parsing config options for plugin ", id);
+		logger.trace("Parsing config options for plugin ", id);
 		foreach(opt ; pluginOptions[id].keys) {
-			logger.trace(opt, ": ", pluginOptions[id][opt]);
 			parsedConfig ~= opt ~ ": " ~ pluginOptions[id][opt] ~ ";";
 		}
 
 		return parsedConfig;
 	}
 
+	// Returns if a given arg was passed
 	static bool hasArg(string arg) {
 		foreach(string s; appArgs)
 			if(s == arg)
@@ -108,6 +130,7 @@ public static shared class Configuration {
 		return false;
 	}
 
+	// Retrieves an UUID through an online generator
 	static string retrieveUUID() {
 		try {
 			return cast(string) get("https://www.uuidgenerator.net/api/version4");
@@ -120,6 +143,7 @@ public static shared class Configuration {
 	static string[] appArgs;
 	
 private:
+	// Creates a new config file
 	static void populate() {
 		try {
 			createAppPaths();
@@ -145,12 +169,12 @@ private:
 		cfgFile.close();
 	}
 
+	// Parses one line of config
 	static void parseConfig(string source, ref string[string] buffer) {
 		// Detect comments
 		if(source == [] || source[0] == '#')
 			return;
 
-		
 		// Separates key from value
 		string[] text = chomp(source).split(": ");
 		logger.trace("Text is \"", text, "\"");

@@ -19,16 +19,16 @@ import std.math;
 import std.process;
 import std.conv;
 
-extern (C) nothrow
+extern (C)
 {
 	// These are for control of termination
 	// druntime rt.critical_
 	// TODO: Investigate what these do and if they're needed
-	void _d_critical_term();
+	//void _d_critical_term();
 	// druntime rt.monitor_
-	void _d_monitor_staticdtor();
+	//void _d_monitor_staticdtor();
 
-	void gc_term();
+	//void gc_term();
 
 	alias int pid_t;
 
@@ -44,26 +44,31 @@ extern (C) nothrow
 	char* strerror(int errnum) pure;
 }
 
-extern (C) nothrow void signalHandler(int signal) {
-	//logger.info("Signal: ", signal);
+// Signal handler for the daemon
+extern (C) void signalHandler(int signal) {
+	logger.info("Signal: ", signal);
 	shouldExit = true;
 }
 
 bool shouldExit = false;
 
+// Checks for existance of the lock file
 bool lockFileExists() {
 	return exists(appConfigPath() ~ LOCK_PATH);
 }
 
+// Generates lock file
 void makeLockFile() {
 	File lockF = File(appConfigPath() ~ LOCK_PATH, "w");
 	lockF.close();
 }
 
+// Deletes lock file
 void deleteLockFile() {
 	remove(appConfigPath() ~ LOCK_PATH);
 }
 
+// Gets the delay in miliseconds from the config file
 int getMsecsDelay() {
 	return cast(int) round(Configuration.getOption!(float)(Options.CommDelay) * 1000);
 }
@@ -106,7 +111,7 @@ pid_t daemonize() {
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
-	// Daemon process finished; we return it' pid now
+	// Daemon process finished; we return it's pid now
 	return pid;
 }
 
@@ -143,7 +148,8 @@ int main(string[] args) {
 
 	// Main loop
 	while(!shouldExit) {
-		logger.info(pluginRunner.query());
+		string[] query = pluginRunner.query();
+		logger.trace(query);
 
 		Thread.sleep(getMsecsDelay.dur!"msecs");
 	}

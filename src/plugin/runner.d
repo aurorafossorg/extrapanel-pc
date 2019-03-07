@@ -12,56 +12,58 @@ import util.paths;
 import util.config;
 import util.logger;
 
+/**
+ *	runner.d - Struct holding the Lua VM responsible for running plugins
+ */
+
 public class PluginRunner {
 	this(string[] plugins) {
-		// Loads Lua
-		lua = luaL_newstate();
-		luaL_openlibs(lua);
-		logger.info("Lua state created");
-
 		// Performs initial setup of all plugins
-		this.activePlugins = plugins;
-		logger.info(activePlugins.length, " active plugins, activating them...");
+		logger.info(plugins.length, " plugins supplied, activating them...");
 		int loadedPlugins;
 		foreach(plugin; plugins) {
+			// Inits the Lua state for each plugin
+			lua_State* lua = luaL_newstate();
+			luaL_openlibs(lua);
+			logger.info("[", plugin, "] Lua state created");
+			
+
 			// Obtains config path for current plugin
 			string path = pluginRootPath(plugin);
-			logger.trace("path built: ", path);
-			logger.trace("config path: ", buildPath(path, "config.cfg"));
+			logger.trace("[", plugin, "] Path built: ", path);
 			if (!Configuration.loadPlugin(plugin, buildPath(path, "config.cfg"))) {
-				logger.critical("No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!");
+				logger.critical("[", plugin, "] No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!");
+				lua_close(lua);
 				continue;
 			}
-			logger.trace("Configuration loaded successfully.");
+			logger.trace("[", plugin, "] Configuration loaded successfully.");
 
 			// Parses config for Lua
 			string parsedConfig = Configuration.parsePlugin(plugin);
-			logger.trace("Configuration parsed successfully: ", parsedConfig);
+			logger.trace("[", plugin, "] Configuration parsed successfully: ", parsedConfig);
 
 			// Loads Lua script and calls setup()
-			if(luaL_loadfile(lua, buildPath(path, "main.lua").toStringz)) {
-				logger.critical("Failed to load Lua script for ", plugin, "!");
+			if(luaL_dofile(lua, buildPath(path, "main.lua").toStringz)) {
+				logger.critical("[", plugin, "] Failed to load Lua script for ", plugin, "! Error: ", lua_tostring(lua, -1));
+				lua_close(lua);
 				continue;
 			}
-			logger.trace("Script loaded successfully");
-
-			// Prime Lua script
-			if(lua_pcall(lua, 0, 0, 0)) {
-				logger.critical("Failed to prime Lua script for plugin ", plugin, "!");
-				continue;
-			}
-			logger.trace("Script primed successfully");
+			logger.trace("[", plugin, "] Script loaded successfully");
 
 			// Push parsedConfig and calls setup
-			lua_getglobal(lua, (plugin ~ "_setup").toStringz);
+			lua_getglobal(lua, ("setup").toStringz);
 			lua_pushstring(lua, parsedConfig.toStringz);
 
 			if(lua_pcall(lua, 1, 0, 0)) {
-				logger.critical("setup() call failed for plugin ", plugin, "!");
+				logger.critical("[", plugin, "] setup() call failed for plugin ", plugin, "! Error: ", lua_tostring(lua, -1));
+				lua_close(lua);
 				continue;
 			}
+			logger.trace("[", plugin, "] setup() executed successfully");
 
-			logger.info("Plugin ", plugin, " has loaded successfully.");
+			// Plugin loaded successfully
+			logger.info("[", plugin, "] Plugin ", plugin, " has loaded successfully.");
+			activePlugins[plugin] = lua;
 			loadedPlugins++;
 		}
 
@@ -69,35 +71,45 @@ public class PluginRunner {
 	}
 
 	~this() {
-		lua_close(lua);
-		logger.info("Lua state closed");
+		// Closes all Lua states
+		foreach(lua; activePlugins.values) {
+			lua_close(lua);
+		}
+		logger.info("Lua states closed");
 	}
 
+	// Performs a query() call for each plugin
 	string[] query() {
 		string[] buffer;
-		foreach(plugin; activePlugins) {
-			lua_getglobal(lua, (plugin ~ "_query").toStringz);
+		foreach(plugin; activePlugins.keys) {
+			// Pushes the query() method on the stack
+			lua_getglobal(activePlugins[plugin], ("query").toStringz);
 
-			if(lua_pcall(lua, 0, 1, 0)) {
-				logger.critical("query() call failed for plugin ", plugin, "!");
+			// Calls query()
+			if(lua_pcall(activePlugins[plugin], 0, 1, 0)) {
+				logger.critical("[", plugin, "] query() call failed for plugin ", plugin, "! Error: ", lua_tostring(activePlugins[plugin], -1));
 				continue;
 			}
 
-			buffer ~= to!string(lua_tostring(lua, -1).fromStringz);
+			// Return query() result and empties stack (to prevent memleaks/stackoverflow)
+			buffer ~= to!string(lua_tostring(activePlugins[plugin], -1).fromStringz);
+			lua_settop(activePlugins[plugin], 0);
 		}
 
 		return buffer;
 	}
 
+	// Performs an update() call for a specific plugin
 	void update(string plugin, string data) {
-		lua_getglobal(lua, (plugin ~ "_update").toStringz);
+		// Pushes the update() method on the stack 
+		lua_getglobal(activePlugins[plugin], ("update").toStringz);
 
-		if(lua_pcall(lua, 1, 0, 0)) {
-				logger.critical("update() call failed for plugin ", plugin, "!");
+		// Calls update()
+		if(lua_pcall(activePlugins[plugin], 1, 0, 0)) {
+				logger.critical("[", plugin, "] update() call failed for plugin ", plugin, "! Error: ", lua_tostring(activePlugins[plugin], -1));
 		}
 	}
 
 private:
-	lua_State* lua;
-	string[] activePlugins;
+	lua_State*[string] activePlugins;
 }

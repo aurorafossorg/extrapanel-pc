@@ -1,9 +1,11 @@
 module extrapanel.app;
 
-import util.util : createTrayMenu;
 import util.config;
 import util.logger;
 import util.paths;
+
+import plugin.plugin;
+import plugin.browser;
 
 // STD
 import std.stdio;
@@ -44,6 +46,7 @@ import gtk.ToggleButton;
 import gtk.StatusIcon;
 import gtk.Menu;
 import gtk.SpinButton;
+import gtk.TreeView;
 
 // Top level
 import gio.Application : GApplication = Application;
@@ -56,7 +59,11 @@ import gio.MenuItem : GMenuItem = MenuItem;
 import gdkpixbuf.Pixbuf;
 import gdkpixbuf.PixbufLoader;
 
+/**
+ *	app.d - Main UI manager for the app
+ */
 
+// TODO - Dirty debug code, refactor with development of communication
 enum State {
 	Online,
 	Offline,
@@ -75,6 +82,7 @@ public:
 	/// Constructor
 	this()
 	{
+		// Loads configuration and sets callbacks
 		Configuration.load();
 		ApplicationFlags flags = ApplicationFlags.FLAGS_NONE;
 		super("org.aurorafoss.extrapanel", flags);
@@ -86,10 +94,10 @@ public:
 	}
 
 private:
-	StatusIcon iconTest;
-
+	// App activated
 	void onAppActivate(GApplication app) {
 		logger.trace("Activate App Signal");
+		// Detect if there are other instances of this app running
 		if (!app.getIsRemote() && window is null)
 		{
 			// Loads the UI files
@@ -149,6 +157,12 @@ private:
 			Button wifiButton, bluetoothButton, usbButton;
 			Label uuidLabel;
 		Stack pluginsInterface;
+			Stack pPluginsInterface;
+				TreeView pPluginsTreeView;
+			Stack pPacksInterface;
+				TreeView pPacksTreeView;
+			Stack pInstalledInterface;
+				TreeView pInstalledTreeView;
 		Stack configInterface;
 			ScrolledWindow cGeneralInterface;
 				CheckButton cgOpenAppStartup;
@@ -160,7 +174,8 @@ private:
 					CheckButton ccbEnableCheck;
 				Box ccUsbInterface;
 					CheckButton ccuEnableCheck;
-			Box cPluginsInterface;
+			ScrolledWindow cPluginsInterface;
+				Box cpPanels;
 			Box cDevicesInterface;
 
 
@@ -203,6 +218,12 @@ private:
 		mainInterface = cast(Stack) builder.getObject("mainInterface");
 		generalInterface = cast(Box) builder.getObject("generalInterface");
 		pluginsInterface = cast(Stack) builder.getObject("pluginsInterface");
+		pPluginsInterface = cast(Stack) builder.getObject("pPluginsInterface");
+		pPluginsTreeView = cast(TreeView) builder.getObject("pPluginsTreeView");
+		pPacksInterface = cast(Stack) builder.getObject("pPacksInterface");
+		pPacksTreeView = cast(TreeView) builder.getObject("pPacksTreeView");
+		pInstalledInterface = cast(Stack) builder.getObject("pInstalledInterface");
+		pInstalledTreeView = cast(TreeView) builder.getObject("pInstalledTreeView");
 		configInterface = cast(Stack) builder.getObject("configInterface");
 		cGeneralInterface = cast(ScrolledWindow) builder.getObject("cGeneralInterface");
 		cgOpenAppStartup = cast(CheckButton) builder.getObject("cgOpenAppStartup");
@@ -214,31 +235,33 @@ private:
 		ccbEnableCheck = cast(CheckButton) builder.getObject("ccbEnableCheck");
 		ccUsbInterface = cast(Box) builder.getObject("ccUsbInterface");
 		ccuEnableCheck = cast(CheckButton) builder.getObject("ccuEnableCheck");
-		cPluginsInterface = cast(Box) builder.getObject("cPluginsInterface");
+		cPluginsInterface = cast(ScrolledWindow) builder.getObject("cPluginsInterface");
+		cpPanels = cast(Box) builder.getObject("cpPanels");
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
-
-		/*iconTest = new StatusIcon("input-mouse");
-		iconTest.setTooltipText("Extra Panel is running...");
-		iconTest.addOnPopupMenu(&sysTrayMenu);*/
 	}
 
 	void updateElements()
 	{
+		// Defines the communication statuses
 		wifiState = Configuration.getOption!(bool)(Options.WiFiEnabled) ? State.Offline : State.Disabled;
 		bluetoothState = Configuration.getOption!(bool)(Options.BluetoothEnabled) ? State.Offline : State.Disabled;
 		usbState = Configuration.getOption!(bool)(Options.UsbEnabled) ? State.Offline : State.Disabled;
 
+		// Config - Communication Checkboxes
 		ccwEnableCheck.setActive(Configuration.getOption!(bool)(Options.WiFiEnabled));
 		ccbEnableCheck.setActive(Configuration.getOption!(bool)(Options.BluetoothEnabled));
 		ccuEnableCheck.setActive(Configuration.getOption!(bool)(Options.UsbEnabled));
 
+		// UUID
 		cgOpenAppStartup.setActive(Configuration.getOption!(bool)(Options.LoadOnBoot));
 		uuidLabel.setLabel("UUID: " ~ Configuration.getOption!(string)(Options.DeviceUUID));
 
+		// Update UI state for communication
 		setConnectionButtonState(wifiButton, wifiState);
 		setConnectionButtonState(bluetoothButton, bluetoothState);
 		setConnectionButtonState(usbButton, usbState);
 
+		// Callbacks
 		generalBar.addOnRowActivated(&sidebarOnChange);
 		pluginsBar.addOnRowActivated(&sidebarOnChange);
 		configBar.addOnRowActivated(&sidebarOnChange);
@@ -253,8 +276,11 @@ private:
 		ccbEnableCheck.addOnToggled(&ccEnableBoxes);
 		ccuEnableCheck.addOnToggled(&ccEnableBoxes);
 
+		cPluginsInterface.addOnMap(&cpLoadPlugins);
+
 		backButton.addOnClicked(&backButtonCallback);
 
+		// Queries the state of the daemon
 		currentStatus = queryDaemon();
 		updateMetaElements();
 	}
@@ -367,12 +393,6 @@ private:
 		}
 	}
 
-	/*void sysTrayMenu(uint btn, uint timestamp, StatusIcon icon)
-	{
-		Menu menu = createTrayMenu();
-		menu.popupAtPointer(null);
-	}*/
-
 	bool updateDaemonStatus() {
 		bool newStatus = queryDaemon();
 		if(currentStatus != newStatus) {
@@ -394,5 +414,17 @@ private:
 
 	bool queryDaemon() {
 		return exists(appConfigPath ~ LOCK_PATH);
+	}
+
+	void cpLoadPlugins(Widget w) {
+		logger.trace("Showed up");
+
+		string[] ids = getInstalledPlugins();
+
+		// Empty the container
+		cpPanels.removeAll();
+		foreach(id; ids) {
+			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder, window);
+		}
 	}
 }

@@ -11,32 +11,42 @@ import gtk.Main;
 import app.app;
 import util.config;
 import util.logger;
+import util.util;
 
 string pkgdatadir = "@pkgdatadir@";
 string builddatadir = "@builddatadir@";
 
+/**
+ *  main.d - Main entrypoint for the application
+ */
+
 void main (string[] args)
 {
-    // Init logger
+    // Inits logger
     initLogger();
 
-    writeln("Starting extrapanel...");
+    logger.trace("Starting extrapanel...");
 
+    // Remove app args from the array (GTK doesn't like custom args)
     string[] parsedArgs;
     foreach(arg; args) {
-        if(arg == "--reconfigure") {
+        if(arg == Args.RECONFIGURE) {
 
         } else {
             parsedArgs ~= arg;
         }
     }
 
+
+    // Load the UI resources
     Resource resource;
     try {
+        // Try to load from build path, if it exists
         resource = Resource.load(buildPath(builddatadir,
                                             "org.aurorafoss.extrapanel.gresource"));
         logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
     } catch(GException e) {
+        // Try to load from install path
         logger.info("No local gresource file found, assuming it's installed...");
         try {
             resource = Resource.load(buildPath(pkgdatadir,
@@ -50,8 +60,10 @@ void main (string[] args)
         Resource.register(resource);
     }
 
+    // Save the args for global usage
     Configuration.appArgs ~= args;
 
+    // Start UI
     Main.init(parsedArgs);
     auto app = new ExtraPanelGUI();
     app.run(parsedArgs);

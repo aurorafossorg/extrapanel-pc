@@ -7,5 +7,10 @@ build.ninja
 /data/ui/#window.ui#
 /data/ui/window.ui~
 
+
 /data/conf
 /data/structure
+
+# Debug files
+*.log
+*.out

@@ -1,15 +1,66 @@
 module extrapanel.plugin;
 
+import std.json;
+import util.paths;
+import std.path;
+import std.file;
+
+import util.logger;
+
+/**
+ *	plugin.d - General plugin code for the app
+ */
+
+// Type of content to show
+enum Type {
+	Plugin,
+	Pack,
+	Installed
+}
+
+// Class holding all plugin important info
 class PluginInfo {
-	this(string id, string name, string description, string icon, string strVersion, immutable string[] authors) {
+	// Constructor with all fields
+	this(string id, string name, string description, string icon, string strVersion, string url,
+			string[] authors = ["unknown"], string repoUrl = "unspecified") {
+		// Required fields
 		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.icon = icon;
 		this.strVersion = strVersion;
+		this.url = url;
+
+		// Optional fields
 		this.authors = authors;
+		this.repoUrl = url;
+
 	}
 
-	immutable string id, name, description, icon, strVersion;
-	immutable string[] authors;
+	// Constructor with path to load from meta.json
+	this(string id) {
+		JSONValue j = parseJSON(readText(buildPath(pluginRootPath(id), "meta.json")));
+
+		// Required fields
+		this.id = j["id"].str;
+		this.name = j["name"].str;
+		this.description = j["description"].str;
+		this.icon = j["icon"].str;
+		this.strVersion = j["version"].str;
+		this.url = j["url"].str;
+
+		// Optional fields
+		//this.authors = "authors" in j ? (j["authors"].array).str : ["unknown"];
+		this.repoUrl = "repoUrl" in j ? j["repoUrl"].str : "unspecified";
+
+		logger.trace(this.id);
+		logger.trace(this.name);
+		logger.trace(this.description);
+		logger.trace(this.icon);
+		logger.trace(this.strVersion);
+		logger.trace(this.url);
+	}
+
+	immutable string id, name, description, icon, strVersion, url, repoUrl;
+	string[] authors;
 }

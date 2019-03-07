@@ -9,19 +9,8 @@ import gtk.CheckMenuItem;
 
 import std.stdio;
 
-public static Menu createTrayMenu() {
-	Menu menu = new Menu();
+public static immutable int MARGIN_DEFAULT = 10;	// UI default
 
-	MenuItem item = new MenuItem("Open config panel");
-	SeparatorMenuItem sep = new SeparatorMenuItem();
-	menu.append(item);
-	menu.append(sep);
-
-	item = new MenuItem("Enable");
-	menu.append(item);
-
-	item = new MenuItem("Exit");
-	menu.append(item);
-	menu.showAll();
-	return menu;
+public static immutable enum Args : string {
+	RECONFIGURE = "--reconfigure"	// Force the app to regenereate the configuration file
 }
