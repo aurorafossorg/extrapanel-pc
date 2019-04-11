@@ -17,6 +17,7 @@ uiSources += ['src/app/app.d',
             'src/plugin/browser.d',
             'src/util/util.d',
             'src/util/config.d',
+            'src/util/exception.d',
             'src/util/paths.d',
             'src/util/logger.d',
             generated_main]

@@ -276,7 +276,8 @@ private:
 		ccbEnableCheck.addOnToggled(&ccEnableBoxes);
 		ccuEnableCheck.addOnToggled(&ccEnableBoxes);
 
-		cPluginsInterface.addOnMap(&cpLoadPlugins);
+		//cPluginsInterface.addOnMap(&cpLoadPlugins);
+		cpLoadPlugins();
 
 		backButton.addOnClicked(&backButtonCallback);
 
@@ -416,13 +417,13 @@ private:
 		return exists(appConfigPath ~ LOCK_PATH);
 	}
 
-	void cpLoadPlugins(Widget w) {
+	void cpLoadPlugins() {
 		logger.trace("Showed up");
 
 		string[] ids = getInstalledPlugins();
 
 		// Empty the container
-		cpPanels.removeAll();
+		//cpPanels.removeAll();
 		foreach(id; ids) {
 			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder, window);
 		}

@@ -7,6 +7,7 @@ import plugin.plugin;
 import util.paths;
 import util.logger;
 import util.util;
+import util.exception;
 
 import gtk.c.types;
 import pango.c.types;
@@ -21,11 +22,16 @@ import gtk.Label;
 import gtk.Image;
 import gtk.Window;
 import gtk.Separator;
+import gtk.Button;
 
 import pango.PgAttributeList;
 import pango.PgAttribute;
 
+import riverd.lua.statfun;
+import riverd.lua.types;
+
 import std.json;
+import std.string;
 
 /**
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements
@@ -55,6 +61,8 @@ public string[] getInstalledPlugins() {
 	return ids;
 }
 
+ScriptRunner runner = null;
+
 // Populates GTK elements with the info of plugins depending on the type of info to display
 public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder, Window window) {
 	switch(temp) {
@@ -66,6 +74,9 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			break;
 		case Template.ConfigElement:
 			Box configBox = cast(Box) parent;
+
+			if(runner is null)
+				runner = new ScriptRunner();
 
 			// Creates the top level
 			VBox topLevel = new VBox(false, 5);
@@ -82,7 +93,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			// Create a separator
 			Separator sep = new Separator(GtkOrientation.HORIZONTAL);
 
-			// Adds elements to the header: the plugin's logo and title
+			// Adds elements to the header: the plugin's logo, title and info button
 			// Logo
 			string logoPath = buildPath(pluginRootPath(info.id), info.icon);
 			Image logo = new Image(logoPath);
@@ -93,14 +104,28 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			attribs.change(PgAttribute.weightNew(PangoWeight.BOLD));
 			title.setAttributes(attribs);
 
+			// Info Button
+			Button btInfo = new Button("Info");
+			btInfo.setHalign(GtkAlign.END);
+
 			Box configPanel;
 			// Loads the configuration menu, if it exists
 			try {
-				builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-				configPanel = cast(Box) builder.getObject("configWindow");
+				/*builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
+				logger.trace(info.id ~ "_configWindow");
+				Box configPanelOld = cast(Box) builder.getObject(info.id ~ "_configWindow");
+				logger.trace(configPanelOld);
+				logger.trace("Config panel added");*/
+				configPanel = new Box(runner.run(pluginRootPath(info.id)));
 				logger.trace(configPanel);
+			} catch(FileNotFoundException e) {
+				builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
+				logger.trace(info.id ~ "_configWindow");
+				Box configPanelOld = cast(Box) builder.getObject(info.id ~ "_configWindow");
+				logger.trace(configPanelOld);
 				logger.trace("Config panel added");
 			} catch(Exception e) {
+				logger.trace("Error caught: ", e.msg);
 				logger.warning("[", info.id, "] No config UI found.");
 
 				configPanel = new Box(GtkOrientation.VERTICAL, 5);
@@ -111,19 +136,22 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 				nothingFound.setAttributes(tempAttribs);
 				configPanel.packStart(nothingFound, true, false, 0);
 			}
-
 			// Packs all the elements
 			headerInfo.packStart(logo, true, false, 0);
 			headerInfo.packStart(title, true, false, 0);
+			//headerInfo.packStart(btInfo, true, false, 0);
 			logger.trace("headerInfo packed");
 
 			topLevel.packStart(headerInfo, true, false, 0);
 			topLevel.packStart(sep, true, false, 0);
+			logger.trace("about to crash");
 			topLevel.packStart(configPanel, true, false, 0);
 			logger.trace("topLevel packed");
 
 			configBox.packStart(topLevel, true, false, 0);
 			configBox.showAll();
+			// Runs ui script
+
 			logger.trace("configBox packed");
 			break;
 		default:
@@ -136,3 +164,52 @@ public static void addPlugin(PluginInfo info) {}
 
 // Removes plugin from the local system
 public static void removePlugin(PluginInfo info) {}
+
+public class ScriptRunner {
+public:
+	GtkBox* run(string script) {
+		// Create Lua state
+		lua_State* luaState = luaL_newstate();
+		luaL_openlibs(luaState);
+		logger.trace("[", script, "] Lua state created");
+
+		// Loads Lua script and calls connect()
+		string path = buildPath(script, "ui.lua");
+		logger.trace("path: ", path);
+		if(!exists(path)) {
+			lua_close(luaState);
+			throw new FileNotFoundException(path);
+		}
+
+		if(luaL_loadfile(luaState, path.toStringz)) {
+			logger.critical("[", script, "] Failed to load Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
+			lua_close(luaState);
+			throw new ScriptExecutionException(path, "main");
+		}
+
+		lua_pushstring(luaState, buildPath(script, "configMenu.ui").toStringz);
+		if(lua_pcall(luaState, 1, LUA_MULTRET, 0)) {
+			logger.critical("[", script, "] Failed to load Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
+			lua_close(luaState);
+			throw new ScriptExecutionException(path, "main");
+		}
+
+		logger.trace("1st dump:");
+		stackDump(luaState);
+		GtkBox* configBox = cast(GtkBox*) lua_touserdata(luaState, -1);
+
+		logger.trace("[", script, "] Script loaded successfully");
+
+		scripts[script] = luaState;
+		return configBox;
+	}
+
+	~this() {
+		foreach(luaState; scripts.values) {
+			lua_close(luaState);
+		}
+	}
+
+private:
+	lua_State*[string] scripts;
+}
