@@ -176,6 +176,8 @@ private:
 					CheckButton ccuEnableCheck;
 			ScrolledWindow cPluginsInterface;
 				Box cpPanels;
+				Button cpLocalInstall;
+				Button cpLocalFolder;
 			Box cDevicesInterface;
 
 
@@ -237,6 +239,8 @@ private:
 		ccuEnableCheck = cast(CheckButton) builder.getObject("ccuEnableCheck");
 		cPluginsInterface = cast(ScrolledWindow) builder.getObject("cPluginsInterface");
 		cpPanels = cast(Box) builder.getObject("cpPanels");
+		cpLocalInstall = cast(Button) builder.getObject("cpLocalInstall");
+		cpLocalFolder = cast(Button) builder.getObject("cpLocalFolder");
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
 	}
 
@@ -262,6 +266,9 @@ private:
 		setConnectionButtonState(usbButton, usbState);
 
 		// Callbacks
+		startButton.addOnClicked(&startButtonCallback);
+		stopButton.addOnClicked(&stopButtonCallback);
+
 		generalBar.addOnRowActivated(&sidebarOnChange);
 		pluginsBar.addOnRowActivated(&sidebarOnChange);
 		configBar.addOnRowActivated(&sidebarOnChange);
@@ -276,8 +283,8 @@ private:
 		ccbEnableCheck.addOnToggled(&ccEnableBoxes);
 		ccuEnableCheck.addOnToggled(&ccEnableBoxes);
 
-		//cPluginsInterface.addOnMap(&cpLoadPlugins);
 		cpLoadPlugins();
+		cpLocalFolder.addOnClicked(&cpLocalFolderCallback);
 
 		backButton.addOnClicked(&backButtonCallback);
 
@@ -324,6 +331,14 @@ private:
 			default:
 				break;
 		}
+	}
+
+	void startButtonCallback(Button b) {
+
+	}
+
+	void stopButtonCallback(Button b) {
+
 	}
 
 	void communicationButtonCallback(Button b) {
@@ -423,9 +438,15 @@ private:
 		string[] ids = getInstalledPlugins();
 
 		// Empty the container
-		//cpPanels.removeAll();
 		foreach(id; ids) {
 			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder, window);
 		}
+	}
+
+	void cpLocalFolderCallback(Button b) {
+		string path = "file:///" ~ pluginRootPath();
+		logger.trace("path: ", path);
+		import gio.AppInfoIF;
+		AppInfoIF.launchDefaultForUri(path, null);
 	}
 }

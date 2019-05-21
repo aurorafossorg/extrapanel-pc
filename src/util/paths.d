@@ -28,6 +28,9 @@ public static string appConfigPath() {
 }
 
 // Returns the installed plugin path based on it's id
-public static string pluginRootPath(string pluginID) {
-	return buildPath(appConfigPath(), "plugins", pluginID ~ "/");
+public static string pluginRootPath(string pluginID = null) {
+	if(pluginID == null)
+		return buildPath(appConfigPath(), "plugins");
+	else
+		return buildPath(appConfigPath(), "plugins", pluginID ~ "/");
 }

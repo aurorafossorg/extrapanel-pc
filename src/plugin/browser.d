@@ -119,22 +119,23 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 				configPanel = new Box(runner.run(pluginRootPath(info.id)));
 				logger.trace(configPanel);
 			} catch(FileNotFoundException e) {
-				builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-				logger.trace(info.id ~ "_configWindow");
-				Box configPanelOld = cast(Box) builder.getObject(info.id ~ "_configWindow");
-				logger.trace(configPanelOld);
-				logger.trace("Config panel added");
-			} catch(Exception e) {
-				logger.trace("Error caught: ", e.msg);
-				logger.warning("[", info.id, "] No config UI found.");
+				try {
+					builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
+					logger.trace(info.id ~ "_configWindow");
+					configPanel = cast(Box) builder.getObject(info.id ~ "_configWindow");
+					logger.trace("Config panel added");
+				} catch(Exception e) {
+					logger.trace("Error caught: ", e.msg);
+					logger.warning("[", info.id, "] No config UI found.");
 
-				configPanel = new Box(GtkOrientation.VERTICAL, 5);
-				Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
-				PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
-				tempAttribs.change(PgAttribute.styleNew(PangoStyle.ITALIC));
-				tempAttribs.change(PgAttribute.foregroundNew(0xaaaa, 0xaaaa, 0xaaaa));
-				nothingFound.setAttributes(tempAttribs);
-				configPanel.packStart(nothingFound, true, false, 0);
+					configPanel = new Box(GtkOrientation.VERTICAL, 5);
+					Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
+					PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
+					tempAttribs.change(PgAttribute.styleNew(PangoStyle.ITALIC));
+					tempAttribs.change(PgAttribute.foregroundNew(0xaaaa, 0xaaaa, 0xaaaa));
+					nothingFound.setAttributes(tempAttribs);
+					configPanel.packStart(nothingFound, true, false, 0);
+				}
 			}
 			// Packs all the elements
 			headerInfo.packStart(logo, true, false, 0);
@@ -144,13 +145,11 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 
 			topLevel.packStart(headerInfo, true, false, 0);
 			topLevel.packStart(sep, true, false, 0);
-			logger.trace("about to crash");
 			topLevel.packStart(configPanel, true, false, 0);
 			logger.trace("topLevel packed");
 
 			configBox.packStart(topLevel, true, false, 0);
 			configBox.showAll();
-			// Runs ui script
 
 			logger.trace("configBox packed");
 			break;

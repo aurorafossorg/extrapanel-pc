@@ -3,6 +3,7 @@ module extrapanel.runner;
 import std.path;
 import std.string;
 import std.conv;
+import std.file;
 
 import riverd.lua.statfun;
 import riverd.lua.types;
@@ -17,26 +18,33 @@ import util.logger;
  */
 
 public class PluginRunner {
+	this() {
+		string[] plugins;
+		foreach(string dir; dirEntries(buildPath(appConfigPath, PLUGIN_BASE_PATH), SpanMode.shallow)) {
+			plugins ~= dir;
+		}
+
+		this(plugins);
+	}
+
 	this(string[] plugins) {
 		// Performs initial setup of all plugins
 		logger.info(plugins.length, " plugins supplied, activating them...");
 		int loadedPlugins;
 		foreach(plugin; plugins) {
-			// Inits the Lua state for each plugin
-			lua_State* lua = luaL_newstate();
-			luaL_openlibs(lua);
-			logger.info("[", plugin, "] Lua state created");
-			
-
 			// Obtains config path for current plugin
 			string path = pluginRootPath(plugin);
 			logger.trace("[", plugin, "] Path built: ", path);
 			if (!Configuration.loadPlugin(plugin, buildPath(path, "config.cfg"))) {
 				logger.critical("[", plugin, "] No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!");
-				lua_close(lua);
 				continue;
 			}
 			logger.trace("[", plugin, "] Configuration loaded successfully.");
+
+			// Inits the Lua state for each plugin
+			lua_State* lua = luaL_newstate();
+			luaL_openlibs(lua);
+			logger.info("[", plugin, "] Lua state created");
 
 			// Parses config for Lua
 			string parsedConfig = Configuration.parsePlugin(plugin);
@@ -87,7 +95,7 @@ public class PluginRunner {
 
 			// Calls query()
 			if(lua_pcall(activePlugins[plugin], 0, 1, 0)) {
-				logger.critical("[", plugin, "] query() call failed for plugin ", plugin, "! Error: ", lua_tostring(activePlugins[plugin], -1));
+				logger.critical("[", plugin, "] query() call failed for plugin ", plugin, "! Error: ", lua_tostring(activePlugins[plugin], -1).fromStringz);
 				continue;
 			}
 

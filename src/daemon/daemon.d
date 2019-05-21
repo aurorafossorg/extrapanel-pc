@@ -144,7 +144,7 @@ int main(string[] args) {
 	signal(SIGTERM, &signalHandler);
 
 	// Setup our plugin runner
-	pluginRunner = new PluginRunner(["brightctrl", "volumectrl", "clock"]);
+	pluginRunner = new PluginRunner();
 
 	// Main loop
 	while(!shouldExit) {
