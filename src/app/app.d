@@ -155,6 +155,7 @@ public:
 	// Main Interface
 	Stack mainInterface;
 		Box generalInterface;
+			Label pluginsLabel;
 			Button wifiButton, bluetoothButton, usbButton;
 			Label uuidLabel;
 		Stack pluginsInterface;
@@ -218,6 +219,7 @@ public:
 		status = cast(Label) builder.getObject("status");
 
 		// General Tab Elements
+		pluginsLabel = cast(Label) builder.getObject("pluginsLabel");
 		wifiButton = cast(Button) builder.getObject("wifiButton");
 		bluetoothButton = cast(Button) builder.getObject("bluetoothButton");
 		usbButton = cast(Button) builder.getObject("usbButton");
@@ -510,6 +512,8 @@ public:
 		logger.trace("Showed up");
 
 		string[] ids = getInstalledPlugins();
+
+		pluginsLabel.setLabel("Plugins: " ~ to!string(ids.length));
 
 		// Empty the container
 		foreach(id; ids) {
