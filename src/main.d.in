@@ -20,6 +20,8 @@ string builddatadir = "@builddatadir@";
  *  main.d - Main entrypoint for the application
  */
 
+static ExtraPanelGUI xPanelApp;
+
 void main (string[] args)
 {
     // Inits logger
@@ -65,6 +67,6 @@ void main (string[] args)
 
     // Start UI
     Main.init(parsedArgs);
-    auto app = new ExtraPanelGUI();
-    app.run(parsedArgs);
+    xPanelApp = new ExtraPanelGUI();
+    xPanelApp.run(parsedArgs);
 }

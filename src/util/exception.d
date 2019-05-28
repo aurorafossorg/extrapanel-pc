@@ -1,4 +1,4 @@
-module pc.src.util.exception;
+module util.exception;
 
 public class FileNotFoundException : Exception {
 	this(string msg) {

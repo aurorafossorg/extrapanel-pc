@@ -1,4 +1,4 @@
-module extrapanel.wifi;
+module connection.wifi;
 
 import connection.boilerplate;
 import plugin.plugin;

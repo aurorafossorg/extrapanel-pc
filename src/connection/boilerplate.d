@@ -1,4 +1,4 @@
-module extrapanel.boilerplate;
+module connection.boilerplate;
 
 import plugin.plugin : PluginInfo;
 

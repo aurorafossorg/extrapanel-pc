@@ -1,4 +1,4 @@
-module extrapanel.usb;
+module connection.usb;
 
 import connection.boilerplate;
 import plugin.plugin;

@@ -1,4 +1,4 @@
-module extrapanel.tray;
+module tray.tray;
 
 import gtk.Menu;
 import gtk.MenuItem;
@@ -44,6 +44,7 @@ private:
 		trayIcon = new StatusIcon("input-mouse");
 		trayIcon.setTooltipText("Extra Panel is running...");
 		trayIcon.addOnPopupMenu(toDelegate(&createPopupMenu));
+		trayIcon.addOnActivate(toDelegate(&openMainAppStatusIcon));
 	}
 }
 
@@ -58,7 +59,7 @@ public Menu createTrayMenu() {
 	Menu menu = new Menu();
 
 	MenuItem item = new MenuItem("Open config panel");
-	item.addOnActivate(toDelegate(&openMainApp));
+	item.addOnActivate(toDelegate(&openMainAppMenuItem));
 	menu.append(item);
 
 	item = new MenuItem("Exit");
@@ -69,7 +70,11 @@ public Menu createTrayMenu() {
 }
 
 // Opens the main app
-public void openMainApp(MenuItem mi) {
+public void openMainAppStatusIcon(StatusIcon si) {
+	spawnProcess("extrapanel");
+}
+
+public void openMainAppMenuItem(MenuItem mi) {
 	spawnProcess("extrapanel");
 }
 

@@ -2,5 +2,8 @@
 <gresources>
   <gresource prefix="/org/aurorafoss/extrapanel">
     <file>ui/window.ui</file>
+    <file>icons/credits/gitlab-icon.png</file>
+    <file>icons/credits/aurora-icon.png</file>
+    <file>icons/credits/gtk-icon.png</file>
    </gresource>
 </gresources>

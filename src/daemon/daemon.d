@@ -1,4 +1,4 @@
-module extrapanel.daemon;
+module daemon.daemon;
 
 import util.config;
 import util.paths;
@@ -58,8 +58,9 @@ bool lockFileExists() {
 }
 
 // Generates lock file
-void makeLockFile() {
+void makeLockFile(pid_t pid) {
 	File lockF = File(appConfigPath() ~ LOCK_PATH, "w");
+	lockF.write(to!string(pid));
 	lockF.close();
 }
 
@@ -106,6 +107,9 @@ pid_t daemonize() {
 		exit(EXIT_FAILURE);
 	}
 
+	makeLockFile(sid);
+	writeln(sid);
+
 	// Closes file descriptors
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
@@ -130,12 +134,11 @@ int main(string[] args) {
 		return -1;
 	}
 
-	// Makes lock file and loads general config
-	makeLockFile();
-	Configuration.load();
-
 	// Daemonize
-	auto pid = daemonize();
+	int pid = daemonize();
+
+	// Makes lock file and loads general config
+	Configuration.load();
 
 	// Connect signals to signalHandler
 	signal(SIGINT, &signalHandler);

@@ -1,4 +1,4 @@
-module src.connection._debug;
+module connection._debug;
 
 import connection.boilerplate;
 import plugin.plugin;

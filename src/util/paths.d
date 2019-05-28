@@ -1,4 +1,4 @@
-module extrapanel.paths;
+module util.paths;
 
 import std.path;
 import std.file;
@@ -11,6 +11,8 @@ public immutable string CONFIG_PATH = "extrapanel.cfg";
 public immutable string LOCK_PATH = "daemon.lock";
 public immutable string LOG_PATH = "daemonLog.log";
 public immutable string PLUGIN_BASE_PATH = "plugins/";
+
+public immutable string CDN_PATH = "https://dl.aurorafoss.org/aurorafoss/pub/releases/xpanel-plugins/";
 
 // Creates base paths for the app
 public static void createAppPaths() {

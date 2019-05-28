@@ -1,4 +1,4 @@
-module extrapanel.config;
+module util.config;
 
 import util.paths;
 import util.logger;
@@ -55,7 +55,6 @@ public static shared class Configuration {
 	static bool loadPlugin(string id, string path) {
 		// If the path doesn't exist the plugin wasn't installed properly
 		if(!exists(path)) {
-			logger.critical("No existing configuration file for plugin", id, "! Make sure the plugin was installed properly!");
 			return false;
 		}
 

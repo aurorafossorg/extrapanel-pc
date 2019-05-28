@@ -1,4 +1,4 @@
-module extrapanel.util;
+module util.util;
 
 import gtk.Container;
 import gtk.Widget;
@@ -7,10 +7,12 @@ import riverd.lua.statfun;
 import riverd.lua.types;
 
 import std.string;
-
+import std.json;
 import std.stdio;
+import std.conv;
 
 import util.logger;
+import plugin.browser;
 
 public static immutable int MARGIN_DEFAULT = 10;	// UI default
 
@@ -43,4 +45,17 @@ public static void stackDump (lua_State *L) {
 	
 		}
 	}
+}
+
+public static string formatArray(JSONValue[] arr) {
+	string formatedStr;
+	foreach(str; arr) {
+		formatedStr ~= to!string(str) ~ ", ";
+	}
+
+	return chomp(formatedStr, ", ");
+}
+
+public static string makeURL(string url) {
+	return "<a href=\"" ~ url ~ "\">" ~ url ~ "</a>";
 }

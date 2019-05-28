@@ -1,2 +1,2 @@
-install_subdir ('hicolor',
+install_subdir ('credits',
                 install_dir: icondir)

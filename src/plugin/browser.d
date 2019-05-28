@@ -1,7 +1,9 @@
-module extrapanel.browser;
+module plugin.browser;
 
 import std.path;
 import std.file;
+
+import main;
 
 import plugin.plugin;
 import util.paths;
@@ -23,6 +25,8 @@ import gtk.Image;
 import gtk.Window;
 import gtk.Separator;
 import gtk.Button;
+import gtk.Stack;
+import gobject.Signals;
 
 import pango.PgAttributeList;
 import pango.PgAttribute;
@@ -62,12 +66,31 @@ public string[] getInstalledPlugins() {
 }
 
 ScriptRunner runner = null;
-
 // Populates GTK elements with the info of plugins depending on the type of info to display
-public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder, Window window) {
+public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder) {
 	switch(temp) {
 		case Template.Complete:
+			Box pluginInfoInterface = cast(Box) parent;
 
+			Image pihIcon = cast(Image) builder.getObject("pihIcon");
+			Label pihTitle = cast(Label) builder.getObject("pihTitle");
+			Label pihDescription = cast(Label) builder.getObject("pihDescription");
+			Label piiID = cast(Label) builder.getObject("piiID");
+			Label piiVersion = cast(Label) builder.getObject("piiVersion");
+			Label piiAuthors = cast(Label) builder.getObject("piiAuthors");
+			Label piiURL = cast(Label) builder.getObject("piiURL");
+			Label piiType = cast(Label) builder.getObject("piiType");
+
+			string logoPath = buildPath(pluginRootPath(info.id), info.icon);
+			pihIcon.setFromFile(logoPath);
+			pihTitle.setLabel(info.name);
+			pihDescription.setLabel(info.description);
+
+			piiID.setLabel(info.id);
+			piiVersion.setLabel(info.strVersion);
+			piiAuthors.setLabel(formatArray(info.authors));
+			piiURL.setLabel(makeURL(info.url));
+			piiType.setLabel("Official");
 			break;
 		case Template.ListElement:
 
@@ -88,7 +111,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			// Creates the header info
 			HBox headerInfo = new HBox(false, 5);
 			headerInfo.setHomogeneous(false);
-			headerInfo.setHalign(GtkAlign.START);
+			//headerInfo.setHalign(GtkAlign.START);
 
 			// Create a separator
 			Separator sep = new Separator(GtkOrientation.HORIZONTAL);
@@ -105,17 +128,23 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			title.setAttributes(attribs);
 
 			// Info Button
+			HBox buttonBox = new HBox(true, 2);
+			buttonBox.setHexpand(true);
+			buttonBox.setHalign(GtkAlign.END);
+
 			Button btInfo = new Button("Info");
-			btInfo.setHalign(GtkAlign.END);
+			btInfo.setHalign(GtkAlign.CENTER);
+			btInfo.setValign(GtkAlign.CENTER);
+			xPanelApp.pluginInfoIds[btInfo] = info;
+			btInfo.addOnClicked(&xPanelApp.openPluginInfo);
+
+			Button btUninstall = new Button("Uninstall");
+			btUninstall.setHalign(GtkAlign.CENTER);
+			btUninstall.setValign(GtkAlign.CENTER);
 
 			Box configPanel;
 			// Loads the configuration menu, if it exists
 			try {
-				/*builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-				logger.trace(info.id ~ "_configWindow");
-				Box configPanelOld = cast(Box) builder.getObject(info.id ~ "_configWindow");
-				logger.trace(configPanelOld);
-				logger.trace("Config panel added");*/
 				configPanel = new Box(runner.run(pluginRootPath(info.id)));
 				logger.trace(configPanel);
 			} catch(FileNotFoundException e) {
@@ -138,9 +167,11 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 				}
 			}
 			// Packs all the elements
-			headerInfo.packStart(logo, true, false, 0);
-			headerInfo.packStart(title, true, false, 0);
-			//headerInfo.packStart(btInfo, true, false, 0);
+			headerInfo.packStart(logo, false, false, 0);
+			headerInfo.packStart(title, false, false, 0);
+			buttonBox.packStart(btInfo, true, false, 0);
+			buttonBox.packStart(btUninstall, true, false, 0);
+			headerInfo.packStart(buttonBox, true, true, 0);
 			logger.trace("headerInfo packed");
 
 			topLevel.packStart(headerInfo, true, false, 0);
@@ -193,8 +224,6 @@ public:
 			throw new ScriptExecutionException(path, "main");
 		}
 
-		logger.trace("1st dump:");
-		stackDump(luaState);
 		GtkBox* configBox = cast(GtkBox*) lua_touserdata(luaState, -1);
 
 		logger.trace("[", script, "] Script loaded successfully");

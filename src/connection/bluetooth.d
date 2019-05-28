@@ -1,4 +1,4 @@
-module extrapanel.bluetooth;
+module connection.bluetooth;
 
 import connection.boilerplate;
 import plugin.plugin;

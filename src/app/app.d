@@ -1,4 +1,4 @@
-module extrapanel.app;
+module app.app;
 
 import util.config;
 import util.logger;
@@ -11,6 +11,7 @@ import plugin.browser;
 import std.stdio;
 import std.file;
 import std.conv;
+import std.algorithm.searching;
 
 import core.thread;
 
@@ -47,6 +48,8 @@ import gtk.StatusIcon;
 import gtk.Menu;
 import gtk.SpinButton;
 import gtk.TreeView;
+import gtk.Switch;
+import gtk.Image;
 
 // Top level
 import gio.Application : GApplication = Application;
@@ -71,7 +74,6 @@ enum State {
 }
 
 static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
-Timeout timeout;
 
 static bool currentStatus = false;
 
@@ -90,10 +92,9 @@ public:
 		this.addOnActivate(&onAppActivate);
 		this.addOnShutdown(&onAppDestroy);
 
-		timeout = new Timeout(100, &updateDaemonStatus);
+		Timeout timeout = new Timeout(250, &updateDaemonStatus);
 	}
 
-private:
 	// App activated
 	void onAppActivate(GApplication app) {
 		logger.trace("Activate App Signal");
@@ -179,7 +180,29 @@ private:
 				Button cpLocalInstall;
 				Button cpLocalFolder;
 			Box cDevicesInterface;
+		Box aboutInterface;
+		Box pluginInfoInterface;
+			Box piHeader;
+				Image pihIcon;
+				Label pihTitle;
+				Label pihDescription;
+			Box piInfo;
+				Label piiID;
+				Label piiVersion;
+				Label piiAuthors;
+				Label piiURL;
+				Label piiType;
+				Switch piiActive;
+			Box piActions;
+				Button piaReset;
+				Button piaUninstall;
 
+	// Container for holding plugin ID's associated with buttons
+	// This is a workaround because GtkD has no "clean" way to pass
+	// user data to callbacks, which really annoys me.
+	PluginInfo[Button] pluginInfoIds;
+
+	Widget savedSidebar = null, savedInterface = null;
 
 	// Inits the builder defined elements
 	void initElements()
@@ -242,6 +265,22 @@ private:
 		cpLocalInstall = cast(Button) builder.getObject("cpLocalInstall");
 		cpLocalFolder = cast(Button) builder.getObject("cpLocalFolder");
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
+		aboutInterface = cast(Box) builder.getObject("aboutInterface");
+		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
+		piHeader = cast(Box) builder.getObject("piHeader");
+		pihIcon = cast(Image) builder.getObject("pihIcon");
+		pihTitle = cast(Label) builder.getObject("pihTitle");
+		pihDescription = cast(Label) builder.getObject("pihDescription");
+		piInfo = cast(Box) builder.getObject("piInfo");
+		piiID = cast(Label) builder.getObject("piiID");
+		piiVersion = cast(Label) builder.getObject("piiVersion");
+		piiAuthors = cast(Label) builder.getObject("piiAuthors");
+		piiURL = cast(Label) builder.getObject("piiURL");
+		piiType = cast(Label) builder.getObject("piiType");
+		piiActive = cast(Switch) builder.getObject("piiActive");
+		piActions = cast(Box) builder.getObject("piActions");
+		piaReset = cast(Button) builder.getObject("piaReset");
+		piaUninstall = cast(Button) builder.getObject("piaUninstall");
 	}
 
 	void updateElements()
@@ -341,6 +380,17 @@ private:
 
 	}
 
+	void openPluginInfo(Button button) {
+		PluginInfo info = pluginInfoIds[button];
+		if(info !is null) {
+			logger.trace("Plugin info is: ", info.id);
+			saveCurrentInterface();
+			mainInterface.setVisibleChild(pluginInfoInterface);
+			sidebar.setVisible(false);
+			parseInfo(info, Template.Complete, pluginInfoInterface, builder);
+		}
+	}
+
 	void communicationButtonCallback(Button b) {
 		if(b == wifiButton) {
 			wifiState = wifiState is State.Online ? State.Offline : State.Online;
@@ -365,6 +415,9 @@ private:
 			} else if(lbr == gPluginsOption) {
 					sidebar.setVisibleChild(pluginsBar);
 					mainInterface.setVisibleChild(pluginsInterface);
+			} else if(lbr == gAboutOption) {
+					sidebar.setVisible(false);
+					mainInterface.setVisibleChild(aboutInterface);
 			}
 		} else if(lb == pluginsBar) {
 
@@ -382,10 +435,17 @@ private:
 	}
 
 	void backButtonCallback(Button b) {
-		logger.trace("backButtonCallback()");
-		sidebar.setVisibleChild(generalBar);
-		mainInterface.setVisibleChild(generalInterface);
-		backButton.setVisible(false);
+		if(savedSidebar !is null && savedInterface !is null) {
+			logger.trace("backButtonCallback(): restoring interface.");
+			restoreSavedInterface();
+			sidebar.setVisible(true);
+		} else {
+			logger.trace("backButtonCallback(): going to main interface.");
+			sidebar.setVisibleChild(generalBar);
+			mainInterface.setVisibleChild(generalInterface);
+			backButton.setVisible(false);
+			sidebar.setVisible(true);
+		}
 	}
 
 	void cgEnableBoxes(ToggleButton tb) {
@@ -429,7 +489,21 @@ private:
 	}
 
 	bool queryDaemon() {
-		return exists(appConfigPath ~ LOCK_PATH);
+		if(exists(appConfigPath ~ LOCK_PATH)) {
+			string pid = File(appConfigPath ~ LOCK_PATH, "r").readln();
+			logger.trace(pid);
+			try {
+			File procFile = File("/proc/" ~ pid ~ "/cmdline", "r");
+			logger.trace(procFile);
+			string line = procFile.readln();
+			logger.trace(find(line, "extrapanel-daemon"));
+			if(find(line, "extrapanel-daemon"))
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+		return false;
 	}
 
 	void cpLoadPlugins() {
@@ -439,7 +513,7 @@ private:
 
 		// Empty the container
 		foreach(id; ids) {
-			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder, window);
+			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder);
 		}
 	}
 
@@ -448,5 +522,17 @@ private:
 		logger.trace("path: ", path);
 		import gio.AppInfoIF;
 		AppInfoIF.launchDefaultForUri(path, null);
+	}
+
+	void saveCurrentInterface() {
+		savedSidebar = sidebar.getVisibleChild();
+		savedInterface = mainInterface.getVisibleChild();
+	}
+
+	void restoreSavedInterface() {
+		sidebar.setVisibleChild(savedSidebar);
+		mainInterface.setVisibleChild(savedInterface);
+		savedSidebar = null;
+		savedInterface = null;
 	}
 }

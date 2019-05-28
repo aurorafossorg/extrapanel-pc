@@ -1,4 +1,4 @@
-module extrapanel.logger;
+module util.logger;
 
 import std.experimental.logger;
 import std.stdio;

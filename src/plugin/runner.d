@@ -1,4 +1,4 @@
-module extrapanel.runner;
+module plugin.runner;
 
 import std.path;
 import std.string;
@@ -32,45 +32,46 @@ public class PluginRunner {
 		logger.info(plugins.length, " plugins supplied, activating them...");
 		int loadedPlugins;
 		foreach(plugin; plugins) {
+			logger.info("[", plugin, "]");
 			// Obtains config path for current plugin
 			string path = pluginRootPath(plugin);
-			logger.trace("[", plugin, "] Path built: ", path);
+			logger.info(">\033[1;33m\t Path built: ", path, "\033[1;37m");
 			if (!Configuration.loadPlugin(plugin, buildPath(path, "config.cfg"))) {
-				logger.critical("[", plugin, "] No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!");
+				logger.critical(">\033[0;31m\t No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!\033[1;37m");
 				continue;
 			}
-			logger.trace("[", plugin, "] Configuration loaded successfully.");
+			logger.info(">\033[1;33m\t Configuration loaded successfully.\033[1;37m");
 
 			// Inits the Lua state for each plugin
 			lua_State* lua = luaL_newstate();
 			luaL_openlibs(lua);
-			logger.info("[", plugin, "] Lua state created");
+			logger.info(">\033[1;33m\t Lua state created\033[1;37m");
 
 			// Parses config for Lua
 			string parsedConfig = Configuration.parsePlugin(plugin);
-			logger.trace("[", plugin, "] Configuration parsed successfully: ", parsedConfig);
+			logger.info(">\033[1;33m\t Configuration parsed successfully: ", parsedConfig, "\033[1;37m");
 
 			// Loads Lua script and calls setup()
 			if(luaL_dofile(lua, buildPath(path, "main.lua").toStringz)) {
-				logger.critical("[", plugin, "] Failed to load Lua script for ", plugin, "! Error: ", lua_tostring(lua, -1));
+				logger.critical(">\033[0;31m\t Failed to load Lua script for ", plugin, "! Error: ", lua_tostring(lua, -1), "\033[1;37m");
 				lua_close(lua);
 				continue;
 			}
-			logger.trace("[", plugin, "] Script loaded successfully");
+			logger.info(">\033[1;33m\t Script loaded successfully\033[1;37m");
 
 			// Push parsedConfig and calls setup
 			lua_getglobal(lua, ("setup").toStringz);
 			lua_pushstring(lua, parsedConfig.toStringz);
 
 			if(lua_pcall(lua, 1, 0, 0)) {
-				logger.critical("[", plugin, "] setup() call failed for plugin ", plugin, "! Error: ", lua_tostring(lua, -1));
+				logger.critical(">\033[0;31m\t setup() call failed for plugin ", plugin, "! Error: ", lua_tostring(lua, -1), "\033[1;37m");
 				lua_close(lua);
 				continue;
 			}
-			logger.trace("[", plugin, "] setup() executed successfully");
+			logger.info(">\033[1;33m\t setup() executed successfully\033[1;37m");
 
 			// Plugin loaded successfully
-			logger.info("[", plugin, "] Plugin ", plugin, " has loaded successfully.");
+			logger.info(">\033[0;32m\t Plugin ", plugin, " has loaded successfully.\n\033[1;37m");
 			activePlugins[plugin] = lua;
 			loadedPlugins++;
 		}

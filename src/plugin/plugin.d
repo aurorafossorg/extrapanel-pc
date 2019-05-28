@@ -1,4 +1,4 @@
-module extrapanel.plugin;
+module plugin.plugin;
 
 import std.json;
 import util.paths;
@@ -20,23 +20,6 @@ enum Type {
 
 // Class holding all plugin important info
 class PluginInfo {
-	// Constructor with all fields
-	this(string id, string name, string description, string icon, string strVersion, string url,
-			string[] authors = ["unknown"], string repoUrl = "unspecified") {
-		// Required fields
-		this.id = id;
-		this.name = name;
-		this.description = description;
-		this.icon = icon;
-		this.strVersion = strVersion;
-		this.url = url;
-
-		// Optional fields
-		this.authors = authors;
-		this.repoUrl = url;
-
-	}
-
 	// Constructor with path to load from meta.json
 	this(string id) {
 		JSONValue j = parseJSON(readText(buildPath(pluginRootPath(id), "meta.json")));
@@ -50,7 +33,7 @@ class PluginInfo {
 		this.url = j["url"].str;
 
 		// Optional fields
-		//this.authors = "authors" in j ? (j["authors"].array).str : ["unknown"];
+		this.authors = "authors" in j ? j["authors"].arrayNoRef : null;
 		this.repoUrl = "repoUrl" in j ? j["repoUrl"].str : "unspecified";
 
 		logger.trace(this.id);
@@ -62,5 +45,5 @@ class PluginInfo {
 	}
 
 	immutable string id, name, description, icon, strVersion, url, repoUrl;
-	string[] authors;
+	JSONValue[] authors;
 }
