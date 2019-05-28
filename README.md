@@ -2,9 +2,11 @@
 
 PC version of Extra Panel
 
-![Pre-Alpha Screenshot 1](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-1.png)
-![Pre-Alpha Screenshot 2](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-2.png)
-![Pre-Alpha Screenshot 3](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha2-3.png)
+![Pre-Alpha Screenshot 1](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha3-1.png)
+![Pre-Alpha Screenshot 2](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha3-2.png)
+![Pre-Alpha Screenshot 3](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha3-3.png)
+![Pre-Alpha Screenshot 4](https://gitlab.com/aurorafossorg/p/extra-panel/assets/raw/master/screenshots/pre-alpha3-4.png)
+
 
 ## Compiling
 
