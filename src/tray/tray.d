@@ -36,8 +36,12 @@ public:
 
 private:
 	void onActivate(Application app) {
-		initElements();
-		hold();
+		if(!app.getIsRemote() && trayIcon is null) {
+			initElements();
+			hold();
+		} else {
+			return;
+		}
 	}
 
 	void initElements() {
