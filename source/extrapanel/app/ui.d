@@ -211,6 +211,7 @@ public:
 	// This is a workaround because GtkD has no "clean" way to pass
 	// user data to callbacks, which really annoys me.
 	PluginInfo[Button] pluginInfoIds;
+	string[] installedPlugins;
 
 	Widget savedSidebar = null, savedInterface = null;
 
