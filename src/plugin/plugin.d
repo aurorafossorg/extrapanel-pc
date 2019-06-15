@@ -23,7 +23,10 @@ class PluginInfo {
 	// Constructor with path to load from meta.json
 	this(string id) {
 		JSONValue j = parseJSON(readText(buildPath(pluginRootPath(id), "meta.json")));
+		this(j);
+	}
 
+	this(JSONValue j) {
 		// Required fields
 		this.id = j["id"].str;
 		this.name = j["name"].str;

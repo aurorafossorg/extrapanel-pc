@@ -70,8 +70,6 @@ ScriptRunner runner = null;
 public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder) {
 	switch(temp) {
 		case Template.Complete:
-			Box pluginInfoInterface = cast(Box) parent;
-
 			Image pihIcon = cast(Image) builder.getObject("pihIcon");
 			Label pihTitle = cast(Label) builder.getObject("pihTitle");
 			Label pihDescription = cast(Label) builder.getObject("pihDescription");
@@ -93,7 +91,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			piiType.setLabel("Official");
 			break;
 		case Template.ListElement:
-
+			
 			break;
 		case Template.ConfigElement:
 			Box configBox = cast(Box) parent;
@@ -166,6 +164,10 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 					configPanel.packStart(nothingFound, true, false, 0);
 				}
 			}
+			configPanel.setMarginLeft(10);
+			configPanel.setMarginRight(10);
+			configPanel.setMarginBottom(10);
+
 			// Packs all the elements
 			headerInfo.packStart(logo, false, false, 0);
 			headerInfo.packStart(title, false, false, 0);
@@ -204,7 +206,7 @@ public:
 		logger.trace("[", script, "] Lua state created");
 
 		// Loads Lua script and calls connect()
-		string path = buildPath(script, "ui.lua");
+		string path = script.buildPath("ui.lua");
 		logger.trace("path: ", path);
 		if(!exists(path)) {
 			lua_close(luaState);
@@ -217,7 +219,7 @@ public:
 			throw new ScriptExecutionException(path, "main");
 		}
 
-		lua_pushstring(luaState, buildPath(script, "configMenu.ui").toStringz);
+		lua_pushstring(luaState, script.buildPath("configMenu.ui").toStringz);
 		if(lua_pcall(luaState, 1, LUA_MULTRET, 0)) {
 			logger.critical("[", script, "] Failed to load Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
 			lua_close(luaState);

@@ -36,7 +36,7 @@ public class PluginRunner {
 			// Obtains config path for current plugin
 			string path = pluginRootPath(plugin);
 			logger.info(">\033[1;33m\t Path built: ", path, "\033[1;37m");
-			if (!Configuration.loadPlugin(plugin, buildPath(path, "config.cfg"))) {
+			if (!Configuration.loadPlugin(plugin, path.buildPath("config.cfg"))) {
 				logger.critical(">\033[0;31m\t No existing configuration file for plugin", plugin, "! Make sure the plugin was installed properly!\033[1;37m");
 				continue;
 			}
@@ -52,7 +52,7 @@ public class PluginRunner {
 			logger.info(">\033[1;33m\t Configuration parsed successfully: ", parsedConfig, "\033[1;37m");
 
 			// Loads Lua script and calls setup()
-			if(luaL_dofile(lua, buildPath(path, "main.lua").toStringz)) {
+			if(luaL_dofile(lua, path.buildPath("main.lua").toStringz)) {
 				logger.critical(">\033[0;31m\t Failed to load Lua script for ", plugin, "! Error: ", lua_tostring(lua, -1), "\033[1;37m");
 				lua_close(lua);
 				continue;

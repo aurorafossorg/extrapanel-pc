@@ -17,11 +17,35 @@ public immutable string CDN_PATH = "https://dl.aurorafoss.org/aurorafoss/pub/rel
 // Creates base paths for the app
 public static void createAppPaths() {
 	string root = buildPath(expandTilde("~"), ".config");
-	if(!exists(buildPath(root, "extrapanel")))
-		mkdir(buildPath((root), "extrapanel"));
+	if(!exists(root.buildPath("extrapanel")))
+		mkdir(root.buildPath("extrapanel"));
 
-	if(!exists(buildPath(root, "extrapanel", "plugins")))
-		mkdir(buildPath((root), "extrapanel", "plugins"));
+	if(!exists(root.buildPath("extrapanel", "plugins")))
+		mkdir(root.buildPath("extrapanel", "plugins"));
+}
+
+// Creates temporary work dir
+public static string createTempPath() {
+	string root = tempDir.buildPath("xpanel");
+	if(!exists(root))
+		mkdir(root);
+	
+	if(!exists(root.buildPath("pc")))
+		mkdir(root.buildPath("pc"));
+
+	return root;
+}
+
+// Creates temporary work dir
+public static string createTempPath() {
+	string root = buildPath(tempDir, "xpanel");
+	if(!exists(root))
+		mkdir(root);
+	
+	if(!exists(buildPath(root, "pc")))
+		mkdir(buildPath(root, "pc"));
+
+	return root;
 }
 
 // Returns the path for the app config

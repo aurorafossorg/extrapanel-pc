@@ -23,7 +23,8 @@ public static enum Options : string {
 	CommDelay			= "comm-delay",
 	WiFiEnabled			= "wifi-enabled",
 	BluetoothEnabled	= "bluetooth-enabled",
-	UsbEnabled			= "usb-enabled"
+	UsbEnabled			= "usb-enabled",
+	AcceptedWizard		= "accepted-wizard"
 }
 
 public static shared class Configuration {
@@ -46,6 +47,9 @@ public static shared class Configuration {
 			parseConfig(cfgFile.readln(), metaOptions);
 		}
 
+		// Detects if wizard was completed
+		firstTime = !(getOption!(bool)(Options.AcceptedWizard));
+
 		// Closes file
 		cfgFile.close();
 		logger.info("Configuration loaded successfully");
@@ -63,7 +67,7 @@ public static shared class Configuration {
 		File pluginFile = File(path, "r+");
 		pluginOptions[id] = string[string].init;
 
-		// PArses each config
+		// Parses each config
 		while(!pluginFile.eof) {
 			parseConfig(pluginFile.readln(), pluginOptions[id]);
 		}
@@ -129,6 +133,11 @@ public static shared class Configuration {
 		return false;
 	}
 
+	// Returns if it's the first time the app was launched
+	static bool isFirstTime() {
+		return firstTime;
+	}
+
 	// Retrieves an UUID through an online generator
 	static string retrieveUUID() {
 		try {
@@ -164,6 +173,7 @@ private:
 		cfgFile.writeln(Options.WiFiEnabled ~ ": true");
 		cfgFile.writeln(Options.BluetoothEnabled ~ ": true");
 		cfgFile.writeln(Options.UsbEnabled ~ ": true");
+		cfgFile.writeln(Options.AcceptedWizard ~ ": false");
 
 		cfgFile.close();
 	}

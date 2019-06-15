@@ -32,15 +32,15 @@ subdir('src')
 src_include_dir = include_directories('src')
 
 xpanel_ui = executable('extrapanel', uiSources, dependencies: [riverd_core_dep, riverd_lua_dep, gtkd_dep],
-					d_args: '-dw', include_directories: src_include_dir,
+					d_args: ['-dw', '-g'], include_directories: src_include_dir,
 					install: true)
 
 xpanel_daemon = executable('extrapanel-daemon', daemonSources, dependencies: [riverd_core_dep, riverd_lua_dep],
-					d_args: ['-dw', '-d-version=daemon'], include_directories: src_include_dir,
+					d_args: ['-dw', '-g', '-d-version=daemon'], include_directories: src_include_dir,
 					install: true)
 
 xpanel_tray = executable('extrapanel-tray', traySources, dependencies: [gtkd_dep],
-					d_args: ['-dw'], include_directories: src_include_dir,
+					d_args: ['-dw', '-g'], include_directories: src_include_dir,
 					install: true)
 
 # Postbuild

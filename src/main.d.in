@@ -44,16 +44,14 @@ void main (string[] args)
     Resource resource;
     try {
         // Try to load from build path, if it exists
-        resource = Resource.load(buildPath(builddatadir,
-                                            "org.aurorafoss.extrapanel.gresource"));
-        logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+        resource = Resource.load(builddatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
+        logger.info("Found gresource at path \"" ~ builddatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
     } catch(GException e) {
         // Try to load from install path
         logger.info("No local gresource file found, assuming it's installed...");
         try {
-            resource = Resource.load(buildPath(pkgdatadir,
-                                            "org.aurorafoss.extrapanel.gresource"));
-            logger.info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+            resource = Resource.load(pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
+            logger.info("Found gresource at path \"" ~ pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
         } catch(GException e) {
             logger.error("No gresource found! App was not installed correctly!");
             return;

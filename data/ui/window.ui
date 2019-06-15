@@ -9,6 +9,20 @@
     <property name="step_increment">0.10000000000000001</property>
     <property name="page_increment">1</property>
   </object>
+  <object class="GtkListStore" id="pPluginsTreeModel">
+    <columns>
+      <!-- column-name installed -->
+      <column type="gboolean"/>
+      <!-- column-name logo -->
+      <column type="GdkPixbuf"/>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name version -->
+      <column type="gchararray"/>
+      <!-- column-name type -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkApplicationWindow" id="window">
     <property name="can_focus">False</property>
     <property name="default_width">800</property>
@@ -520,54 +534,116 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkTreeView" id="pPluginsTreeView">
+                              <object class="GtkBox">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="search_column">1</property>
-                                <property name="fixed_height_mode">True</property>
-                                <child internal-child="selection">
-                                  <object class="GtkTreeSelection"/>
-                                </child>
+                                <property name="can_focus">False</property>
+                                <property name="orientation">vertical</property>
                                 <child>
-                                  <object class="GtkTreeViewColumn" id="state">
-                                    <property name="resizable">True</property>
-                                    <property name="sizing">fixed</property>
-                                    <property name="fixed_width">40</property>
-                                    <property name="min_width">20</property>
-                                    <property name="title" translatable="yes">Installed</property>
-                                    <property name="clickable">True</property>
-                                    <property name="sort_column_id">0</property>
+                                  <object class="GtkButton" id="ppRefresh">
+                                    <property name="label">gtk-refresh</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="halign">center</property>
+                                    <property name="use_stock">True</property>
+                                    <property name="always_show_image">True</property>
                                   </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkTreeViewColumn">
-                                    <property name="sizing">fixed</property>
-                                    <property name="title" translatable="yes">Official</property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkTreeViewColumn">
-                                    <property name="sizing">fixed</property>
-                                    <property name="title" translatable="yes">Name</property>
-                                    <child>
-                                      <object class="GtkCellRendererPixbuf" id="plugin_logo"/>
-                                      <attributes>
-                                        <attribute name="pixbuf">1</attribute>
-                                      </attributes>
+                                  <object class="GtkTreeView" id="pPluginsTreeView">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="model">pPluginsTreeModel</property>
+                                    <property name="search_column">1</property>
+                                    <property name="fixed_height_mode">True</property>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection"/>
                                     </child>
                                     <child>
-                                      <object class="GtkCellRendererText" id="plugin_text"/>
-                                      <attributes>
-                                        <attribute name="markup">1</attribute>
-                                      </attributes>
+                                      <object class="GtkTreeViewColumn" id="pptvInstalled">
+                                        <property name="resizable">True</property>
+                                        <property name="sizing">fixed</property>
+                                        <property name="title" translatable="yes">Installed</property>
+                                        <property name="clickable">True</property>
+                                        <property name="alignment">0.5</property>
+                                        <property name="sort_column_id">0</property>
+                                        <child>
+                                          <object class="GtkCellRendererToggle" id="plugin_installed">
+                                            <property name="activatable">False</property>
+                                          </object>
+                                          <attributes>
+                                            <attribute name="active">0</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkTreeViewColumn" id="pptvName">
+                                        <property name="resizable">True</property>
+                                        <property name="sizing">fixed</property>
+                                        <property name="title" translatable="yes">Name</property>
+                                        <property name="expand">True</property>
+                                        <property name="clickable">True</property>
+                                        <property name="alignment">0.5</property>
+                                        <property name="sort_column_id">2</property>
+                                        <child>
+                                          <object class="GtkCellRendererPixbuf" id="plugin_logo"/>
+                                          <attributes>
+                                            <attribute name="pixbuf">1</attribute>
+                                          </attributes>
+                                        </child>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="plugin_text"/>
+                                          <attributes>
+                                            <attribute name="text">2</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkTreeViewColumn" id="pptvVersion">
+                                        <property name="resizable">True</property>
+                                        <property name="sizing">fixed</property>
+                                        <property name="title" translatable="yes">Version</property>
+                                        <property name="clickable">True</property>
+                                        <property name="alignment">0.5</property>
+                                        <property name="sort_column_id">3</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="plugin_version"/>
+                                          <attributes>
+                                            <attribute name="text">3</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkTreeViewColumn" id="pptvType">
+                                        <property name="resizable">True</property>
+                                        <property name="sizing">fixed</property>
+                                        <property name="title" translatable="yes">Type</property>
+                                        <property name="clickable">True</property>
+                                        <property name="alignment">0.5</property>
+                                        <property name="sort_column_id">4</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="plugin_type"/>
+                                          <attributes>
+                                            <attribute name="text">4</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
                                     </child>
                                   </object>
-                                </child>
-                                <child>
-                                  <object class="GtkTreeViewColumn">
-                                    <property name="sizing">fixed</property>
-                                    <property name="title" translatable="yes">Version</property>
-                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
                                 </child>
                               </object>
                             </child>
@@ -1777,6 +1853,106 @@
           </packing>
         </child>
       </object>
+    </child>
+  </object>
+  <object class="GtkAssistant" id="startWizard">
+    <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Starting Wizard</property>
+    <property name="default_width">440</property>
+    <property name="default_height">250</property>
+    <property name="urgency_hint">True</property>
+    <property name="deletable">False</property>
+    <property name="use_header_bar">0</property>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="label" translatable="yes">Welcome!
+
+Extra Panel is a tool allowing you to transform your mobile phone into an extra control panel for your computer. Due to the nature of this tool, you're responsible for allowing only you or trusted individuals to gain access to your computer.</property>
+        <property name="justify">center</property>
+        <property name="wrap">True</property>
+      </object>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Some plugins might need to perform configuration steps which require admin permissions. Extra Panel will always warn you about an action needing super permissions.
+
+Plugins that are Official are developed by us and are completely open-source and trustworthy. Community plugins are developed by third-parties but still checked by us for safety reasons.
+
+Plugins installed from other sources (locally or from another URL) might contain malicious code. We're not responsible for any problems and/or misuse from non trusted plugins.</property>
+        <property name="wrap">True</property>
+      </object>
+      <packing>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">Extra Panel comes without any plugins installed by default. We developed a "General" pack including general usage plugins which should suit the needs of most people.
+
+Do you want to download the official "General" pack?</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSwitch" id="wizardInstallPack">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="halign">center</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">confirm</property>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
     </child>
   </object>
 </interface>

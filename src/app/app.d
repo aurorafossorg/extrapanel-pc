@@ -4,14 +4,22 @@ import util.config;
 import util.logger;
 import util.paths;
 
+import main;
+
 import plugin.plugin;
 import plugin.browser;
 
 // STD
 import std.stdio;
+import std.json;
+import std.path;
 import std.file;
 import std.conv;
+import std.array;
 import std.algorithm.searching;
+import std.net.curl;
+import std.concurrency;
+import std.parallelism;
 
 import core.thread;
 
@@ -50,6 +58,9 @@ import gtk.SpinButton;
 import gtk.TreeView;
 import gtk.Switch;
 import gtk.Image;
+import gtk.ListStore;
+import gtk.TreeIter;
+import gtk.Assistant;
 
 // Top level
 import gio.Application : GApplication = Application;
@@ -60,7 +71,8 @@ import gio.MenuItem : GMenuItem = MenuItem;
 
 // GDK
 import gdkpixbuf.Pixbuf;
-import gdkpixbuf.PixbufLoader;
+import gdk.Cursor;
+import gdk.Threads;
 
 /**
  *	app.d - Main UI manager for the app
@@ -76,6 +88,8 @@ enum State {
 static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
 
 static bool currentStatus = false;
+
+shared bool fetching = false;
 
 /// Main application
 class ExtraPanelGUI : Application
@@ -132,9 +146,16 @@ public:
 	// Window
 	ApplicationWindow window;
 
+	// Assistant
+	Assistant startWizard;
+	Switch wizardInstallPack;
+
 	// Meta Elements
 	Button backButton, startButton, stopButton;
 	Label status;
+	ListStore pPluginsTreeModel;
+	// Cursor's
+	Cursor loadingCursor;
 
 	// Sidebar
 	Stack sidebar;
@@ -159,11 +180,11 @@ public:
 			Button wifiButton, bluetoothButton, usbButton;
 			Label uuidLabel;
 		Stack pluginsInterface;
-			Stack pPluginsInterface;
+			ScrolledWindow pPluginsInterface;
 				TreeView pPluginsTreeView;
-			Stack pPacksInterface;
+			ScrolledWindow pPacksInterface;
 				TreeView pPacksTreeView;
-			Stack pInstalledInterface;
+			ScrolledWindow pInstalledInterface;
 				TreeView pInstalledTreeView;
 		Stack configInterface;
 			ScrolledWindow cGeneralInterface;
@@ -183,27 +204,17 @@ public:
 			Box cDevicesInterface;
 		Box aboutInterface;
 		Box pluginInfoInterface;
-			Box piHeader;
-				Image pihIcon;
-				Label pihTitle;
-				Label pihDescription;
-			Box piInfo;
-				Label piiID;
-				Label piiVersion;
-				Label piiAuthors;
-				Label piiURL;
-				Label piiType;
-				Switch piiActive;
-			Box piActions;
-				Button piaReset;
-				Button piaUninstall;
 
 	// Container for holding plugin ID's associated with buttons
 	// This is a workaround because GtkD has no "clean" way to pass
 	// user data to callbacks, which really annoys me.
 	PluginInfo[Button] pluginInfoIds;
+	string[] installedPlugins;
 
 	Widget savedSidebar = null, savedInterface = null;
+
+	// TID for fetching process
+	Tid fetchTID;
 
 	// Inits the builder defined elements
 	void initElements()
@@ -212,11 +223,15 @@ public:
 		window = cast(ApplicationWindow) builder.getObject("window");
 		window.setApplication(this);
 
+		startWizard = cast(Assistant) builder.getObject("startWizard");
+		wizardInstallPack = cast(Switch) builder.getObject("wizardInstallPack");
+
 		// Meta Elements
 		backButton = cast(Button) builder.getObject("backButton");
 		startButton = cast(Button) builder.getObject("startButton");
 		stopButton = cast(Button) builder.getObject("stopButton");
 		status = cast(Label) builder.getObject("status");
+		pPluginsTreeModel = cast(ListStore) builder.getObject("pPluginsTreeModel");
 
 		// General Tab Elements
 		pluginsLabel = cast(Label) builder.getObject("pluginsLabel");
@@ -245,11 +260,11 @@ public:
 		mainInterface = cast(Stack) builder.getObject("mainInterface");
 		generalInterface = cast(Box) builder.getObject("generalInterface");
 		pluginsInterface = cast(Stack) builder.getObject("pluginsInterface");
-		pPluginsInterface = cast(Stack) builder.getObject("pPluginsInterface");
+		pPluginsInterface = cast(ScrolledWindow) builder.getObject("pPluginsInterface");
 		pPluginsTreeView = cast(TreeView) builder.getObject("pPluginsTreeView");
-		pPacksInterface = cast(Stack) builder.getObject("pPacksInterface");
+		pPacksInterface = cast(ScrolledWindow) builder.getObject("pPacksInterface");
 		pPacksTreeView = cast(TreeView) builder.getObject("pPacksTreeView");
-		pInstalledInterface = cast(Stack) builder.getObject("pInstalledInterface");
+		pInstalledInterface = cast(ScrolledWindow) builder.getObject("pInstalledInterface");
 		pInstalledTreeView = cast(TreeView) builder.getObject("pInstalledTreeView");
 		configInterface = cast(Stack) builder.getObject("configInterface");
 		cGeneralInterface = cast(ScrolledWindow) builder.getObject("cGeneralInterface");
@@ -269,24 +284,17 @@ public:
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
 		aboutInterface = cast(Box) builder.getObject("aboutInterface");
 		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
-		piHeader = cast(Box) builder.getObject("piHeader");
-		pihIcon = cast(Image) builder.getObject("pihIcon");
-		pihTitle = cast(Label) builder.getObject("pihTitle");
-		pihDescription = cast(Label) builder.getObject("pihDescription");
-		piInfo = cast(Box) builder.getObject("piInfo");
-		piiID = cast(Label) builder.getObject("piiID");
-		piiVersion = cast(Label) builder.getObject("piiVersion");
-		piiAuthors = cast(Label) builder.getObject("piiAuthors");
-		piiURL = cast(Label) builder.getObject("piiURL");
-		piiType = cast(Label) builder.getObject("piiType");
-		piiActive = cast(Switch) builder.getObject("piiActive");
-		piActions = cast(Box) builder.getObject("piActions");
-		piaReset = cast(Button) builder.getObject("piaReset");
-		piaUninstall = cast(Button) builder.getObject("piaUninstall");
 	}
 
 	void updateElements()
 	{
+		if(Configuration.isFirstTime()) {
+			startWizard.addOnCancel(&wizardCanceled);
+			startWizard.addOnApply(&wizardCompleted);
+
+			window.setSensitive(false);
+			startWizard.present();
+		}
 		// Defines the communication statuses
 		wifiState = Configuration.getOption!(bool)(Options.WiFiEnabled) ? State.Offline : State.Disabled;
 		bluetoothState = Configuration.getOption!(bool)(Options.BluetoothEnabled) ? State.Offline : State.Disabled;
@@ -329,9 +337,13 @@ public:
 
 		backButton.addOnClicked(&backButtonCallback);
 
+		pPluginsInterface.addOnMap(&pPluginsRetrieveList);
+
 		// Queries the state of the daemon
 		currentStatus = queryDaemon();
 		updateMetaElements();
+
+		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
 
 	void setConnectionButtonState(Button button, State state) {
@@ -389,7 +401,7 @@ public:
 			saveCurrentInterface();
 			mainInterface.setVisibleChild(pluginInfoInterface);
 			sidebar.setVisible(false);
-			parseInfo(info, Template.Complete, pluginInfoInterface, builder);
+			parseInfo(info, Template.Complete, null, builder);
 		}
 	}
 
@@ -511,12 +523,12 @@ public:
 	void cpLoadPlugins() {
 		logger.trace("Showed up");
 
-		string[] ids = getInstalledPlugins();
+		installedPlugins = getInstalledPlugins();
 
-		pluginsLabel.setLabel("Plugins: " ~ to!string(ids.length));
+		pluginsLabel.setLabel("Plugins: " ~ to!string(installedPlugins.length));
 
 		// Empty the container
-		foreach(id; ids) {
+		foreach(id; installedPlugins) {
 			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder);
 		}
 	}
@@ -539,4 +551,102 @@ public:
 		savedSidebar = null;
 		savedInterface = null;
 	}
+
+	bool once = false;
+
+	void pPluginsRetrieveList(Widget w) {
+		logger.trace("pPluginsRetrieveList called");
+		if(!once) {
+			once = true;
+			setCursorLoading(true);
+			logger.trace("Spawning fetching thread...");
+			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
+			fetchTID = spawn(&fetchPlugins);
+			fetching = true;
+		}
+	}
+
+	void addPluginListElement(PluginInfo pluginInfo) {
+		logger.trace("Trés bien!!!");
+		TreeIter pluginIter = pPluginsTreeModel.createIter();
+		Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
+		bool installed = false;
+		foreach(id; installedPlugins) {
+			if(canFind(id, pluginInfo.id)) {
+				installed = true;
+				break;
+			}
+		}
+		pPluginsTreeModel.setValue(pluginIter, 0, installed);
+		pPluginsTreeModel.setValue(pluginIter, 1, logo);
+		pPluginsTreeModel.setValue(pluginIter, 2, pluginInfo.name);
+		pPluginsTreeModel.setValue(pluginIter, 3, pluginInfo.strVersion);
+		pPluginsTreeModel.setValue(pluginIter, 4, "Official");
+	}
+
+	void setCursorLoading(bool loading) {
+		logger.trace(loadingCursor.getCursorType());
+		window.getWindow().setCursor(loading ? loadingCursor : null);
+		logger.trace(window.getWindow().getCursor() == loadingCursor ? "true" : "false");
+	}
+
+	void wizardCanceled(Assistant a) {
+		this.window.close();
+	}
+
+	void wizardCompleted(Assistant a) {
+		logger.trace(wizardInstallPack);
+		bool installPack = wizardInstallPack.getActive();
+		logger.info("Wizard completed successfully, and user's choice yas ", installPack);
+		this.startWizard.hide();
+		this.window.setSensitive(true);
+		Configuration.setOption(Options.AcceptedWizard, true);
+	}
+}
+
+void fetchPlugins() {
+	string cdnMetaPath = CDN_PATH ~ "meta.json";
+	string localMetaPath = buildPath(createTempPath(), "pc", "meta.json");
+
+	download(cdnMetaPath, localMetaPath);
+	JSONValue metaJson = parseJSON(readText(localMetaPath));
+
+	Tid parentTid = ownerTid();
+	
+	foreach(plugin; taskPool.parallel(metaJson["official"].array)) {
+		try {
+			string localPluginMetaPath = buildPath(createTempPath(), "pc", plugin.str.replace("/", "-"));
+			string localPluginIconPath = buildPath(createTempPath(), "pc", plugin.str.replace("/meta.json", "-icon.png"));
+			string logoCdnPath = plugin.str.replace("meta.json", "icon.png");
+			download(CDN_PATH ~ plugin.str, localPluginMetaPath);
+			download(CDN_PATH ~ logoCdnPath, localPluginIconPath);
+			immutable JSONValue pluginJson = parseJSON(readText(localPluginMetaPath));
+
+			parentTid.send(pluginJson);
+		} catch(Throwable t) {
+			writeln("Error: ", t);
+		}
+	}
+
+	fetching = false;
+}
+
+extern(C) nothrow static int processIdleFetch(void* data) {
+	try {
+		receiveTimeout(dur!("msecs")(10), (immutable JSONValue pluginJson) {
+			xPanelApp.addPluginListElement(new PluginInfo(pluginJson));
+		});
+
+		if(!fetching) {
+			xPanelApp.setCursorLoading(false);
+			return 0;
+		}
+	} catch(Throwable t) {
+		try {
+			writeln("Error! ", t);
+		} catch(Throwable t) {}
+		return 0;
+	}
+
+	return 1;
 }
