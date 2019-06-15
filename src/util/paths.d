@@ -48,6 +48,18 @@ public static string createTempPath() {
 	return root;
 }
 
+// Creates temporary work dir
+public static string createTempPath() {
+	string root = buildPath(tempDir, "xpanel");
+	if(!exists(root))
+		mkdir(root);
+	
+	if(!exists(buildPath(root, "pc")))
+		mkdir(buildPath(root, "pc"));
+
+	return root;
+}
+
 // Returns the path for the app config
 public static string appConfigPath() {
 	return buildPath(expandTilde("~"), ".config", "extrapanel/");
