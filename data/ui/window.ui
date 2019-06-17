@@ -601,7 +601,7 @@
                                         <child>
                                           <object class="GtkCellRendererText" id="plugin_text"/>
                                           <attributes>
-                                            <attribute name="text">2</attribute>
+                                            <attribute name="markup">2</attribute>
                                           </attributes>
                                         </child>
                                       </object>
@@ -1935,6 +1935,9 @@ Do you want to download the official "General" pack?</property>
         <property name="complete">True</property>
         <property name="has_padding">False</property>
       </packing>
+    </child>
+    <child>
+      <placeholder/>
     </child>
     <child>
       <placeholder/>

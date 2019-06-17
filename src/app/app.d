@@ -70,7 +70,6 @@ import gio.Menu : GMenu = Menu;
 import gio.MenuItem : GMenuItem = MenuItem;
 
 // GDK
-import gdkpixbuf.Pixbuf;
 import gdk.Cursor;
 import gdk.Threads;
 
@@ -181,6 +180,7 @@ public:
 			Label uuidLabel;
 		Stack pluginsInterface;
 			ScrolledWindow pPluginsInterface;
+				Button ppRefresh;
 				TreeView pPluginsTreeView;
 			ScrolledWindow pPacksInterface;
 				TreeView pPacksTreeView;
@@ -261,6 +261,7 @@ public:
 		generalInterface = cast(Box) builder.getObject("generalInterface");
 		pluginsInterface = cast(Stack) builder.getObject("pluginsInterface");
 		pPluginsInterface = cast(ScrolledWindow) builder.getObject("pPluginsInterface");
+		ppRefresh = cast(Button) builder.getObject("ppRefresh");
 		pPluginsTreeView = cast(TreeView) builder.getObject("pPluginsTreeView");
 		pPacksInterface = cast(ScrolledWindow) builder.getObject("pPacksInterface");
 		pPacksTreeView = cast(TreeView) builder.getObject("pPacksTreeView");
@@ -338,6 +339,7 @@ public:
 		backButton.addOnClicked(&backButtonCallback);
 
 		pPluginsInterface.addOnMap(&pPluginsRetrieveList);
+		ppRefresh.addOnClicked(&ppRefreshCallback);
 
 		// Queries the state of the daemon
 		currentStatus = queryDaemon();
@@ -558,6 +560,7 @@ public:
 		logger.trace("pPluginsRetrieveList called");
 		if(!once) {
 			once = true;
+			ppRefresh.setSensitive(false);
 			setCursorLoading(true);
 			logger.trace("Spawning fetching thread...");
 			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
@@ -566,22 +569,14 @@ public:
 		}
 	}
 
+	void ppRefreshCallback(Button b) {
+		pPluginsTreeModel.clear();
+		once = false;
+		pPluginsRetrieveList(null);
+	}
+
 	void addPluginListElement(PluginInfo pluginInfo) {
-		logger.trace("Trés bien!!!");
-		TreeIter pluginIter = pPluginsTreeModel.createIter();
-		Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
-		bool installed = false;
-		foreach(id; installedPlugins) {
-			if(canFind(id, pluginInfo.id)) {
-				installed = true;
-				break;
-			}
-		}
-		pPluginsTreeModel.setValue(pluginIter, 0, installed);
-		pPluginsTreeModel.setValue(pluginIter, 1, logo);
-		pPluginsTreeModel.setValue(pluginIter, 2, pluginInfo.name);
-		pPluginsTreeModel.setValue(pluginIter, 3, pluginInfo.strVersion);
-		pPluginsTreeModel.setValue(pluginIter, 4, "Official");
+		populateList(pluginInfo, pPluginsTreeModel);
 	}
 
 	void setCursorLoading(bool loading) {
@@ -639,6 +634,7 @@ extern(C) nothrow static int processIdleFetch(void* data) {
 
 		if(!fetching) {
 			xPanelApp.setCursorLoading(false);
+			xPanelApp.ppRefresh.setSensitive(true);
 			return 0;
 		}
 	} catch(Throwable t) {

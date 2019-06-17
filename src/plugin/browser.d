@@ -2,6 +2,7 @@ module plugin.browser;
 
 import std.path;
 import std.file;
+import std.algorithm.searching;
 
 import main;
 
@@ -26,7 +27,11 @@ import gtk.Window;
 import gtk.Separator;
 import gtk.Button;
 import gtk.Stack;
+import gtk.ListStore;
+import gtk.TreeIter;
 import gobject.Signals;
+
+import gdkpixbuf.Pixbuf;
 
 import pango.PgAttributeList;
 import pango.PgAttribute;
@@ -47,11 +52,34 @@ enum Template {
 	ConfigElement	// Element for the config page
 }
 
+enum ListStoreColumns : int {
+	Installed,
+	Logo,
+	Text,
+	Version,
+	Type
+}
+
 // Methods that populate GTK objects with plugin info
 
 // Populates the parent TreeView of plugins/packs/installed with all the plugins
-public static void retrieveList(string url, Type type, GtkTreeView parent, Builder builder) {
-	// Retrive the metadata.json from the url
+public static void populateList(PluginInfo pluginInfo, ListStore store) {
+	TreeIter iterator = store.createIter();
+	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
+	bool installed = false;
+	foreach(id; getInstalledPlugins()) {
+		if(canFind(id, pluginInfo.id)) {
+			installed = true;
+			break;
+		}
+	}
+	string text = "<b>" ~ pluginInfo.name ~ "</b>\n" ~ pluginInfo.description;
+
+	store.setValue(iterator, ListStoreColumns.Installed, installed);
+	store.setValue(iterator, ListStoreColumns.Logo, logo);
+	store.setValue(iterator, ListStoreColumns.Text, text);
+	store.setValue(iterator, ListStoreColumns.Version, pluginInfo.strVersion);
+	store.setValue(iterator, ListStoreColumns.Type, "Official");
 }
 
 // Gets the list of currently installed plugins
@@ -191,11 +219,16 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 	}
 }
 
+// Downloads a plugin to a temporary folder
+public static void downloadPlugin(PluginInfo info) {
+	
+}
+
 // Installs plugin in the local system
-public static void addPlugin(PluginInfo info) {}
+public static void installPlugin(PluginInfo info) {}
 
 // Removes plugin from the local system
-public static void removePlugin(PluginInfo info) {}
+public static void uninstallPlugin(PluginInfo info) {}
 
 public class ScriptRunner {
 public:
