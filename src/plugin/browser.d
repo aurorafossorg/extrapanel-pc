@@ -82,15 +82,18 @@ public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	store.setValue(iterator, ListStoreColumns.Type, "Official");
 }
 
+private static string[] installedPluginsIds;
+
 // Gets the list of currently installed plugins
-public string[] getInstalledPlugins() {
-	string[] ids;
-	string pluginRootPath = buildPath(appConfigPath(), "plugins");
-	foreach(string id; dirEntries(pluginRootPath, SpanMode.shallow)) {
-		ids ~= id;
+public static string[] getInstalledPlugins(bool refresh = false) {
+	if(installedPluginsIds.empty && !refresh) {
+		string pluginRootPath = buildPath(appConfigPath(), "plugins");
+		foreach(string id; dirEntries(pluginRootPath, SpanMode.shallow)) {
+			installedPluginsIds ~= id;
+		}
 	}
 
-	return ids;
+	return installedPluginsIds;
 }
 
 ScriptRunner runner = null;

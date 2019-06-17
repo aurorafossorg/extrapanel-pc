@@ -209,7 +209,6 @@ public:
 	// This is a workaround because GtkD has no "clean" way to pass
 	// user data to callbacks, which really annoys me.
 	PluginInfo[Button] pluginInfoIds;
-	string[] installedPlugins;
 
 	Widget savedSidebar = null, savedInterface = null;
 
@@ -525,12 +524,10 @@ public:
 	void cpLoadPlugins() {
 		logger.trace("Showed up");
 
-		installedPlugins = getInstalledPlugins();
-
-		pluginsLabel.setLabel("Plugins: " ~ to!string(installedPlugins.length));
+		pluginsLabel.setLabel("Plugins: " ~ to!string(getInstalledPlugins().length));
 
 		// Empty the container
-		foreach(id; installedPlugins) {
+		foreach(id; getInstalledPlugins()) {
 			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder);
 		}
 	}
