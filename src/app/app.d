@@ -20,8 +20,10 @@ import std.algorithm.searching;
 import std.net.curl;
 import std.concurrency;
 import std.parallelism;
+import std.process;
 
 import core.thread;
+import core.sys.posix.signal;
 
 // GTK
 // Types
@@ -388,11 +390,11 @@ public:
 	}
 
 	void startButtonCallback(Button b) {
-
+		startDaemon();
 	}
 
 	void stopButtonCallback(Button b) {
-
+		stopDaemon();
 	}
 
 	void openPluginInfo(Button button) {
@@ -503,22 +505,39 @@ public:
 		status.setAttributes(attrs);
 	}
 
+	void startDaemon() {
+		spawnProcess("extrapanel-daemon");
+	}
+
+	void stopDaemon() {
+		string pidStr = getDaemonPID();
+		if(find(getProcFile(pidStr), "extrapanel-daemon")) {
+			kill(to!(int)(pidStr), SIGTERM);
+			//spawnProcess(["kill", "-15", pidStr]);
+		}
+	}
+
 	bool queryDaemon() {
 		if(exists(appConfigPath ~ LOCK_PATH)) {
-			string pid = File(appConfigPath ~ LOCK_PATH, "r").readln();
+			string pid = getDaemonPID();
 			logger.trace(pid);
 			try {
-			File procFile = File("/proc/" ~ pid ~ "/cmdline", "r");
-			logger.trace(procFile);
-			string line = procFile.readln();
-			logger.trace(find(line, "extrapanel-daemon"));
-			if(find(line, "extrapanel-daemon"))
-				return true;
+				string line = getProcFile(pid);
+				if(find(line, "extrapanel-daemon"))
+					return true;
 			} catch(Exception e) {
 				return false;
 			}
 		}
 		return false;
+	}
+
+	string getDaemonPID() {
+		return File(appConfigPath ~ LOCK_PATH, "r").readln();
+	}
+
+	string getProcFile(string pid) {
+		return File("/proc/" ~ pid ~ "/cmdline", "r").readln();
 	}
 
 	void cpLoadPlugins() {
