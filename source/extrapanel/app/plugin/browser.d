@@ -202,6 +202,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 					configPanel.packStart(nothingFound, true, false, 0);
 				}
 			}
+
 			configPanel.setMarginLeft(10);
 			configPanel.setMarginRight(10);
 			configPanel.setMarginBottom(10);
