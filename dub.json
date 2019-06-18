@@ -1,0 +1,17 @@
+{
+	"name": "extrapanel",
+	"sourcePaths": [
+		"src"
+	],
+	"importPaths": [
+		"src"
+	],
+	"targetType": "executable",
+	"targetPath": "out/",
+	"dependencies": {
+		"riverd-lua": "~>1.0.3"
+	},
+	"subConfigurations": {
+		"riverd-lua": "static"
+	}
+}

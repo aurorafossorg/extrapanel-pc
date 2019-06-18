@@ -16,7 +16,6 @@ gtkd_ver = '>=3.6'
 
 # Dependencies
 gtkd_dep = dependency('gtkd-3', version: gtkd_ver)
-riverd_core_dep = dependency('riverd-core', method: 'dub')
 riverd_lua_dep = dependency('riverd-lua', method: 'dub')
 
 # Declare the app id
@@ -31,11 +30,11 @@ subdir('src')
 
 src_include_dir = include_directories('src')
 
-xpanel_ui = executable('extrapanel', uiSources, dependencies: [riverd_core_dep, riverd_lua_dep, gtkd_dep],
+xpanel_ui = executable('extrapanel', uiSources, dependencies: [riverd_lua_dep, gtkd_dep],
 					d_args: ['-dw', '-g'], include_directories: src_include_dir,
 					install: true)
 
-xpanel_daemon = executable('extrapanel-daemon', daemonSources, dependencies: [riverd_core_dep, riverd_lua_dep],
+xpanel_daemon = executable('extrapanel-daemon', daemonSources, dependencies: [riverd_lua_dep],
 					d_args: ['-dw', '-g', '-d-version=daemon'], include_directories: src_include_dir,
 					install: true)
 
