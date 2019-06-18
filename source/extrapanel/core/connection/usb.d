@@ -1,7 +1,7 @@
-module connection.usb;
+module extrapanel.core.connection.usb;
 
-import connection.boilerplate;
-import plugin.plugin;
+import extrapanel.core.connection.boilerplate;
+import extrapanel.core.plugin.plugin;
 
 class UsbBackend : ConnectionBackend {
 	override {

@@ -1,7 +1,4 @@
-module util.util;
-
-import gtk.Container;
-import gtk.Widget;
+module extrapanel.core.util.util;
 
 import riverd.lua.statfun;
 import riverd.lua.types;
@@ -11,8 +8,7 @@ import std.json;
 import std.stdio;
 import std.conv;
 
-import util.logger;
-import plugin.browser;
+import extrapanel.core.util.logger;
 
 public static immutable int MARGIN_DEFAULT = 10;	// UI default
 

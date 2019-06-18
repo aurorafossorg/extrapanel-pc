@@ -1,7 +1,7 @@
-module util.config;
+module extrapanel.core.util.config;
 
-import util.paths;
-import util.logger;
+import extrapanel.core.util.paths;
+import extrapanel.core.util.logger;
 
 import std.net.curl;
 import std.file;
@@ -91,6 +91,10 @@ public static shared class Configuration {
 		}
 	}
 
+	static void savePlugin() {
+
+	}
+
 	// Retrieves a plugin config
 	static T getPluginOption(T)(string id, string data) {
 		return to!(T)(pluginOptions[id][data]);
@@ -122,6 +126,18 @@ public static shared class Configuration {
 		}
 
 		return parsedConfig;
+	}
+
+	// Unparses a plugin configuration from Lua scripts
+	static string[string] unparsePlugin(string id, string parsedConfig) {
+		string formattedPlugin = parsedConfig.replace(";", "\n");
+		logger.trace("Unparsing config options for plugin ", id);
+		string[string] unparsedConfig;
+		foreach(opt ; pluginOptions[id].keys) {
+			unparsedConfig["a"] ~= opt ~ ": " ~ pluginOptions[id][opt] ~ ";";
+		}
+
+		return unparsedConfig;
 	}
 
 	// Returns if a given arg was passed

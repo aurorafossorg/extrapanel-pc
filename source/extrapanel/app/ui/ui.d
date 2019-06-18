@@ -1,13 +1,13 @@
-module app.app;
+module extrapanel.app.ui.ui;
 
-import util.config;
-import util.logger;
-import util.paths;
+import extrapanel.core.util.config;
+import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
 
-import main;
+import extrapanel.app.main;
 
-import plugin.plugin;
-import plugin.browser;
+import extrapanel.core.plugin.plugin;
+import extrapanel.app.plugin.browser;
 
 // STD
 import std.stdio;

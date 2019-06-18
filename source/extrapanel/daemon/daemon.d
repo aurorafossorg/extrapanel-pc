@@ -1,10 +1,10 @@
-module daemon.daemon;
+module extrapanel.daemon.daemon;
 
-import util.config;
-import util.paths;
-import plugin.plugin;
-import plugin.runner;
-import util.logger;
+import extrapanel.core.util.config;
+import extrapanel.core.util.paths;
+import extrapanel.core.plugin.plugin;
+import extrapanel.daemon.plugin.runner;
+import extrapanel.core.util.logger;
 
 import core.stdc.stdlib;
 import core.sys.posix.unistd;

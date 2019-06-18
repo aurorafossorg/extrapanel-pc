@@ -1,4 +1,4 @@
-module plugin.runner;
+module extrapanel.daemon.plugin.runner;
 
 import std.path;
 import std.string;
@@ -8,10 +8,10 @@ import std.file;
 import riverd.lua.statfun;
 import riverd.lua.types;
 
-import plugin.plugin;
-import util.paths;
-import util.config;
-import util.logger;
+import extrapanel.core.plugin.plugin;
+import extrapanel.core.util.paths;
+import extrapanel.core.util.config;
+import extrapanel.core.util.logger;
 
 /**
  *	runner.d - Struct holding the Lua VM responsible for running plugins

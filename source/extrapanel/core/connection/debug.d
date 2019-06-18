@@ -1,7 +1,7 @@
-module connection._debug;
+module extrapanel.core.connection._debug;
 
-import connection.boilerplate;
-import plugin.plugin;
+import extrapanel.core.connection.boilerplate;
+import extrapanel.core.plugin.plugin;
 
 import std.file : remove;
 import std.stdio;

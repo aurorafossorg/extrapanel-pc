@@ -1,17 +1,53 @@
 {
 	"name": "extrapanel",
-	"sourcePaths": [
-		"src"
-	],
-	"importPaths": [
-		"src"
-	],
-	"targetType": "executable",
-	"targetPath": "out/",
-	"dependencies": {
-		"riverd-lua": "~>1.0.3"
-	},
-	"subConfigurations": {
-		"riverd-lua": "static"
-	}
+	"subPackages": [
+		{
+			"name": "ui",
+			"preBuildCommands": ["./build-aux/preinstall.py"],
+			"sourcePaths": [
+				"source/extrapanel/core",
+				"source/extrapanel/app"
+			],
+			"sourceFiles": ["build-aux/main.d"],
+			"targetType": "executable",
+			"targetName": "extrapanel",
+			"targetPath": "build/",
+			
+			"dependencies": {
+				"riverd-lua": "~>1.0.3",
+				"gtk-d:gtkd": "~>3.8.5"
+			},
+			"subConfigurations": {
+				"riverd-lua": "static"
+			}
+		},
+		{
+			"name": "daemon",
+			"sourcePaths": [
+				"source/extrapanel/core",
+				"source/extrapanel/daemon"
+			],
+			"targetType": "executable",
+			"targetName": "extrapanel-daemon",
+			"targetPath": "build/",
+			"dependencies": {
+				"riverd-lua": "~>1.0.3"
+			},
+			"subConfigurations": {
+				"riverd-lua": "static"
+			}
+		},
+		{
+			"name": "tray",
+			"sourcePaths": [
+				"source/extrapanel/tray"
+			],
+			"targetType": "executable",
+			"targetName": "extrapanel-tray",
+			"targetPath": "build/",
+			"dependencies": {
+				"gtk-d:gtkd": "~>3.8.5"
+			}
+		}
+	]
 }

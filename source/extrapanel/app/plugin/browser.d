@@ -1,16 +1,17 @@
-module plugin.browser;
+module extrapanel.app.plugin.browser;
 
 import std.path;
 import std.file;
 import std.algorithm.searching;
 
-import main;
+import extrapanel.app.main;
 
-import plugin.plugin;
-import util.paths;
-import util.logger;
-import util.util;
-import util.exception;
+import extrapanel.core.plugin.plugin;
+import extrapanel.core.util.paths;
+import extrapanel.core.util.logger;
+import extrapanel.core.util.util;
+import extrapanel.core.util.exception;
+import extrapanel.core.util.config;
 
 import gtk.c.types;
 import pango.c.types;
@@ -96,7 +97,7 @@ public static string[] getInstalledPlugins(bool refresh = false) {
 	return installedPluginsIds;
 }
 
-ScriptRunner runner = null;
+public static ScriptRunner runner = null;
 // Populates GTK elements with the info of plugins depending on the type of info to display
 public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder) {
 	switch(temp) {
@@ -174,7 +175,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			Box configPanel;
 			// Loads the configuration menu, if it exists
 			try {
-				configPanel = new Box(runner.run(pluginRootPath(info.id)));
+				configPanel = new Box(runner.run(info));
 				logger.trace(configPanel);
 			} catch(FileNotFoundException e) {
 				try {
@@ -195,6 +196,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 					configPanel.packStart(nothingFound, true, false, 0);
 				}
 			}
+
 			configPanel.setMarginLeft(10);
 			configPanel.setMarginRight(10);
 			configPanel.setMarginBottom(10);
@@ -235,8 +237,9 @@ public static void uninstallPlugin(PluginInfo info) {}
 
 public class ScriptRunner {
 public:
-	GtkBox* run(string script) {
+	GtkBox* run(PluginInfo pluginInfo) {
 		// Create Lua state
+		string script = pluginRootPath(pluginInfo.id);
 		lua_State* luaState = luaL_newstate();
 		luaL_openlibs(luaState);
 		logger.trace("[", script, "] Lua state created");
@@ -263,8 +266,20 @@ public:
 		}
 
 		GtkBox* configBox = cast(GtkBox*) lua_touserdata(luaState, -1);
-
 		logger.trace("[", script, "] Script loaded successfully");
+
+		// Loads saved configuration
+		Configuration.loadPlugin(pluginInfo.id, buildPath(pluginRootPath(pluginInfo.id), "config.cfg"));
+		string parsedConfig = Configuration.parsePlugin(pluginInfo.id);
+		lua_getglobal(luaState, ("loadConfig").toStringz);
+		lua_pushstring(luaState, parsedConfig.toStringz);
+		if(lua_pcall(luaState, 1, 0, 0)) {
+			logger.critical("[", script, "] Failed to pass config to Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
+			lua_close(luaState);
+			throw new ScriptExecutionException(path, "main");
+		}
+
+		logger.trace("[", script, "] Config passed successfully");
 
 		scripts[script] = luaState;
 		return configBox;

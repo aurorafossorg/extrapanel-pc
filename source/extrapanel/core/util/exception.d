@@ -1,4 +1,4 @@
-module util.exception;
+module extrapanel.core.util.exception;
 
 public class FileNotFoundException : Exception {
 	this(string msg) {

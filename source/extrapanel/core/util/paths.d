@@ -1,4 +1,4 @@
-module util.paths;
+module extrapanel.core.util.paths;
 
 import std.path;
 import std.file;

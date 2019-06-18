@@ -1,7 +1,7 @@
-module connection.wifi;
+module extrapanel.core.connection.wifi;
 
-import connection.boilerplate;
-import plugin.plugin;
+import extrapanel.core.connection.boilerplate;
+import extrapanel.core.plugin.plugin;
 
 class WifiBackend : ConnectionBackend {
 	override {

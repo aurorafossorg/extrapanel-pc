@@ -1,7 +1,7 @@
-module connection.bluetooth;
+module extrapanel.core.connection.bluetooth;
 
-import connection.boilerplate;
-import plugin.plugin;
+import extrapanel.core.connection.boilerplate;
+import extrapanel.core.plugin.plugin;
 
 class BluetoothBackend : ConnectionBackend {
 	override {

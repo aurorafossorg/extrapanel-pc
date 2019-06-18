@@ -2,6 +2,8 @@
 build.ninja
 /build
 /.dub
+dub.selections.json
+build-aux/main.d
 
 # Temporary Glade Files
 /data/ui/#window.ui#
@@ -14,3 +16,4 @@ build.ninja
 # Debug files
 *.log
 *.out
+*.gresource

@@ -1,4 +1,4 @@
-module tray.tray;
+module extrapanel.tray.tray;
 
 import gtk.Menu;
 import gtk.MenuItem;
