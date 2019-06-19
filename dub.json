@@ -15,7 +15,8 @@
 			
 			"dependencies": {
 				"riverd-lua": "~>1.0.3",
-				"gtk-d:gtkd": "~>3.8.5"
+				"gtk-d:gtkd": "~>3.8.5",
+				"archive": "~>0.6.0"
 			},
 			"subConfigurations": {
 				"riverd-lua": "static"
@@ -33,6 +34,7 @@
 			"dependencies": {
 				"riverd-lua": "~>1.0.3"
 			},
+			"versions": ["daemon"],
 			"subConfigurations": {
 				"riverd-lua": "static"
 			}
