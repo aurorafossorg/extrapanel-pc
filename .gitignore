@@ -6,8 +6,7 @@ dub.selections.json
 build-aux/main.d
 
 # Temporary Glade Files
-/data/ui/#window.ui#
-/data/ui/window.ui~
+*.ui~
 
 
 /data/conf
