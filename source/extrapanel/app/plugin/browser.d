@@ -3,6 +3,9 @@ module extrapanel.app.plugin.browser;
 import std.path;
 import std.file;
 import std.algorithm.searching;
+import std.concurrency;
+import std.parallelism;
+import std.process;
 
 import extrapanel.app.main;
 
@@ -33,6 +36,7 @@ import gtk.TreeIter;
 import gobject.Signals;
 
 import gdkpixbuf.Pixbuf;
+import gdk.Threads;
 
 import pango.PgAttributeList;
 import pango.PgAttribute;
@@ -42,6 +46,7 @@ import riverd.lua.types;
 
 import std.json;
 import std.string;
+import std.net.curl;
 
 /**
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements
@@ -226,7 +231,27 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 
 // Downloads a plugin to a temporary folder
 public static void downloadPlugin(PluginInfo info) {
+	gdk.Threads.threadsAddIdle(&downloadPlugin_idleFetch, null);
+	spawn(&thread_downloadPlugin, cast(immutable)info);
+	thread_downloadPlugin_completed = true;
+}
+
+shared bool thread_downloadPlugin_completed;
+void thread_downloadPlugin(immutable PluginInfo info) {
+	string archiveFile = info.id ~ ".tar.gz";
+	string archivePath = buildPath(CDN_PATH, info.id, archiveFile);
 	
+	download(archivePath, buildPath(createTempPath(), "pc", archiveFile));
+
+	thread_downloadPlugin_completed = true;
+}
+
+extern(C) nothrow int downloadPlugin_idleFetch(void* data) {
+	try {
+		if(thread_downloadPlugin_completed) return 0;
+	} catch(Throwable t) return 0;
+
+	return 1;
 }
 
 // Installs plugin in the local system

@@ -102,7 +102,7 @@ public:
 		// Loads configuration and sets callbacks
 		Configuration.load();
 		ApplicationFlags flags = ApplicationFlags.FLAGS_NONE;
-		super("org.aurorafoss.extrapanel", flags);
+		super("org.aurorafoss.extrapanel.ui", flags);
 		this.window = null;
 		this.addOnActivate(&onAppActivate);
 		this.addOnShutdown(&onAppDestroy);
@@ -506,14 +506,14 @@ public:
 	}
 
 	void startDaemon() {
-		spawnProcess("extrapanel-daemon");
+		if(wait(spawnProcess("extrapanel-daemon")))
+			logger.warning("Daemon failed to launch!!");
 	}
 
 	void stopDaemon() {
 		string pidStr = getDaemonPID();
 		if(find(getProcFile(pidStr), "extrapanel-daemon")) {
 			kill(to!(int)(pidStr), SIGTERM);
-			//spawnProcess(["kill", "-15", pidStr]);
 		}
 	}
 
@@ -593,6 +593,7 @@ public:
 
 	void addPluginListElement(PluginInfo pluginInfo) {
 		populateList(pluginInfo, pPluginsTreeModel);
+		downloadPlugin(pluginInfo);
 	}
 
 	void setCursorLoading(bool loading) {
@@ -634,9 +635,7 @@ void fetchPlugins() {
 			immutable JSONValue pluginJson = parseJSON(readText(localPluginMetaPath));
 
 			parentTid.send(pluginJson);
-		} catch(Throwable t) {
-			writeln("Error: ", t);
-		}
+		} catch(Throwable t) {}
 	}
 
 	fetching = false;
