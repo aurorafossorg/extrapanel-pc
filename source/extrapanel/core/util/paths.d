@@ -38,7 +38,7 @@ public static string createTempPath() {
 
 // Returns the path for the app config
 public static string appConfigPath() {
-	return buildPath(expandTilde("~"), ".config", "extrapanel/");
+	return buildPath(expandTilde("~"), ".config", "xpanel/");
 }
 
 // Returns the installed plugin path based on it's id
