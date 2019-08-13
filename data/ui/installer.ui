@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkTextBuffer" id="luaInstallTextBuffer"/>
+  <object class="GtkTextBuffer" id="pluginInstallTextBuffer"/>
+  <object class="GtkAssistant" id="assistant">
+    <property name="can_focus">False</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">menu</property>
+    <property name="use_header_bar">1</property>
+    <child>
+      <object class="GtkBox" id="pageIntro">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">25</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="name">piLabel</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">You're about to install the following plugin:</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox" id="pIntroPluginInfo">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_top">3</property>
+            <property name="margin_bottom">3</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkBox" id="piHeader">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkImage" id="pihIcon">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="stock">gtk-missing-image</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="pihTitle">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin Title</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.5"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="pihDescription">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">Plugin Description</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="piInfo">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="valign">start</property>
+                <property name="margin_top">15</property>
+                <property name="vexpand">True</property>
+                <property name="spacing">15</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">ID:</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Version:</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Authors:</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">URL:</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Type:</property>
+                        <attributes>
+                          <attribute name="weight" value="semibold"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel" id="piiID">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin ID</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="piiVersion">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin Version</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="piiAuthors">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin Authors</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="piiURL">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin URL</property>
+                        <property name="use_markup">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="piiType">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="label" translatable="yes">Plugin Type</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="pageLuaDeps">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="halign">start</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">15</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">The plugin requires the following Lua dependencies to work:</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="pLuaDepsLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">- &lt;b&gt;luafilesystem&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">These will be installed with &lt;i&gt;luarocks&lt;/i&gt;, requiring admin access. Press Next to install these dependencies.</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="pageLuaDepsProgress">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">&lt;i&gt;Installing Lua dependencies...&lt;/i&gt;</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="pLuaCurrentDep">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">&lt;b&gt;luafilesystem&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+            <property name="justify">center</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinner" id="pLuaSpinner">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="active">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkExpander">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">10</property>
+            <property name="margin_right">10</property>
+            <property name="margin_bottom">10</property>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="vexpand">True</property>
+                <property name="shadow_type">in</property>
+                <child>
+                  <object class="GtkTextView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscroll_policy">natural</property>
+                    <property name="editable">False</property>
+                    <property name="buffer">luaInstallTextBuffer</property>
+                    <property name="monospace">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Output</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">progress</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="pageRootRequest">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">The plugin has declared that it needs root/admin permissions to be run.</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkStack" id="pRootPluginTtype">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">This is an Offical plugin, meaning the developers can ensure you, the user, the safety of this code.</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="name">page0</property>
+                <property name="title" translatable="yes">page0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">This is a Community plugin, meaning the code was developed by a third-party but checked by the developers to ensure the safety of this code.</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="name">page1</property>
+                <property name="title" translatable="yes">page1</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="halign">start</property>
+                <property name="label" translatable="yes">&lt;span background="#FF0000"&gt;This is an Untrusted plugin, meaning it wasn't verified by the developers. Be very careful and check the plugin is safe before giving it root/admin access!&lt;/span&gt;</property>
+                <property name="use_markup">True</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="name">page2</property>
+                <property name="title" translatable="yes">page2</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="halign">start</property>
+            <property name="label" translatable="yes">Regardless of that, you, the user, are &lt;b&gt;responsible&lt;/b&gt; for ensuring the plugin will not execute or perform potentially malicious commands. </property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="margin_top">20</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkSwitch" id="pRootConsent">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">I have read these instructions and trust the plugin with root/admin access.</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="pagePluginInstall">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel" id="pPluginLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">&lt;i&gt;Installing plugin...&lt;/i&gt;</property>
+            <property name="use_markup">True</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinner" id="pPluginSpinner">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="active">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkExpander">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="margin_left">10</property>
+            <property name="margin_right">10</property>
+            <property name="margin_bottom">10</property>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="vexpand">True</property>
+                <property name="shadow_type">in</property>
+                <child>
+                  <object class="GtkTextView">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscroll_policy">natural</property>
+                    <property name="editable">False</property>
+                    <property name="buffer">pluginInstallTextBuffer</property>
+                    <property name="monospace">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Output</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">intro</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox" id="pageCompleted">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">The plugin was successfully installed, and is ready to use.
+
+You'll need to install the mobile version of the plugin too.</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="page_type">summary</property>
+        <property name="complete">True</property>
+        <property name="has_padding">False</property>
+      </packing>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
+</interface>

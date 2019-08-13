@@ -3,7 +3,7 @@
 	"subPackages": [
 		{
 			"name": "ui",
-			"preBuildCommands": ["./build-aux/preinstall.py"],
+			"preBuildCommands": ["./build-aux/preinstall.py app"],
 			"sourcePaths": [
 				"source/extrapanel/core",
 				"source/extrapanel/app"
@@ -12,12 +12,33 @@
 			"targetType": "executable",
 			"targetName": "extrapanel",
 			"targetPath": "build/",
-			
 			"dependencies": {
 				"riverd-lua": "~>1.0.3",
-				"gtk-d:gtkd": "~>3.8.5",
 				"archive": "~>0.6.0"
 			},
+			"libs": ["gtkd-3"],
+			"importPaths": ["/usr/include/d/gtkd-3"],
+			"subConfigurations": {
+				"riverd-lua": "static"
+			}
+		},
+		{
+			"name": "manager",
+			"preBuildCommands": ["./build-aux/preinstall.py manager"],
+			"sourcePaths": [
+				"source/extrapanel/core",
+				"source/extrapanel/manager"
+			],
+			"sourceFiles": ["build-aux/main.d"],
+			"targetType": "executable",
+			"targetName": "extrapanel-manager",
+			"targetPath": "build/",
+			"dependencies": {
+				"riverd-lua": "~>1.0.3",
+				"archive": "~>0.6.0"
+			},
+			"libs": ["gtkd-3"],
+			"importPaths": ["/usr/include/d/gtkd-3"],
 			"subConfigurations": {
 				"riverd-lua": "static"
 			}
@@ -47,9 +68,8 @@
 			"targetType": "executable",
 			"targetName": "extrapanel-tray",
 			"targetPath": "build/",
-			"dependencies": {
-				"gtk-d:gtkd": "~>3.8.5"
-			}
+			"libs": ["gtkd-3"],
+			"importPaths": ["/usr/include/d/gtkd-3"]
 		}
 	]
 }

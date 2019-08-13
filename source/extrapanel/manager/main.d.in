@@ -1,0 +1,149 @@
+module extrapanel.manager.main;
+
+import std.string;
+import std.path;
+import std.stdio;
+
+import gio.Resource;
+import glib.GException;
+import gtk.Main;
+import gtk.Application;
+
+import extrapanel.core.util.config;
+import extrapanel.core.util.logger;
+import extrapanel.core.util.util;
+
+string pkgdatadir = "@pkgdatadir@";
+string builddatadir = "@builddatadir@";
+
+/**
+ *  main.d - Main entrypoint for the manager
+ */
+
+static immutable enum Args : string {
+	INSTALL = "-i",         // Install a plugin
+	UNINSTALL = "-u"        // Uninstall a plugin
+}
+
+static Application app;
+
+int main (string[] args) {
+	for(int i = 1; i < args.length; i++) {
+		// Prints help
+		if(args[i] == "-h" || args[i] == "--help") {
+			printHelp();
+			return 0;
+
+		// Install argument
+		} else if(args[i] == "-i") {
+			string inputPath = (i+1) < args.length ? args[i+1] : ".";
+			i++;
+			return runInstallerUI(inputPath);
+		
+		// Uninstall argument
+		} else if(args[i] == "-u") {
+			string inputPath = (i+1) < args.length ? args[i+1] : ".";
+			i++;
+			runUninstallerUI(inputPath);
+			return 0;
+
+		// Unknown argument
+		} else {
+			writeln("Unknow argument: ", args[i]);
+			writeln("Use -h or --help to get argument list");
+			return -1;
+		}
+	}
+
+	// No options present besides the own executable path
+	writeln("No arguments were given.");
+	writeln("Use -h or --help to get argument list");
+	return -1;
+}
+
+void printHelp() {
+	string text =  "Usage: extrapanel-manager [mode] [input]\n" ~
+					"\n" ~
+					"This is a tool for installing/uninstalling plugins. It's meant for internal usage, but can be used as is." ~
+					" Available modes:\n" ~
+					"  -i,		Installs a plugin from [input]\n" ~
+					"  -u,		Uninstall a plugin from [input]\n";
+
+	writeln(text);
+}
+
+int runInstallerUI(string inputPath) {
+
+	// Inits logger
+	initLogger();
+
+	logger.trace("Starting extrapanel-manager...");
+
+	// Load the UI resources
+	Resource resource;
+	try {
+		// Try to load from build path, if it exists
+		resource = Resource.load(buildPath(builddatadir,
+											"org.aurorafoss.extrapanel.gresource"));
+		logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+	} catch(GException e) {
+		// Try to load from install path
+		logger.info("No local gresource file found, assuming it's installed...");
+		try {
+			resource = Resource.load(buildPath(pkgdatadir,
+											"org.aurorafoss.extrapanel.gresource"));
+			logger.info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+		} catch(GException e) {
+			logger.error("No gresource found! App was not installed correctly!");
+			return -1;
+		}
+	} finally {
+		Resource.register(resource);
+	}
+
+	// Start UI
+	import extrapanel.manager.ui.installer : InstallerUI;
+	string[] empty;
+	Main.init(empty);
+	app = new InstallerUI(inputPath);
+	app.run(empty);
+	return (cast(InstallerUI)app).returnState;
+}
+
+int runUninstallerUI(string inputPath) {
+
+	// Inits logger
+	initLogger();
+
+	logger.trace("Starting extrapanel-manager...");
+
+	// Load the UI resources
+	Resource resource;
+	try {
+		// Try to load from build path, if it exists
+		resource = Resource.load(buildPath(builddatadir,
+											"org.aurorafoss.extrapanel.gresource"));
+		logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+	} catch(GException e) {
+		// Try to load from install path
+		logger.info("No local gresource file found, assuming it's installed...");
+		try {
+			resource = Resource.load(buildPath(pkgdatadir,
+											"org.aurorafoss.extrapanel.gresource"));
+			logger.info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+		} catch(GException e) {
+			logger.error("No gresource found! App was not installed correctly!");
+			return -1;
+		}
+	} finally {
+		Resource.register(resource);
+	}
+
+	// Start UI
+	import extrapanel.manager.ui.uninstaller : UninstallerUI;
+	string[] empty;
+	Main.init(empty);
+	app = new UninstallerUI(inputPath);
+	app.run(empty);
+	return (cast(UninstallerUI)app).returnState;
+}

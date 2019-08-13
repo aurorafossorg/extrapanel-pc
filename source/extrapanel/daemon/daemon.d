@@ -91,7 +91,6 @@ pid_t daemonize() {
 
 	// Forking successfull, leaving parent
 	if(pid > 0) {
-		logger.info("Daemon detached with pid ", pid);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -108,7 +107,6 @@ pid_t daemonize() {
 	}
 
 	makeLockFile(sid);
-	writeln(sid);
 
 	// Closes file descriptors
 	close(STDIN_FILENO);

@@ -1,11 +1,11 @@
 module extrapanel.core.plugin.plugin;
 
 import std.json;
-import extrapanel.core.util.paths;
 import std.path;
 import std.file;
 
 import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
 
 /**
  *	plugin.d - General plugin code for the app

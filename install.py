@@ -22,6 +22,7 @@ bindir = os.path.join(prefix, "bin")
 
 print("Installing the executables...")
 for executable in os.listdir("build"):
+    print("Found executable: ", executable)
     shutil.copy2(os.path.join("build", executable), os.path.join(bindir, executable))
 
 print("Updating icon cache...")
