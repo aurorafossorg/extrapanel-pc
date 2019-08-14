@@ -67,7 +67,7 @@ void printHelp() {
 					"This is a tool for installing/uninstalling plugins. It's meant for internal usage, but can be used as is." ~
 					" Available modes:\n" ~
 					"  -i,		Installs a plugin from [input]\n" ~
-					"  -u,		Uninstall a plugin from [input]\n";
+					"  -u,		Uninstall a plugin with id [input]\n";
 
 	writeln(text);
 }

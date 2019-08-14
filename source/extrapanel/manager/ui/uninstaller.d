@@ -76,8 +76,8 @@ public:
 	/// Constructor
 	this(string inputPath)
 	{
-		this.inputPath = inputPath;
-		this.pluginMeta = parseJSON(readText(buildPath(inputPath, "meta.json")));
+		this.inputPath = pluginRootPath(inputPath);
+		this.pluginMeta = parseJSON(readText(buildPath(this.inputPath, "meta.json")));
 
 		// Loads configuration and sets callbacks
 		ApplicationFlags flags = ApplicationFlags.FLAGS_NONE;
