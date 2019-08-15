@@ -9,12 +9,13 @@ import std.process;
 
 import extrapanel.app.main;
 
-import extrapanel.core.plugin.plugin;
+import extrapanel.core.plugin.info;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.util;
 import extrapanel.core.util.exception;
 import extrapanel.core.util.config;
+import extrapanel.core.util.formatter;
 
 import gtk.c.types;
 import pango.c.types;
@@ -79,7 +80,7 @@ public static void populateList(PluginInfo pluginInfo, ListStore store) {
 			break;
 		}
 	}
-	string text = "<b>" ~ pluginInfo.name ~ "</b>\n" ~ pluginInfo.description;
+	string text = bold(pluginInfo.name) ~ "\n" ~ pluginInfo.description;
 
 	store.setValue(iterator, ListStoreColumns.Installed, installed);
 	store.setValue(iterator, ListStoreColumns.Logo, logo);

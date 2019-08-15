@@ -17,10 +17,7 @@
 				"archive": "~>0.6.0"
 			},
 			"libs": ["gtkd-3"],
-			"importPaths": ["/usr/include/d/gtkd-3"],
-			"subConfigurations": {
-				"riverd-lua": "static"
-			}
+			"importPaths": ["/usr/include/d/gtkd-3"]
 		},
 		{
 			"name": "manager",
@@ -38,10 +35,7 @@
 				"archive": "~>0.6.0"
 			},
 			"libs": ["gtkd-3"],
-			"importPaths": ["/usr/include/d/gtkd-3"],
-			"subConfigurations": {
-				"riverd-lua": "static"
-			}
+			"importPaths": ["/usr/include/d/gtkd-3"]
 		},
 		{
 			"name": "daemon",
@@ -55,10 +49,7 @@
 			"dependencies": {
 				"riverd-lua": "~>1.0.3"
 			},
-			"versions": ["daemon"],
-			"subConfigurations": {
-				"riverd-lua": "static"
-			}
+			"versions": ["daemon"]
 		},
 		{
 			"name": "tray",

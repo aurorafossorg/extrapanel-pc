@@ -1,4 +1,4 @@
-module extrapanel.app.ui.ui;
+module extrapanel.app.ui;
 
 import extrapanel.core.util.config;
 import extrapanel.core.util.logger;
@@ -6,7 +6,7 @@ import extrapanel.core.util.paths;
 
 import extrapanel.app.main;
 
-import extrapanel.core.plugin.plugin;
+import extrapanel.core.plugin.info;
 import extrapanel.app.plugin.browser;
 
 // STD

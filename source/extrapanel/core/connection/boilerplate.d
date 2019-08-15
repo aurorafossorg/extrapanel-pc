@@ -1,6 +1,6 @@
 module extrapanel.core.connection.boilerplate;
 
-import extrapanel.core.plugin.plugin : PluginInfo;
+import extrapanel.core.plugin.info : PluginInfo;
 
 abstract class ConnectionBackend {
 	abstract void startup();

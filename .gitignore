@@ -7,7 +7,7 @@ build-aux/main.d
 
 # Temporary Glade Files
 *.ui~
-
+*.ui#
 
 /data/conf
 /data/structure

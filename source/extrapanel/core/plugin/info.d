@@ -1,4 +1,4 @@
-module extrapanel.core.plugin.plugin;
+module extrapanel.core.plugin.info;
 
 import std.json;
 import std.path;

@@ -8,7 +8,7 @@ import std.file;
 import riverd.lua.statfun;
 import riverd.lua.types;
 
-import extrapanel.core.plugin.plugin;
+import extrapanel.core.plugin.info;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.config;
 import extrapanel.core.util.logger;

@@ -2,7 +2,7 @@ module extrapanel.daemon.daemon;
 
 import extrapanel.core.util.config;
 import extrapanel.core.util.paths;
-import extrapanel.core.plugin.plugin;
+import extrapanel.core.plugin.info;
 import extrapanel.daemon.plugin.runner;
 import extrapanel.core.util.logger;
 

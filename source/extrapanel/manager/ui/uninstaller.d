@@ -6,7 +6,7 @@ import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.util;
 import extrapanel.core.util.formatter;
-import extrapanel.core.plugin.plugin;
+import extrapanel.core.plugin.info;
 
 // STD
 import std.json;

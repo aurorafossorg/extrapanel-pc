@@ -8,7 +8,7 @@ import gio.Resource;
 import glib.GException;
 import gtk.Main;
 
-import extrapanel.app.ui.ui;
+import extrapanel.app.ui;
 import extrapanel.core.util.config;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.util;
