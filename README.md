@@ -17,6 +17,7 @@ PC version of Extra Panel
 
 ```bash
 dub build extrapanel:ui 		# Compiles the UI app
+dub build extrapanel:manager	# Compiles the plugin manager
 dub build extrapanel:daemon 	# Compiles the daemon
 dub build extrapanel:tray		# Compiles the tray icon
 ```
@@ -32,6 +33,7 @@ You have now 3 executables:
  - `extrapanel` - **configuration UI** *(alternatively under the Utility/Accessories section of your menu bar)*
  - `extrapanel-daemon` - **daemon**
  - `extrapanel-tray` - **tray icon**
+ - `extrapanel-manager` - **plugin manager for install/uninstall** *(this is meant for internal usage, you shouldn't need to use it directly)*
 
 ## Credits
 
