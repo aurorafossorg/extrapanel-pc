@@ -38,7 +38,7 @@ public:
 		string pluginPath = pluginRootPath(pluginId);
 
 		// Load the plugin config
-		Configuration.loadPlugin(pluginId, buildPath(pluginPath, "config.cfg"));
+		Configuration.loadPlugin(pluginId);
 
 		// Creates a lua_State
 		lua_State* lua = luaL_newstate();

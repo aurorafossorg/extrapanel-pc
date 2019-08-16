@@ -5,11 +5,13 @@ import extrapanel.core.util.logger;
 
 import std.net.curl;
 import std.file;
+import std.path;
 import std.stdio;
 import std.array;
 import std.string;
 import std.conv;
 import std.typecons;
+import std.uuid;
 
 import core.stdc.stdlib;
 
@@ -57,8 +59,9 @@ public static shared class Configuration {
 	}
 
 	// Load plugin config file
-	static bool loadPlugin(string id, string path) {
+	static bool loadPlugin(string id) {
 		// If the path doesn't exist the plugin wasn't installed properly
+		string path = buildPath(pluginRootPath(id), "config.cfg");
 		if(!exists(path)) {
 			return false;
 		}
@@ -155,16 +158,6 @@ public static shared class Configuration {
 		return firstTime;
 	}
 
-	// Retrieves an UUID through an online generator
-	static string retrieveUUID() {
-		try {
-			return cast(string) get("https://www.uuidgenerator.net/api/version4");
-		} catch(CurlException e) {
-			logger.error("Couldn't fetch an UUID! Make sure you have a working internet connection, this is only needed for first-time setup.");
-			return "null";
-		}
-	}
-
 	static string[] appArgs;
 	
 private:
@@ -180,10 +173,11 @@ private:
 		writeln(appConfigPath ~ CONFIG_PATH);
 
 		// Generates UUID
-		string uuid = retrieveUUID();
+		//string uuid = retrieveUUID();
+		string uuid = to!string(randomUUID());
 
 		// We write() here instead of writeln() because retrieveUUID() returns a string with a new-line at the end
-		cfgFile.write(Options.DeviceUUID[0] ~ ": " ~ uuid);
+		cfgFile.writeln(Options.DeviceUUID[0] ~ ": " ~ uuid);
 
 		cfgFile.writeln(unparseOption(Options.LoadOnBoot));
 		cfgFile.writeln(unparseOption(Options.CommDelay));

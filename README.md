@@ -36,5 +36,3 @@ You have now 3 executables:
  - `extrapanel-manager` - **plugin manager for install/uninstall** *(this is meant for internal usage, you shouldn't need to use it directly)*
 
 ## Credits
-
-[**UUIDGenerator**](https://www.uuidgenerator.net/) - UUID Generator
