@@ -3,7 +3,7 @@ module extrapanel.daemon.daemon;
 import extrapanel.core.util.config;
 import extrapanel.core.util.paths;
 import extrapanel.core.plugin.info;
-import extrapanel.daemon.plugin.runner;
+import extrapanel.core.script.runner;
 import extrapanel.core.util.logger;
 
 import core.stdc.stdlib;
@@ -14,6 +14,7 @@ import core.thread;
 import core.time;
 
 import std.file;
+import std.path;
 import std.stdio;
 import std.math;
 import std.process;
@@ -117,7 +118,7 @@ pid_t daemonize() {
 	return pid;
 }
 
-PluginRunner pluginRunner;
+ScriptRunner scriptRunner;
 
 int main(string[] args) {
 	// Init logger
@@ -145,18 +146,27 @@ int main(string[] args) {
 	signal(SIGTERM, &signalHandler);
 
 	// Setup our plugin runner
-	pluginRunner = new PluginRunner();
+	string[] plugins;
+	foreach(string dir; dirEntries(buildPath(appConfigPath, PLUGIN_BASE_PATH), SpanMode.shallow))
+		plugins ~= dir;
+
+	scriptRunner = ScriptRunner.getInstance();
+	foreach(plugin; plugins) {
+		scriptRunner.loadPlugin(plugin, ScriptType.PLUGIN_SCRIPT);
+	}
 
 	// Main loop
 	while(!shouldExit) {
-		string[] query = pluginRunner.query();
-		logger.trace(query);
+		foreach(plugin; plugins) {
+			string query = scriptRunner.runQuery(plugin);
+			logger.trace(query);
+		}
 
 		Thread.sleep(getMsecsDelay.dur!"msecs");
 	}
 
 	// Daemon is quitting
-	destroy(pluginRunner);
+	destroy(scriptRunner);
 	logger.info("Daemon is quitting...");
 	logger.file.close();
 	deleteLockFile();

@@ -46,6 +46,8 @@
 			"targetType": "executable",
 			"targetName": "extrapanel-daemon",
 			"targetPath": "build/",
+			"libs": ["gtkd-3"],
+			"importPaths": ["/usr/include/d/gtkd-3"],
 			"dependencies": {
 				"riverd-lua": "~>1.0.3"
 			},

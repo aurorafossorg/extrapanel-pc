@@ -16,6 +16,7 @@ import extrapanel.core.util.util;
 import extrapanel.core.util.exception;
 import extrapanel.core.util.config;
 import extrapanel.core.util.formatter;
+import extrapanel.core.script.runner;
 
 import gtk.c.types;
 import pango.c.types;
@@ -134,8 +135,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 		case Template.ConfigElement:
 			Box configBox = cast(Box) parent;
 
-			if(runner is null)
-				runner = new ScriptRunner();
+			ScriptRunner scriptRunner = ScriptRunner.getInstance();
 
 			// Creates the top level
 			VBox topLevel = new VBox(false, 5);
@@ -181,7 +181,8 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			Box configPanel;
 			// Loads the configuration menu, if it exists
 			try {
-				configPanel = new Box(runner.run(info));
+				scriptRunner.loadPlugin(info.id, ScriptType.CONFIG_SCRIPT);
+				configPanel = new Box(scriptRunner.setupConfigMenu(info.id));
 				logger.trace(configPanel);
 			} catch(FileNotFoundException e) {
 				try {
@@ -260,63 +261,3 @@ public static void installPlugin(PluginInfo info) {}
 
 // Removes plugin from the local system
 public static void uninstallPlugin(PluginInfo info) {}
-
-public class ScriptRunner {
-public:
-	GtkBox* run(PluginInfo pluginInfo) {
-		// Create Lua state
-		string script = pluginRootPath(pluginInfo.id);
-		lua_State* luaState = luaL_newstate();
-		luaL_openlibs(luaState);
-		logger.trace("[", script, "] Lua state created");
-
-		// Loads Lua script and calls connect()
-		string path = script.buildPath("ui.lua");
-		logger.trace("path: ", path);
-		if(!exists(path)) {
-			lua_close(luaState);
-			throw new FileNotFoundException(path);
-		}
-
-		if(luaL_loadfile(luaState, path.toStringz)) {
-			logger.critical("[", script, "] Failed to load Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
-			lua_close(luaState);
-			throw new ScriptExecutionException(path, "main");
-		}
-
-		lua_pushstring(luaState, script.buildPath("configMenu.ui").toStringz);
-		if(lua_pcall(luaState, 1, LUA_MULTRET, 0)) {
-			logger.critical("[", script, "] Failed to load Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
-			lua_close(luaState);
-			throw new ScriptExecutionException(path, "main");
-		}
-
-		GtkBox* configBox = cast(GtkBox*) lua_touserdata(luaState, -1);
-		logger.trace("[", script, "] Script loaded successfully");
-
-		// Loads saved configuration
-		Configuration.loadPlugin(pluginInfo.id, buildPath(pluginRootPath(pluginInfo.id), "config.cfg"));
-		string parsedConfig = Configuration.parsePlugin(pluginInfo.id);
-		lua_getglobal(luaState, ("loadConfig").toStringz);
-		lua_pushstring(luaState, parsedConfig.toStringz);
-		if(lua_pcall(luaState, 1, 0, 0)) {
-			logger.critical("[", script, "] Failed to pass config to Lua script for ", script, "! Error: ", lua_tostring(luaState, -1).fromStringz);
-			lua_close(luaState);
-			throw new ScriptExecutionException(path, "main");
-		}
-
-		logger.trace("[", script, "] Config passed successfully");
-
-		scripts[script] = luaState;
-		return configBox;
-	}
-
-	~this() {
-		foreach(luaState; scripts.values) {
-			lua_close(luaState);
-		}
-	}
-
-private:
-	lua_State*[string] scripts;
-}
