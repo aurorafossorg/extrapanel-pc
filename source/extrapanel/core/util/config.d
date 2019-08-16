@@ -9,6 +9,7 @@ import std.stdio;
 import std.array;
 import std.string;
 import std.conv;
+import std.typecons;
 
 import core.stdc.stdlib;
 
@@ -17,14 +18,14 @@ import core.stdc.stdlib;
  */
 
 // Default configs for the app
-public static enum Options : string {
-	DeviceUUID 			= "device-uuid",
-	LoadOnBoot 			= "launch-at-startup",
-	CommDelay			= "comm-delay",
-	WiFiEnabled			= "wifi-enabled",
-	BluetoothEnabled	= "bluetooth-enabled",
-	UsbEnabled			= "usb-enabled",
-	AcceptedWizard		= "accepted-wizard"
+public static enum Options : Tuple!(string, string) {
+	DeviceUUID 			= tuple("device-uuid", "null"),
+	LoadOnBoot 			= tuple("launch-at-startup", "false"),
+	CommDelay			= tuple("comm-delay", "0.1"),
+	WiFiEnabled			= tuple("wifi-enabled", "true"),
+	BluetoothEnabled	= tuple("bluetooth-enabled", "true"),
+	UsbEnabled			= tuple("usb-enabled", "true"),
+	AcceptedWizard		= tuple("accepted-wizard", "false")
 }
 
 public static shared class Configuration {
@@ -101,8 +102,8 @@ public static shared class Configuration {
 	}
 
 	// Retrieves a general config
-	static T getOption(T)(string data) {
-		return to!(T)(metaOptions[data]);
+	static T getOption(T)(Options data) {
+		return to!(T)(metaOptions[data[0]]);
 	}
 
 	// Sets a plugin config
@@ -112,9 +113,9 @@ public static shared class Configuration {
 	}
 
 	// Sets a general config
-	static void setOption(T)(string op, T data) {
+	static void setOption(T)(Options op, T data) {
 		changed = true;
-		metaOptions[op] = to!string(data);
+		metaOptions[op[0]] = to!string(data);
 	}
 
 	// Parses a plugin configuration for Lua scripts
@@ -182,16 +183,20 @@ private:
 		string uuid = retrieveUUID();
 
 		// We write() here instead of writeln() because retrieveUUID() returns a string with a new-line at the end
-		cfgFile.write(Options.DeviceUUID ~ ": " ~ uuid);
+		cfgFile.write(Options.DeviceUUID[0] ~ ": " ~ uuid);
 
-		cfgFile.writeln(Options.LoadOnBoot ~ ": false");
-		cfgFile.writeln(Options.CommDelay ~ ": 0.1");
-		cfgFile.writeln(Options.WiFiEnabled ~ ": true");
-		cfgFile.writeln(Options.BluetoothEnabled ~ ": true");
-		cfgFile.writeln(Options.UsbEnabled ~ ": true");
-		cfgFile.writeln(Options.AcceptedWizard ~ ": false");
+		cfgFile.writeln(unparseOption(Options.LoadOnBoot));
+		cfgFile.writeln(unparseOption(Options.CommDelay));
+		cfgFile.writeln(unparseOption(Options.WiFiEnabled));
+		cfgFile.writeln(unparseOption(Options.BluetoothEnabled));
+		cfgFile.writeln(unparseOption(Options.UsbEnabled));
+		cfgFile.writeln(unparseOption(Options.AcceptedWizard));
 
 		cfgFile.close();
+	}
+
+	static string unparseOption(Options opt) {
+		return opt[0] ~ ": " ~ opt[1];
 	}
 
 	// Parses one line of config
