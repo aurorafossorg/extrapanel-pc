@@ -141,6 +141,9 @@ public:
 		Configuration.save();
 	}
 
+	// Plugin Manager
+	PluginManager pluginManager;
+
 	// Constructor
 	Builder builder;
 
@@ -287,6 +290,8 @@ public:
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
 		aboutInterface = cast(Box) builder.getObject("aboutInterface");
 		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
+
+		pluginManager = PluginManager.getInstance();
 	}
 
 	void updateElements()
@@ -544,11 +549,11 @@ public:
 	void cpLoadPlugins() {
 		logger.trace("Showed up");
 
-		pluginsLabel.setLabel("Plugins: " ~ to!string(getInstalledPlugins().length));
+		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
 
 		// Empty the container
-		foreach(id; getInstalledPlugins()) {
-			parseInfo(new PluginInfo(id), Template.ConfigElement, cpPanels, builder);
+		foreach(id; pluginManager.getInstalledPlugins()) {
+			parseInfo(pluginManager.getPlugin(id), Template.ConfigElement, cpPanels, builder);
 		}
 	}
 

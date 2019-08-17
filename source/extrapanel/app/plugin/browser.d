@@ -73,10 +73,11 @@ enum ListStoreColumns : int {
 // Populates the parent TreeView of plugins/packs/installed with all the plugins
 public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	TreeIter iterator = store.createIter();
+	PluginManager pluginManager = PluginManager.getInstance();
 	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
 	bool installed = false;
-	foreach(id; getInstalledPlugins()) {
-		if(canFind(id, pluginInfo.id)) {
+	foreach(id; pluginManager.getInstalledPlugins()) {
+		if(pluginManager.isPluginInstalled(id)) {
 			installed = true;
 			break;
 		}
@@ -90,21 +91,6 @@ public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	store.setValue(iterator, ListStoreColumns.Type, "Official");
 }
 
-private static string[] installedPluginsIds;
-
-// Gets the list of currently installed plugins
-public static string[] getInstalledPlugins(bool refresh = false) {
-	if(installedPluginsIds.empty && !refresh) {
-		string pluginRootPath = buildPath(appConfigPath(), "plugins");
-		foreach(string id; dirEntries(pluginRootPath, SpanMode.shallow)) {
-			installedPluginsIds ~= id;
-		}
-	}
-
-	return installedPluginsIds;
-}
-
-public static ScriptRunner runner = null;
 // Populates GTK elements with the info of plugins depending on the type of info to display
 public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder) {
 	switch(temp) {

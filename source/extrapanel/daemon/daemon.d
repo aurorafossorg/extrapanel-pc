@@ -146,22 +146,24 @@ int main(string[] args) {
 	signal(SIGTERM, &signalHandler);
 
 	// Setup our plugin runner
-	string[] plugins;
-	foreach(string dir; dirEntries(buildPath(appConfigPath, PLUGIN_BASE_PATH), SpanMode.shallow))
-		plugins ~= dir;
+	logger.trace("Loading PluginManager and ScriptRunner...");
+	PluginManager pluginManager = PluginManager.getInstance();
+	string[] plugins = pluginManager.getInstalledPlugins();
 
 	scriptRunner = ScriptRunner.getInstance();
 	foreach(plugin; plugins) {
+		logger.trace("Loading plugin \"", plugin, "\"...");
 		scriptRunner.loadPlugin(plugin, ScriptType.PLUGIN_SCRIPT);
 	}
 
 	// Main loop
 	while(!shouldExit) {
+		string query;
 		foreach(plugin; plugins) {
-			string query = scriptRunner.runQuery(plugin);
-			logger.trace(query);
+			query ~= "\"" ~ scriptRunner.runQuery(plugin) ~ "\", ";
+			
 		}
-
+		logger.trace(query);
 		Thread.sleep(getMsecsDelay.dur!"msecs");
 	}
 

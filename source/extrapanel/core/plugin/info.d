@@ -11,11 +11,52 @@ import extrapanel.core.util.paths;
  *	plugin.d - General plugin code for the app
  */
 
-// Type of content to show
-enum Type {
-	Plugin,
-	Pack,
-	Installed
+// Singleton to manage current plugins
+class PluginManager {
+public:
+	static PluginManager getInstance() {
+		if(pluginManager is null)
+			pluginManager = new PluginManager();
+
+		return pluginManager;
+	}
+
+	string[] getInstalledPlugins(bool refresh = false) {
+		if(!plugins.length || !refresh)
+			populateInstalledPlugins();
+
+		return plugins.keys;
+	}
+
+	PluginInfo getPlugin(string id) {
+		return plugins[id];
+	}
+
+	bool isPluginInstalled(string id) {
+		return getPlugin(id) !is null;
+	}
+
+private:
+	this() {
+		populateInstalledPlugins();
+	}
+
+	~this() {}
+
+	void populateInstalledPlugins() {
+		plugins.clear();
+
+		foreach(string id; dirEntries(pluginRootPath(), SpanMode.shallow)) {
+			plugins[id] = new PluginInfo(id);
+		}
+
+		PluginInfo[string] oldPlugins = plugins;
+		plugins.rehash;
+	}
+
+	PluginInfo[string] plugins;
+
+	static PluginManager pluginManager;
 }
 
 // Class holding all plugin important info
