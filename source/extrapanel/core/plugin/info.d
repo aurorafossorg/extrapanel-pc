@@ -3,9 +3,12 @@ module extrapanel.core.plugin.info;
 import std.json;
 import std.path;
 import std.file;
+import std.string;
 
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
+
+import gtk.Widget;
 
 /**
  *	plugin.d - General plugin code for the app
@@ -21,19 +24,27 @@ public:
 		return pluginManager;
 	}
 
-	string[] getInstalledPlugins(bool refresh = false) {
+	PluginInfo[] getInstalledPlugins(bool refresh = false) {
 		if(!plugins.length || !refresh)
 			populateInstalledPlugins();
 
-		return plugins.keys;
+		return plugins.values;
 	}
 
 	PluginInfo getPlugin(string id) {
 		return plugins[id];
 	}
 
-	bool isPluginInstalled(string id) {
-		return getPlugin(id) !is null;
+	bool isPluginInstalled(PluginInfo pluginInfo) {
+		return (pluginInfo.id in plugins) !is null;
+	}
+
+	void mapWidgetWithPlugin(PluginInfo pluginInfo, Widget widget) {
+		mappedWidgets[widget] = pluginInfo;
+	}
+
+	PluginInfo getMappedPlugin(Widget widget) {
+		return mappedWidgets[widget];
 	}
 
 private:
@@ -46,15 +57,16 @@ private:
 	void populateInstalledPlugins() {
 		plugins.clear();
 
-		foreach(string id; dirEntries(pluginRootPath(), SpanMode.shallow)) {
-			plugins[id] = new PluginInfo(id);
+		foreach(string path; dirEntries(pluginRootPath(), SpanMode.shallow)) {
+			PluginInfo pluginInfo = new PluginInfo(path);
+			plugins[pluginInfo.id] = pluginInfo;
 		}
 
-		PluginInfo[string] oldPlugins = plugins;
 		plugins.rehash;
 	}
 
 	PluginInfo[string] plugins;
+	PluginInfo[Widget] mappedWidgets;
 
 	static PluginManager pluginManager;
 }

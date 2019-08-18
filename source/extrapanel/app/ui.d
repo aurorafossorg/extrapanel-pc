@@ -210,12 +210,6 @@ public:
 		Box aboutInterface;
 		Box pluginInfoInterface;
 
-	// Container for holding plugin ID's associated with buttons
-	// This is a workaround because GtkD has no "clean" way to pass
-	// user data to callbacks, which really annoys me.
-	PluginInfo[Button] pluginInfoIds;
-	string[] installedPlugins;
-
 	Widget savedSidebar = null, savedInterface = null;
 
 	// TID for fetching process
@@ -404,7 +398,7 @@ public:
 	}
 
 	void openPluginInfo(Button button) {
-		PluginInfo info = pluginInfoIds[button];
+		PluginInfo info = pluginManager.getMappedPlugin(button);
 		if(info !is null) {
 			logger.trace("Plugin info is: ", info.id);
 			saveCurrentInterface();
@@ -552,8 +546,8 @@ public:
 		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
 
 		// Empty the container
-		foreach(id; pluginManager.getInstalledPlugins()) {
-			parseInfo(pluginManager.getPlugin(id), Template.ConfigElement, cpPanels, builder);
+		foreach(pluginInfo; pluginManager.getInstalledPlugins()) {
+			parseInfo(pluginInfo, Template.ConfigElement, cpPanels, builder);
 		}
 	}
 

@@ -148,19 +148,19 @@ int main(string[] args) {
 	// Setup our plugin runner
 	logger.trace("Loading PluginManager and ScriptRunner...");
 	PluginManager pluginManager = PluginManager.getInstance();
-	string[] plugins = pluginManager.getInstalledPlugins();
+	PluginInfo[] plugins = pluginManager.getInstalledPlugins();
 
 	scriptRunner = ScriptRunner.getInstance();
 	foreach(plugin; plugins) {
-		logger.trace("Loading plugin \"", plugin, "\"...");
-		scriptRunner.loadPlugin(plugin, ScriptType.PLUGIN_SCRIPT);
+		logger.trace("Loading plugin \"", plugin.id, "\"...");
+		scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
 	}
 
 	// Main loop
 	while(!shouldExit) {
 		string query;
 		foreach(plugin; plugins) {
-			query ~= "\"" ~ scriptRunner.runQuery(plugin) ~ "\", ";
+			query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
 			
 		}
 		logger.trace(query);

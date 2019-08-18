@@ -75,15 +75,9 @@ public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	TreeIter iterator = store.createIter();
 	PluginManager pluginManager = PluginManager.getInstance();
 	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
-	bool installed = false;
-	foreach(id; pluginManager.getInstalledPlugins()) {
-		if(pluginManager.isPluginInstalled(id)) {
-			installed = true;
-			break;
-		}
-	}
-	string text = bold(pluginInfo.name) ~ "\n" ~ pluginInfo.description;
+	bool installed = pluginManager.isPluginInstalled(pluginInfo);
 
+	string text = bold(pluginInfo.name) ~ "\n" ~ pluginInfo.description;
 	store.setValue(iterator, ListStoreColumns.Installed, installed);
 	store.setValue(iterator, ListStoreColumns.Logo, logo);
 	store.setValue(iterator, ListStoreColumns.Text, text);
@@ -122,6 +116,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			Box configBox = cast(Box) parent;
 
 			ScriptRunner scriptRunner = ScriptRunner.getInstance();
+			PluginManager pluginManager = PluginManager.getInstance();
 
 			// Creates the top level
 			VBox topLevel = new VBox(false, 5);
@@ -157,7 +152,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			Button btInfo = new Button("Info");
 			btInfo.setHalign(GtkAlign.CENTER);
 			btInfo.setValign(GtkAlign.CENTER);
-			xPanelApp.pluginInfoIds[btInfo] = info;
+			pluginManager.mapWidgetWithPlugin(info, btInfo);
 			btInfo.addOnClicked(&xPanelApp.openPluginInfo);
 
 			Button btUninstall = new Button("Uninstall");
