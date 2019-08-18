@@ -106,7 +106,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			piiID.setLabel(info.id);
 			piiVersion.setLabel(info.strVersion);
 			piiAuthors.setLabel(formatArray(info.authors));
-			piiURL.setLabel(makeURL(info.url));
+			piiURL.setLabel(url(info.url));
 			piiType.setLabel("Official");
 			break;
 		case Template.ListElement:
@@ -141,7 +141,7 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 			// Title
 			Label title = new Label(info.name);
 			PgAttributeList attribs = title.getAttributes() is null ? new PgAttributeList() : title.getAttributes();
-			attribs.change(PgAttribute.weightNew(PangoWeight.BOLD));
+			attribs.change(uiBold());
 			title.setAttributes(attribs);
 
 			// Info Button
@@ -178,16 +178,16 @@ public static void parseInfo(PluginInfo info, Template temp, Widget parent, Buil
 					configPanel = new Box(GtkOrientation.VERTICAL, 5);
 					Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
 					PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
-					tempAttribs.change(PgAttribute.styleNew(PangoStyle.ITALIC));
-					tempAttribs.change(PgAttribute.foregroundNew(0xaaaa, 0xaaaa, 0xaaaa));
+					tempAttribs.change(uiItalic());
+					tempAttribs.change(uiGrey());
 					nothingFound.setAttributes(tempAttribs);
 					configPanel.packStart(nothingFound, true, false, 0);
 				}
 			}
 
-			configPanel.setMarginLeft(10);
-			configPanel.setMarginRight(10);
-			configPanel.setMarginBottom(10);
+			configPanel.setMarginLeft(MARGIN_DEFAULT);
+			configPanel.setMarginRight(MARGIN_DEFAULT);
+			configPanel.setMarginBottom(MARGIN_DEFAULT);
 
 			// Packs all the elements
 			headerInfo.packStart(logo, false, false, 0);

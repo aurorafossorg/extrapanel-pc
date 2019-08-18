@@ -30,20 +30,25 @@ public static enum Options : Tuple!(string, string) {
 	AcceptedWizard		= tuple("accepted-wizard", "false")
 }
 
+public static immutable enum Args : string {
+	RECONFIGURE = "--reconfigure",	// Force the app to regenereate the configuration file
+	OVERWRITE = "--overwrite"		// Force the daemon to run even with a lock file present
+}
+
 public static shared class Configuration {
 
 	// Loads the configuration
 	static void load() {
 		// If config doesn't exist or we need to --reconfigure, generate a clean config file
-		if(!exists(appConfigPath ~ CONFIG_PATH) || hasArg("--reconfigure")) {
+		if(!exists(buildPath(appConfigPath, CONFIG_PATH)) || hasArg(Args.RECONFIGURE)) {
 			firstTime = true;
 			logger.info("No existing configuration file, creating one...");
 			populate();
 		}
 
 		// Loads the cfgFile
-		logger.info("Loading " ~ appConfigPath ~ CONFIG_PATH);
-		cfgFile = File(appConfigPath ~ CONFIG_PATH, "r+");
+		logger.info("Loading " ~ buildPath(appConfigPath, CONFIG_PATH));
+		cfgFile = File(buildPath(appConfigPath, CONFIG_PATH), "r+");
 
 		// Parses each config
 		while(!cfgFile.eof) {
@@ -86,7 +91,7 @@ public static shared class Configuration {
 	static void save() {
 		// Save only if config changed, for optimization
 		if(changed) {
-			cfgFile = File(appConfigPath ~ CONFIG_PATH, "w");
+			cfgFile = File(buildPath(appConfigPath, CONFIG_PATH), "w");
 			foreach(string s; metaOptions.keys) {
 				cfgFile.writeln(s ~ ": " ~ metaOptions[s]);
 			}
@@ -145,7 +150,7 @@ public static shared class Configuration {
 	}
 
 	// Returns if a given arg was passed
-	static bool hasArg(string arg) {
+	static bool hasArg(Args arg) {
 		foreach(string s; appArgs)
 			if(s == arg)
 				return true;
@@ -169,8 +174,8 @@ private:
 
 		}
 
-		cfgFile = File(appConfigPath ~ CONFIG_PATH, "w");
-		writeln(appConfigPath ~ CONFIG_PATH);
+		cfgFile = File(buildPath(appConfigPath, CONFIG_PATH), "w");
+		writeln(buildPath(appConfigPath, CONFIG_PATH));
 
 		// Generates UUID
 		//string uuid = retrieveUUID();

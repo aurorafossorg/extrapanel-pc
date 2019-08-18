@@ -55,19 +55,19 @@ bool shouldExit = false;
 
 // Checks for existance of the lock file
 bool lockFileExists() {
-	return exists(appConfigPath() ~ LOCK_PATH);
+	return exists(buildPath(appConfigPath(), LOCK_PATH));
 }
 
 // Generates lock file
 void makeLockFile(pid_t pid) {
-	File lockF = File(appConfigPath() ~ LOCK_PATH, "w");
+	File lockF = File(buildPath(appConfigPath(), LOCK_PATH), "w");
 	lockF.write(to!string(pid));
 	lockF.close();
 }
 
 // Deletes lock file
 void deleteLockFile() {
-	remove(appConfigPath() ~ LOCK_PATH);
+	remove(buildPath(appConfigPath(), LOCK_PATH));
 }
 
 // Gets the delay in miliseconds from the config file
@@ -128,8 +128,8 @@ int main(string[] args) {
 	Configuration.appArgs ~= args;
 	
 	// Check for existence of lock file
-	if(lockFileExists && !Configuration.hasArg("--overwrite")) {
-		writeln("Lock file already exists! If you're sure no daemon is running, delete " ~ appConfigPath() ~ LOCK_PATH ~ " manually");
+	if(lockFileExists && !Configuration.hasArg(Args.OVERWRITE)) {
+		writeln("Lock file already exists! If you're sure no daemon is running, delete " ~ buildPath(appConfigPath(), LOCK_PATH) ~ " manually");
 		return -1;
 	}
 

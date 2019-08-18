@@ -16,7 +16,7 @@ void initLogger() {
 	version(daemon) {
 		import std.path;
 		import extrapanel.core.util.paths;
-		logger = new FileLogger(buildPath(appConfigPath ~ LOG_PATH), logLevel);
+		logger = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
 	} else {
 		logger = new FileLogger(stderr, logLevel);
 	}

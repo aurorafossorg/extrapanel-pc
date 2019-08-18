@@ -12,10 +12,6 @@ import extrapanel.core.util.logger;
 
 public static immutable int MARGIN_DEFAULT = 10;	// UI default
 
-public static immutable enum Args : string {
-	RECONFIGURE = "--reconfigure"	// Force the app to regenereate the configuration file
-}
-
 public static void stackDump (lua_State *L) {
 	int i;
 	int top = lua_gettop(L);
@@ -43,6 +39,7 @@ public static void stackDump (lua_State *L) {
 	}
 }
 
+// This turn an JSON array into a nice comma-separated list
 public static string formatArray(JSONValue[] arr) {
 	string formatedStr;
 	foreach(str; arr) {
@@ -50,8 +47,4 @@ public static string formatArray(JSONValue[] arr) {
 	}
 
 	return chomp(formatedStr, ", ");
-}
-
-public static string makeURL(string url) {
-	return "<a href=\"" ~ url ~ "\">" ~ url ~ "</a>";
 }

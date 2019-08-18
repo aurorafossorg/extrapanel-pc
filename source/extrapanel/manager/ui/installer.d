@@ -303,7 +303,7 @@ public:
 		piiID.setLabel(info.id);
 		piiVersion.setLabel(info.strVersion);
 		piiAuthors.setLabel(formatArray(info.authors));
-		piiURL.setLabel(makeURL(info.url));
+		piiURL.setLabel(url(info.url));
 		piiType.setLabel("Official");
 	}
 

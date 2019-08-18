@@ -3,6 +3,7 @@ module extrapanel.app.ui;
 import extrapanel.core.util.config;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
+import extrapanel.core.util.formatter;
 
 import extrapanel.app.main;
 
@@ -222,6 +223,7 @@ public:
 		window = cast(ApplicationWindow) builder.getObject("window");
 		window.setApplication(this);
 
+		// Start Wizard
 		startWizard = cast(Assistant) builder.getObject("startWizard");
 		wizardInstallPack = cast(Switch) builder.getObject("wizardInstallPack");
 
@@ -285,11 +287,13 @@ public:
 		aboutInterface = cast(Box) builder.getObject("aboutInterface");
 		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
 
+		// Plugin Manager
 		pluginManager = PluginManager.getInstance();
 	}
 
 	void updateElements()
 	{
+		// If it's the first time the app is launcher, show the starting wizard
 		if(Configuration.isFirstTime()) {
 			startWizard.addOnCancel(&wizardCanceled);
 			startWizard.addOnApply(&wizardCompleted);
@@ -364,7 +368,7 @@ public:
 				Label label = cast(Label) builder.getObject(id ~ "Label");
 				label.setLabel("Active");
 				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
-				attrs.change(PgAttribute.foregroundNew(0x4e4e, 0x9a9a, 0x0606));
+				attrs.change(uiGreen());
 				label.setAttributes(attrs);
 
 				break;
@@ -373,7 +377,7 @@ public:
 				Label label = cast(Label) builder.getObject(id ~ "Label");
 				label.setLabel("Offline");
 				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
-				attrs.change(PgAttribute.foregroundNew(0xcccc, 0x0000, 0x0000));
+				attrs.change(uiRed());
 				label.setAttributes(attrs);
 
 				break;
@@ -501,7 +505,7 @@ public:
 		status.setLabel(currentStatus ? "Running" : "Stopped");
 		
 		PgAttributeList attrs = status.getAttributes() is null ? new PgAttributeList() : status.getAttributes();
-		attrs.change(currentStatus ? PgAttribute.foregroundNew(0x4e4e, 0x9a9a, 0x0606) : PgAttribute.foregroundNew(0xc000, 0x0000, 0x0000));
+		attrs.change(currentStatus ? uiGreen() : uiRed());
 		status.setAttributes(attrs);
 	}
 
@@ -518,7 +522,7 @@ public:
 	}
 
 	bool queryDaemon() {
-		if(exists(appConfigPath ~ LOCK_PATH)) {
+		if(exists(buildPath(appConfigPath, LOCK_PATH))) {
 			string pid = getDaemonPID();
 			logger.trace(pid);
 			try {
@@ -533,7 +537,7 @@ public:
 	}
 
 	string getDaemonPID() {
-		return File(appConfigPath ~ LOCK_PATH, "r").readln();
+		return File(buildPath(appConfigPath, LOCK_PATH), "r").readln();
 	}
 
 	string getProcFile(string pid) {
@@ -552,7 +556,7 @@ public:
 	}
 
 	void cpLocalFolderCallback(Button b) {
-		string path = "file:///" ~ pluginRootPath();
+		string path = "file://" ~ pluginRootPath();
 		logger.trace("path: ", path);
 		import gio.AppInfoIF;
 		AppInfoIF.launchDefaultForUri(path, null);
