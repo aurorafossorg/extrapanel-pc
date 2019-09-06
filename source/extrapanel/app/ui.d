@@ -408,7 +408,7 @@ public:
 			saveCurrentInterface();
 			mainInterface.setVisibleChild(pluginInfoInterface);
 			sidebar.setVisible(false);
-			parseInfo(info, Template.Complete, null, builder);
+			parseInfo(info, builder);
 		}
 	}
 
@@ -551,7 +551,7 @@ public:
 
 		// Empty the container
 		foreach(pluginInfo; pluginManager.getInstalledPlugins()) {
-			parseInfo(pluginInfo, Template.ConfigElement, cpPanels, builder);
+			buildConfigPanel(pluginInfo, cpPanels, builder);
 		}
 	}
 

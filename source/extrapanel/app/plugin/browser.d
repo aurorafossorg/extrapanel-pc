@@ -54,12 +54,6 @@ import std.net.curl;
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements
  */
 
-enum Template {
-	Complete,		// Complete plugin description, for info page
-	ListElement,	// Element of a TreeView list
-	ConfigElement	// Element for the config page
-}
-
 enum ListStoreColumns : int {
 	Installed,
 	Logo,
@@ -74,149 +68,152 @@ enum ListStoreColumns : int {
 public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	TreeIter iterator = store.createIter();
 	PluginManager pluginManager = PluginManager.getInstance();
-	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
-	bool installed = pluginManager.isPluginInstalled(pluginInfo);
 
+	immutable bool installed = pluginManager.isPluginInstalled(pluginInfo);
+	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
 	string text = bold(pluginInfo.name) ~ "\n" ~ pluginInfo.description;
+
 	store.setValue(iterator, ListStoreColumns.Installed, installed);
 	store.setValue(iterator, ListStoreColumns.Logo, logo);
 	store.setValue(iterator, ListStoreColumns.Text, text);
 	store.setValue(iterator, ListStoreColumns.Version, pluginInfo.strVersion);
+
+	// Temporary hardcoded value, until we have a reliable method of identifying plugin types
 	store.setValue(iterator, ListStoreColumns.Type, "Official");
 }
 
-// Populates GTK elements with the info of plugins depending on the type of info to display
-public static void parseInfo(PluginInfo info, Template temp, Widget parent, Builder builder) {
-	switch(temp) {
-		case Template.Complete:
-			Image pihIcon = cast(Image) builder.getObject("pihIcon");
-			Label pihTitle = cast(Label) builder.getObject("pihTitle");
-			Label pihDescription = cast(Label) builder.getObject("pihDescription");
-			Label piiID = cast(Label) builder.getObject("piiID");
-			Label piiVersion = cast(Label) builder.getObject("piiVersion");
-			Label piiAuthors = cast(Label) builder.getObject("piiAuthors");
-			Label piiURL = cast(Label) builder.getObject("piiURL");
-			Label piiType = cast(Label) builder.getObject("piiType");
+// Builds the config panel for a plugin
+public static void buildConfigPanel(PluginInfo info, Widget parent, Builder builder) {
+	Box configBox = cast(Box) parent;
 
-			string logoPath = buildPath(pluginRootPath(info.id), info.icon);
-			pihIcon.setFromFile(logoPath);
-			pihTitle.setLabel(info.name);
-			pihDescription.setLabel(info.description);
+	// Retrieve needed singletons
+	ScriptRunner scriptRunner = ScriptRunner.getInstance();
+	PluginManager pluginManager = PluginManager.getInstance();
 
-			piiID.setLabel(info.id);
-			piiVersion.setLabel(info.strVersion);
-			piiAuthors.setLabel(formatArray(info.authors));
-			piiURL.setLabel(url(info.url));
-			piiType.setLabel("Official");
-			break;
-		case Template.ListElement:
-			
-			break;
-		case Template.ConfigElement:
-			Box configBox = cast(Box) parent;
+	// Creates the top level element with plugin meta info
+	VBox topLevel = new VBox(false, 5);
+	topLevel.setMarginTop(MARGIN_DEFAULT);
+	topLevel.setMarginBottom(MARGIN_DEFAULT * 3);
+	topLevel.setMarginStart(MARGIN_DEFAULT);
+	topLevel.setMarginEnd(MARGIN_DEFAULT);
 
-			ScriptRunner scriptRunner = ScriptRunner.getInstance();
-			PluginManager pluginManager = PluginManager.getInstance();
+	// Creates the header info box
+	HBox headerInfo = new HBox(false, 5);
+	headerInfo.setHomogeneous(false);
 
-			// Creates the top level
-			VBox topLevel = new VBox(false, 5);
-			topLevel.setMarginTop(MARGIN_DEFAULT);
-			topLevel.setMarginBottom(MARGIN_DEFAULT * 3);
-			topLevel.setMarginStart(MARGIN_DEFAULT);
-			topLevel.setMarginEnd(MARGIN_DEFAULT);
+	// Create a separator
+	Separator sep = new Separator(GtkOrientation.HORIZONTAL);
 
-			// Creates the header info
-			HBox headerInfo = new HBox(false, 5);
-			headerInfo.setHomogeneous(false);
-			//headerInfo.setHalign(GtkAlign.START);
+	// Adds elements to the header: the plugin's logo, title and button area
+	// Logo
+	string logoPath = buildPath(pluginRootPath(info.id), info.icon);
+	Image logo = new Image(logoPath);
 
-			// Create a separator
-			Separator sep = new Separator(GtkOrientation.HORIZONTAL);
+	// Title
+	Label title = new Label(info.name);
+	PgAttributeList attribs = title.getAttributes() is null ? new PgAttributeList() : title.getAttributes();
+	attribs.change(uiBold());
+	title.setAttributes(attribs);
 
-			// Adds elements to the header: the plugin's logo, title and info button
-			// Logo
-			string logoPath = buildPath(pluginRootPath(info.id), info.icon);
-			Image logo = new Image(logoPath);
+	// Button Area
+	HBox buttonBox = new HBox(true, 2);
+	buttonBox.setHexpand(true);
+	buttonBox.setHalign(GtkAlign.END);
 
-			// Title
-			Label title = new Label(info.name);
-			PgAttributeList attribs = title.getAttributes() is null ? new PgAttributeList() : title.getAttributes();
-			attribs.change(uiBold());
-			title.setAttributes(attribs);
+	// Info Button
+	Button btInfo = new Button("Info");
+	btInfo.setHalign(GtkAlign.CENTER);
+	btInfo.setValign(GtkAlign.CENTER);
+	pluginManager.mapWidgetWithPlugin(info, btInfo);
+	btInfo.addOnClicked(&xPanelApp.openPluginInfo);
 
-			// Info Button
-			HBox buttonBox = new HBox(true, 2);
-			buttonBox.setHexpand(true);
-			buttonBox.setHalign(GtkAlign.END);
+	// Uninstall Button
+	Button btUninstall = new Button("Uninstall");
+	btUninstall.setHalign(GtkAlign.CENTER);
+	btUninstall.setValign(GtkAlign.CENTER);
 
-			Button btInfo = new Button("Info");
-			btInfo.setHalign(GtkAlign.CENTER);
-			btInfo.setValign(GtkAlign.CENTER);
-			pluginManager.mapWidgetWithPlugin(info, btInfo);
-			btInfo.addOnClicked(&xPanelApp.openPluginInfo);
+	// Creates the main container for the plugin config
+	Box configPanel;
+	try {
+		// If it's an advanced UI, load it's script
+		scriptRunner.loadPlugin(info.id, ScriptType.CONFIG_SCRIPT);
+		configPanel = new Box(scriptRunner.setupConfigMenu(info.id));
+	} catch(FileNotFoundException e) {
+		try {
+			// If it's a simple UI, load it's definition file
+			builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
+			logger.trace(info.id ~ "_configWindow");
+			configPanel = cast(Box) builder.getObject(info.id ~ "_configWindow");
+			logger.trace("Config panel added");
+		} catch(Exception e) {
+			// No UI could be found, create a simple UI stating that
+			logger.trace("Error caught: ", e.msg);
+			logger.warning("[", info.id, "] No config UI found.");
 
-			Button btUninstall = new Button("Uninstall");
-			btUninstall.setHalign(GtkAlign.CENTER);
-			btUninstall.setValign(GtkAlign.CENTER);
-
-			Box configPanel;
-			// Loads the configuration menu, if it exists
-			try {
-				scriptRunner.loadPlugin(info.id, ScriptType.CONFIG_SCRIPT);
-				configPanel = new Box(scriptRunner.setupConfigMenu(info.id));
-				logger.trace(configPanel);
-			} catch(FileNotFoundException e) {
-				try {
-					builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-					logger.trace(info.id ~ "_configWindow");
-					configPanel = cast(Box) builder.getObject(info.id ~ "_configWindow");
-					logger.trace("Config panel added");
-				} catch(Exception e) {
-					logger.trace("Error caught: ", e.msg);
-					logger.warning("[", info.id, "] No config UI found.");
-
-					configPanel = new Box(GtkOrientation.VERTICAL, 5);
-					Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
-					PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
-					tempAttribs.change(uiItalic());
-					tempAttribs.change(uiGrey());
-					nothingFound.setAttributes(tempAttribs);
-					configPanel.packStart(nothingFound, true, false, 0);
-				}
-			}
-
-			configPanel.setMarginLeft(MARGIN_DEFAULT);
-			configPanel.setMarginRight(MARGIN_DEFAULT);
-			configPanel.setMarginBottom(MARGIN_DEFAULT);
-
-			// Packs all the elements
-			headerInfo.packStart(logo, false, false, 0);
-			headerInfo.packStart(title, false, false, 0);
-			buttonBox.packStart(btInfo, true, false, 0);
-			buttonBox.packStart(btUninstall, true, false, 0);
-			headerInfo.packStart(buttonBox, true, true, 0);
-			logger.trace("headerInfo packed");
-
-			topLevel.packStart(headerInfo, true, false, 0);
-			topLevel.packStart(sep, true, false, 0);
-			topLevel.packStart(configPanel, true, false, 0);
-			logger.trace("topLevel packed");
-
-			configBox.packStart(topLevel, true, false, 0);
-			configBox.showAll();
-
-			logger.trace("configBox packed");
-			break;
-		default:
-			break;
+			configPanel = new Box(GtkOrientation.VERTICAL, 5);
+			Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
+			PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
+			tempAttribs.change(uiItalic());
+			tempAttribs.change(uiGrey());
+			nothingFound.setAttributes(tempAttribs);
+			configPanel.packStart(nothingFound, true, false, 0);
+		}
 	}
+
+	// Add some margin
+	configPanel.setMarginLeft(MARGIN_DEFAULT);
+	configPanel.setMarginRight(MARGIN_DEFAULT);
+	configPanel.setMarginBottom(MARGIN_DEFAULT);
+
+	// Packs all the elements
+	headerInfo.packStart(logo, false, false, 0);
+	headerInfo.packStart(title, false, false, 0);
+	buttonBox.packStart(btInfo, true, false, 0);
+	buttonBox.packStart(btUninstall, true, false, 0);
+	headerInfo.packStart(buttonBox, true, true, 0);
+	logger.trace("headerInfo packed");
+
+	topLevel.packStart(headerInfo, true, false, 0);
+	topLevel.packStart(sep, true, false, 0);
+	topLevel.packStart(configPanel, true, false, 0);
+	logger.trace("topLevel packed");
+
+	configBox.packStart(topLevel, true, false, 0);
+	configBox.showAll();
+
+	logger.trace("configBox packed");
+}
+
+// Populates a plugin info page
+public static void parseInfo(PluginInfo info, Builder builder) {
+	// Retrieve the necessary elements
+	Image pihIcon = cast(Image) builder.getObject("pihIcon");
+	Label pihTitle = cast(Label) builder.getObject("pihTitle");
+	Label pihDescription = cast(Label) builder.getObject("pihDescription");
+	Label piiID = cast(Label) builder.getObject("piiID");
+	Label piiVersion = cast(Label) builder.getObject("piiVersion");
+	Label piiAuthors = cast(Label) builder.getObject("piiAuthors");
+	Label piiURL = cast(Label) builder.getObject("piiURL");
+	Label piiType = cast(Label) builder.getObject("piiType");
+
+	// Populate the elements with data
+	string logoPath = buildPath(pluginRootPath(info.id), info.icon);
+	pihIcon.setFromFile(logoPath);
+	pihTitle.setLabel(info.name);
+	pihDescription.setLabel(info.description);
+
+	piiID.setLabel(info.id);
+	piiVersion.setLabel(info.strVersion);
+	piiAuthors.setLabel(formatArray(info.authors));
+	piiURL.setLabel(url(info.url));
+	piiType.setLabel("Official");
 }
 
 // Downloads a plugin to a temporary folder
 public static void downloadPlugin(PluginInfo info) {
 	gdk.Threads.threadsAddIdle(&downloadPlugin_idleFetch, null);
 	spawn(&thread_downloadPlugin, cast(immutable)info);
-	thread_downloadPlugin_completed = true;
+	thread_downloadPlugin_completed = false;
 }
 
 shared bool thread_downloadPlugin_completed;
