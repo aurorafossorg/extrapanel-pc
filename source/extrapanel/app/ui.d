@@ -295,8 +295,8 @@ public:
 	{
 		// If it's the first time the app is launcher, show the starting wizard
 		if(Configuration.isFirstTime()) {
-			startWizard.addOnCancel(&wizardCanceled);
-			startWizard.addOnApply(&wizardCompleted);
+			startWizard.addOnCancel(&startWizard_onCancel);
+			startWizard.addOnApply(&startWizard_onApply);
 
 			window.setSensitive(false);
 			startWizard.present();
@@ -321,30 +321,30 @@ public:
 		setConnectionButtonState(usbButton, usbState);
 
 		// Callbacks
-		startButton.addOnClicked(&startButtonCallback);
-		stopButton.addOnClicked(&stopButtonCallback);
+		startButton.addOnClicked(&startButton_onClicked);
+		stopButton.addOnClicked(&stopButton_onClicked);
 
-		generalBar.addOnRowActivated(&sidebarOnChange);
-		pluginsBar.addOnRowActivated(&sidebarOnChange);
-		configBar.addOnRowActivated(&sidebarOnChange);
+		generalBar.addOnRowActivated(&sidebar_onRowActivated);
+		pluginsBar.addOnRowActivated(&sidebar_onRowActivated);
+		configBar.addOnRowActivated(&sidebar_onRowActivated);
 
-		wifiButton.addOnClicked(&communicationButtonCallback);
-		bluetoothButton.addOnClicked(&communicationButtonCallback);
-		usbButton.addOnClicked(&communicationButtonCallback);
+		wifiButton.addOnClicked(&connectionButton_onClicked);
+		bluetoothButton.addOnClicked(&connectionButton_onClicked);
+		usbButton.addOnClicked(&connectionButton_onClicked);
 
-		cgOpenAppStartup.addOnToggled(&cgEnableBoxes);
+		cgOpenAppStartup.addOnToggled(&cgOpenAppStartup_onToggled);
 
-		ccwEnableCheck.addOnToggled(&ccEnableBoxes);
-		ccbEnableCheck.addOnToggled(&ccEnableBoxes);
-		ccuEnableCheck.addOnToggled(&ccEnableBoxes);
+		ccwEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
+		ccbEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
+		ccuEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
 
 		cpLoadPlugins();
-		cpLocalFolder.addOnClicked(&cpLocalFolderCallback);
+		cpLocalFolder.addOnClicked(&cpLocalFolder_onClicked);
 
-		backButton.addOnClicked(&backButtonCallback);
+		backButton.addOnClicked(&backButton_onClicked);
 
-		pPluginsInterface.addOnMap(&pPluginsRetrieveList);
-		ppRefresh.addOnClicked(&ppRefreshCallback);
+		pPluginsInterface.addOnMap(&pPluginsInterface_onMap);
+		ppRefresh.addOnClicked(&ppRefresh_onClicked);
 
 		// Queries the state of the daemon
 		currentStatus = queryDaemon();
@@ -353,6 +353,134 @@ public:
 		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
 
+	// Callbacks
+	void startWizard_onCancel(Assistant a) {
+		this.window.close();
+	}
+
+	void startWizard_onApply(Assistant a) {
+		logger.trace(wizardInstallPack);
+		bool installPack = wizardInstallPack.getActive();
+		logger.info("Wizard completed successfully, and user's choice yas ", installPack);
+		this.startWizard.hide();
+		this.window.setSensitive(true);
+		Configuration.setOption(Options.AcceptedWizard, true);
+	}
+
+	void startButton_onClicked(Button b) {
+		startDaemon();
+	}
+
+	void stopButton_onClicked(Button b) {
+		stopDaemon();
+	}
+
+	void sidebar_onRowActivated(ListBoxRow lbr, ListBox lb) {
+		logger.trace("sidebar_onRowActivated()");
+		backButton.setVisible(true);
+		if(lb == generalBar) {
+			if(lbr == gConfigOption) {
+					sidebar.setVisibleChild(configBar);
+					mainInterface.setVisibleChild(configInterface);
+					configInterface.setVisibleChild(cGeneralInterface);
+			} else if(lbr == gPluginsOption) {
+					sidebar.setVisibleChild(pluginsBar);
+					mainInterface.setVisibleChild(pluginsInterface);
+			} else if(lbr == gAboutOption) {
+					sidebar.setVisible(false);
+					mainInterface.setVisibleChild(aboutInterface);
+			}
+		} else if(lb == pluginsBar) {
+
+		} else if(lb == configBar) {
+			if(lbr == cGeneralOption) {
+				configInterface.setVisibleChild(cGeneralInterface);
+			} else if(lbr == cConnectionOption) {
+				configInterface.setVisibleChild(cConnectionInterface);
+			} else if(lbr == cPluginsOption) {
+				configInterface.setVisibleChild(cPluginsInterface);
+			} else if(lbr == cDevicesOption) {
+				configInterface.setVisibleChild(cDevicesInterface);
+			}
+		}
+	}
+
+	void connectionButton_onClicked(Button b) {
+		if(b == wifiButton) {
+			wifiState = wifiState is State.Online ? State.Offline : State.Online;
+			setConnectionButtonState(wifiButton, wifiState);
+		} else if (b == bluetoothButton) {
+			bluetoothState = bluetoothState is State.Online ? State.Offline : State.Online;
+			setConnectionButtonState(bluetoothButton, bluetoothState);
+		} else if (b == usbButton) {
+			usbState = usbState is State.Online ? State.Offline : State.Online;
+			setConnectionButtonState(usbButton, usbState);
+		}
+	}
+
+	void cgOpenAppStartup_onToggled(ToggleButton tb) {
+		Configuration.setOption(Options.LoadOnBoot, tb.getActive());
+	}
+
+	void ccEnableCheck_onToggled(ToggleButton tb) {
+		State state = tb.getActive() ? State.Offline : State.Disabled;
+		if(tb == ccwEnableCheck) {
+			wifiState = state;
+			Configuration.setOption(Options.WiFiEnabled, tb.getActive());
+			setConnectionButtonState(wifiButton, wifiState);
+		} else if(tb == ccbEnableCheck) {
+			bluetoothState = state;
+			Configuration.setOption(Options.BluetoothEnabled, tb.getActive());
+			setConnectionButtonState(bluetoothButton, bluetoothState);
+		} else if(tb == ccuEnableCheck) {
+			usbState = state;
+			Configuration.setOption(Options.UsbEnabled, tb.getActive());
+			setConnectionButtonState(usbButton, usbState);
+		}
+	}
+
+	void cpLocalFolder_onClicked(Button b) {
+		string path = "file://" ~ pluginRootPath();
+		logger.trace("path: ", path);
+		import gio.AppInfoIF;
+		AppInfoIF.launchDefaultForUri(path, null);
+	}
+
+	void backButton_onClicked(Button b) {
+		if(savedSidebar !is null && savedInterface !is null) {
+			logger.trace("backButton_onClicked(): restoring interface.");
+			restoreSavedInterface();
+			sidebar.setVisible(true);
+		} else {
+			logger.trace("backButton_onClicked(): going to main interface.");
+			sidebar.setVisibleChild(generalBar);
+			mainInterface.setVisibleChild(generalInterface);
+			backButton.setVisible(false);
+			sidebar.setVisible(true);
+		}
+	}
+
+	bool once = false;
+	void pPluginsInterface_onMap(Widget w) {
+		logger.trace("pPluginsInterface_onMap called");
+		if(!once) {
+			once = true;
+			ppRefresh.setSensitive(false);
+			setCursorLoading(true);
+			logger.trace("Spawning fetching thread...");
+			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
+			fetchTID = spawn(&fetchPlugins);
+			fetching = true;
+		}
+	}
+
+	void ppRefresh_onClicked(Button b) {
+		pPluginsTreeModel.clear();
+		once = false;
+		pPluginsInterface_onMap(null);
+	}
+
+	// Helper methods
 	void setConnectionButtonState(Button button, State state) {
 		string id;
 		if(button == wifiButton)
@@ -393,14 +521,6 @@ public:
 		}
 	}
 
-	void startButtonCallback(Button b) {
-		startDaemon();
-	}
-
-	void stopButtonCallback(Button b) {
-		stopDaemon();
-	}
-
 	void openPluginInfo(Button button) {
 		PluginInfo info = pluginManager.getMappedPlugin(button);
 		if(info !is null) {
@@ -409,84 +529,6 @@ public:
 			mainInterface.setVisibleChild(pluginInfoInterface);
 			sidebar.setVisible(false);
 			parseInfo(info, builder);
-		}
-	}
-
-	void communicationButtonCallback(Button b) {
-		if(b == wifiButton) {
-			wifiState = wifiState is State.Online ? State.Offline : State.Online;
-			setConnectionButtonState(wifiButton, wifiState);
-		} else if (b == bluetoothButton) {
-			bluetoothState = bluetoothState is State.Online ? State.Offline : State.Online;
-			setConnectionButtonState(bluetoothButton, bluetoothState);
-		} else if (b == usbButton) {
-			usbState = usbState is State.Online ? State.Offline : State.Online;
-			setConnectionButtonState(usbButton, usbState);
-		}
-	}
-
-	void sidebarOnChange(ListBoxRow lbr, ListBox lb) {
-		logger.trace("sidebarOnChange()");
-		backButton.setVisible(true);
-		if(lb == generalBar) {
-			if(lbr == gConfigOption) {
-					sidebar.setVisibleChild(configBar);
-					mainInterface.setVisibleChild(configInterface);
-					configInterface.setVisibleChild(cGeneralInterface);
-			} else if(lbr == gPluginsOption) {
-					sidebar.setVisibleChild(pluginsBar);
-					mainInterface.setVisibleChild(pluginsInterface);
-			} else if(lbr == gAboutOption) {
-					sidebar.setVisible(false);
-					mainInterface.setVisibleChild(aboutInterface);
-			}
-		} else if(lb == pluginsBar) {
-
-		} else if(lb == configBar) {
-			if(lbr == cGeneralOption) {
-				configInterface.setVisibleChild(cGeneralInterface);
-			} else if(lbr == cConnectionOption) {
-				configInterface.setVisibleChild(cConnectionInterface);
-			} else if(lbr == cPluginsOption) {
-				configInterface.setVisibleChild(cPluginsInterface);
-			} else if(lbr == cDevicesOption) {
-				configInterface.setVisibleChild(cDevicesInterface);
-			}
-		}
-	}
-
-	void backButtonCallback(Button b) {
-		if(savedSidebar !is null && savedInterface !is null) {
-			logger.trace("backButtonCallback(): restoring interface.");
-			restoreSavedInterface();
-			sidebar.setVisible(true);
-		} else {
-			logger.trace("backButtonCallback(): going to main interface.");
-			sidebar.setVisibleChild(generalBar);
-			mainInterface.setVisibleChild(generalInterface);
-			backButton.setVisible(false);
-			sidebar.setVisible(true);
-		}
-	}
-
-	void cgEnableBoxes(ToggleButton tb) {
-		Configuration.setOption(Options.LoadOnBoot, tb.getActive());
-	}
-
-	void ccEnableBoxes(ToggleButton tb) {
-		State state = tb.getActive() ? State.Offline : State.Disabled;
-		if(tb == ccwEnableCheck) {
-			wifiState = state;
-			Configuration.setOption(Options.WiFiEnabled, tb.getActive());
-			setConnectionButtonState(wifiButton, wifiState);
-		} else if(tb == ccbEnableCheck) {
-			bluetoothState = state;
-			Configuration.setOption(Options.BluetoothEnabled, tb.getActive());
-			setConnectionButtonState(bluetoothButton, bluetoothState);
-		} else if(tb == ccuEnableCheck) {
-			usbState = state;
-			Configuration.setOption(Options.UsbEnabled, tb.getActive());
-			setConnectionButtonState(usbButton, usbState);
 		}
 	}
 
@@ -555,13 +597,6 @@ public:
 		}
 	}
 
-	void cpLocalFolderCallback(Button b) {
-		string path = "file://" ~ pluginRootPath();
-		logger.trace("path: ", path);
-		import gio.AppInfoIF;
-		AppInfoIF.launchDefaultForUri(path, null);
-	}
-
 	void saveCurrentInterface() {
 		savedSidebar = sidebar.getVisibleChild();
 		savedInterface = mainInterface.getVisibleChild();
@@ -574,27 +609,6 @@ public:
 		savedInterface = null;
 	}
 
-	bool once = false;
-
-	void pPluginsRetrieveList(Widget w) {
-		logger.trace("pPluginsRetrieveList called");
-		if(!once) {
-			once = true;
-			ppRefresh.setSensitive(false);
-			setCursorLoading(true);
-			logger.trace("Spawning fetching thread...");
-			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
-			fetchTID = spawn(&fetchPlugins);
-			fetching = true;
-		}
-	}
-
-	void ppRefreshCallback(Button b) {
-		pPluginsTreeModel.clear();
-		once = false;
-		pPluginsRetrieveList(null);
-	}
-
 	void addPluginListElement(PluginInfo pluginInfo) {
 		populateList(pluginInfo, pPluginsTreeModel);
 		downloadPlugin(pluginInfo);
@@ -604,19 +618,6 @@ public:
 		logger.trace(loadingCursor.getCursorType());
 		window.getWindow().setCursor(loading ? loadingCursor : null);
 		logger.trace(window.getWindow().getCursor() == loadingCursor ? "true" : "false");
-	}
-
-	void wizardCanceled(Assistant a) {
-		this.window.close();
-	}
-
-	void wizardCompleted(Assistant a) {
-		logger.trace(wizardInstallPack);
-		bool installPack = wizardInstallPack.getActive();
-		logger.info("Wizard completed successfully, and user's choice yas ", installPack);
-		this.startWizard.hide();
-		this.window.setSensitive(true);
-		Configuration.setOption(Options.AcceptedWizard, true);
 	}
 }
 
