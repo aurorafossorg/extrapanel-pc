@@ -11,6 +11,7 @@ import std.array;
 import std.string;
 import std.conv;
 import std.typecons;
+import std.traits;
 import std.uuid;
 
 import core.stdc.stdlib;
@@ -36,7 +37,6 @@ public static immutable enum Args : string {
 }
 
 public static shared class Configuration {
-
 	// Loads the configuration
 	static void load() {
 		// If config doesn't exist or we need to --reconfigure, generate a clean config file
@@ -156,6 +156,17 @@ public static shared class Configuration {
 				return true;
 		
 		return false;
+	}
+
+	// Return a list of GTK friendly args. GTK will crash if we give him invalid arguments, for some reason
+	static string[] getGTKFriendlyArgs() {
+		string[] parsedArgs;
+		foreach(arg; appArgs) {
+			if(!(arg == Args.RECONFIGURE || arg == Args.OVERWRITE))
+				parsedArgs ~= arg;
+		}
+
+		return parsedArgs;
 	}
 
 	// Returns if it's the first time the app was launched

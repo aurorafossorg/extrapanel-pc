@@ -24,47 +24,39 @@ static ExtraPanelGUI xPanelApp;
 
 void main (string[] args)
 {
-    // Inits logger
-    initLogger();
+	// Inits logger
+	initLogger();
 
-    logger.trace("Starting extrapanel...");
+	logger.trace("Starting extrapanel...");
 
-    // Remove app args from the array (GTK doesn't like custom args)
-    string[] parsedArgs;
-    foreach(arg; args) {
-        if(arg == Args.RECONFIGURE) {
+	// Save the args for global usage
+	Configuration.appArgs = args;
 
-        } else {
-            parsedArgs ~= arg;
-        }
-    }
+	// Load the UI resources
+	Resource resource;
+	try {
+		// Try to load from build path, if it exists
+		resource = Resource.load(builddatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
+		logger.info("Found gresource at path \"" ~ builddatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
+	} catch(GException e) {
+		// Try to load from install path
+		logger.info("No local gresource file found, assuming it's installed...");
+		try {
+			resource = Resource.load(pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
+			logger.info("Found gresource at path \"" ~ pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
+		} catch(GException e) {
+			logger.error("No gresource found! App was not installed correctly!");
+			return;
+		}
+	} finally {
+		Resource.register(resource);
+	}
 
+	
 
-    // Load the UI resources
-    Resource resource;
-    try {
-        // Try to load from build path, if it exists
-        resource = Resource.load(builddatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
-        logger.info("Found gresource at path \"" ~ builddatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
-    } catch(GException e) {
-        // Try to load from install path
-        logger.info("No local gresource file found, assuming it's installed...");
-        try {
-            resource = Resource.load(pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource"));
-            logger.info("Found gresource at path \"" ~ pkgdatadir.buildPath("org.aurorafoss.extrapanel.gresource") ~ "\"");
-        } catch(GException e) {
-            logger.error("No gresource found! App was not installed correctly!");
-            return;
-        }
-    } finally {
-        Resource.register(resource);
-    }
-
-    // Save the args for global usage
-    Configuration.appArgs ~= args;
-
-    // Start UI
-    Main.init(parsedArgs);
-    xPanelApp = new ExtraPanelGUI();
-    xPanelApp.run(parsedArgs);
+	// Start UI
+	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
+	Main.init(friendlyArgs);
+	xPanelApp = new ExtraPanelGUI();
+	xPanelApp.run(friendlyArgs);
 }
