@@ -1,21 +1,24 @@
 module extrapanel.core.script.runner;
 
-import std.path;
-import std.string;
-import std.file;
-import std.conv;
+// Extra Panel
+import extrapanel.core.plugin.info;
+import extrapanel.core.util.config;
+import extrapanel.core.util.exception;
+import extrapanel.core.util.formatter;
+import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
 
+// GTK
+import gtk.c.types;
+
+// RiverD
 import riverd.lua.statfun;
 import riverd.lua.types;
 
-import gtk.c.types : GtkBox;
-
-import extrapanel.core.plugin.info;
-import extrapanel.core.util.paths;
-import extrapanel.core.util.logger;
-import extrapanel.core.util.exception;
-import extrapanel.core.util.formatter;
-import extrapanel.core.util.config;
+// STD
+import std.conv;
+import std.file;
+import std.string;
 
 public enum ScriptType : byte {
 	PLUGIN_SCRIPT,

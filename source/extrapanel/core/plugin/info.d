@@ -1,14 +1,15 @@
 module extrapanel.core.plugin.info;
 
-import std.json;
-import std.path;
-import std.file;
-import std.string;
-
+// Extra Panel
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 
+// GTK
 import gtk.Widget;
+
+// STD
+import std.file;
+import std.json;
 
 /**
  *	plugin.d - General plugin code for the app

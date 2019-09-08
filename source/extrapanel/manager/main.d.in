@@ -1,17 +1,21 @@
 module extrapanel.manager.main;
 
-import std.string;
+// Extra Panel
+import extrapanel.core.util.logger;
+
+// GLib
+import glib.GException;
+
+// GIO
+import gio.Resource;
+
+// GTK
+import gtk.Application;
+import gtk.Main;
+
+// STD
 import std.path;
 import std.stdio;
-
-import gio.Resource;
-import glib.GException;
-import gtk.Main;
-import gtk.Application;
-
-import extrapanel.core.util.config;
-import extrapanel.core.util.logger;
-import extrapanel.core.util.util;
 
 string pkgdatadir = "@pkgdatadir@";
 string builddatadir = "@builddatadir@";
@@ -27,7 +31,7 @@ static immutable enum Args : string {
 
 static Application app;
 
-int main (string[] args) {
+int main(string[] args) {
 	for(int i = 1; i < args.length; i++) {
 		// Prints help
 		if(args[i] == "-h" || args[i] == "--help") {

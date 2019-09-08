@@ -1,62 +1,50 @@
 module extrapanel.manager.ui.installer;
 
-import extrapanel.manager.main;
-import extrapanel.core.util.config;
+// Archive
+import archive.targz;
+
+// Core
+import core.exception;
+import core.thread;
+
+// Extra Panel
+import extrapanel.core.plugin.info;
+import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.util;
-import extrapanel.core.util.formatter;
-import extrapanel.core.plugin.info;
-
-// STD
-import std.json;
-import std.file;
-import std.stdio;
-import std.path;
-import std.string;
-import std.process;
-import std.concurrency;
-import std.algorithm.searching;
-import std.algorithm.mutation;
-import std.typecons;
-
-// Core
-import core.thread;
-import core.exception;
-
-// GTK
-// Types
-import gtk.c.types;
-
-// Top level
-import gtk.Application;
-import gtk.Widget;
-import gtk.Window;
-import gtk.Box;
-import gtk.Image;
-import gtk.Label;
-import gtk.TextBuffer;
-import gtk.TextIter;
-import gtk.Spinner;
-import gtk.Switch;
-import gtk.Stack;
-
-// Contruct
-import gtk.Builder;
-
-// Elements
-import gtk.Assistant;
-
-// Top level
-import gio.Application : GApplication = Application;
+import extrapanel.manager.main;
 
 // GDK
 import gdk.Cursor;
 import gdk.Threads;
 
-// Archive
-import archive.core;
-import archive.targz;
+// GIO
+import gio.Application : GApplication = Application;
+
+// GTK
+import gtk.Application;
+import gtk.Assistant;
+import gtk.Box;
+import gtk.Builder;
+import gtk.Image;
+import gtk.Label;
+import gtk.Spinner;
+import gtk.Stack;
+import gtk.Switch;
+import gtk.TextBuffer;
+import gtk.TextIter;
+import gtk.Widget;
+
+// STD
+import std.algorithm.mutation;
+import std.algorithm.searching;
+import std.concurrency;
+import std.file;
+import std.json;
+import std.stdio;
+import std.string;
+import std.process;
 
 /**
  *	installer.d - UI for the installer wizard

@@ -1,5 +1,6 @@
 module extrapanel.core.connection.usb;
 
+// Extra Panel
 import extrapanel.core.connection.boilerplate;
 import extrapanel.core.plugin.info;
 

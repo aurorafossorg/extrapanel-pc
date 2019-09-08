@@ -1,9 +1,10 @@
 module extrapanel.core.connection._debug;
 
+// Extra Panel
 import extrapanel.core.connection.boilerplate;
 import extrapanel.core.plugin.info;
 
-import std.file : remove;
+// STD
 import std.stdio;
 
 /*

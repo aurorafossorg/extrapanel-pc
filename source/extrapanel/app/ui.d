@@ -1,80 +1,63 @@
 module extrapanel.app.ui;
 
+// Core
+import core.sys.posix.signal;
+import core.thread;
+
+// Extra Panel
+import extrapanel.app.main;
+import extrapanel.app.plugin.browser;
+import extrapanel.core.plugin.info;
 import extrapanel.core.util.config;
+import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
-import extrapanel.core.util.formatter;
-
-import extrapanel.app.main;
-
-import extrapanel.core.plugin.info;
-import extrapanel.app.plugin.browser;
-
-// STD
-import std.stdio;
-import std.json;
-import std.path;
-import std.file;
-import std.conv;
-import std.array;
-import std.algorithm.searching;
-import std.net.curl;
-import std.concurrency;
-import std.parallelism;
-import std.process;
-
-import core.thread;
-import core.sys.posix.signal;
-
-// GTK
-// Types
-import gtk.c.types;
-
-// Top level
-import gtk.Application;
-import gtk.ApplicationWindow;
-import gtk.Widget;
-import gtk.Window;
-
-import glib.Timeout;
-
-import pango.PgAttributeList;
-import pango.PgAttribute;
-
-// Contruct
-import gtk.Builder;
-
-// Elements
-import gtk.Button;
-import gtk.Label;
-import gtk.Stack;
-import gtk.ListBox;
-import gtk.ListBoxRow;
-import gtk.Box;
-import gtk.Notebook;
-import gtk.ScrolledWindow;
-import gtk.CheckButton;
-import gtk.ToggleButton;
-import gtk.StatusIcon;
-import gtk.Menu;
-import gtk.SpinButton;
-import gtk.TreeView;
-import gtk.Switch;
-import gtk.Image;
-import gtk.ListStore;
-import gtk.TreeIter;
-import gtk.Assistant;
-
-// Top level
-import gio.Application : GApplication = Application;
-
-// Elements
-import gio.Menu : GMenu = Menu;
-import gio.MenuItem : GMenuItem = MenuItem;
 
 // GDK
 import gdk.Cursor;
 import gdk.Threads;
+
+// GLib
+import glib.Timeout;
+
+// GIO
+import gio.Application : GApplication = Application;
+
+// GTK
+import gtk.Application;
+import gtk.ApplicationWindow;
+import gtk.Assistant;
+import gtk.Box;
+import gtk.Builder;
+import gtk.Button;
+import gtk.CheckButton;
+import gtk.Label;
+import gtk.ListBox;
+import gtk.ListBoxRow;
+import gtk.ListStore;
+import gtk.Notebook;
+import gtk.ScrolledWindow;
+import gtk.SpinButton;
+import gtk.Stack;
+import gtk.Switch;
+import gtk.ToggleButton;
+import gtk.TreeView;
+import gtk.Widget;
+
+// Pango
+import pango.PgAttributeList;
+
+// STD
+import std.algorithm.searching;
+import std.array;
+import std.concurrency;
+import std.conv;
+import std.file;
+import std.json;
+import std.net.curl;
+import std.parallelism;
+import std.process;
+import std.stdio;
 
 /**
  *	app.d - Main UI manager for the app

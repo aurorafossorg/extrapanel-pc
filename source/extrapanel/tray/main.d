@@ -1,16 +1,17 @@
 module extrapanel.tray.main;
 
+// GTK
+import gtk.Main;
 import gtk.Menu;
 import gtk.MenuItem;
 import gtk.StatusIcon;
 
-import gtk.c.types;
-
+// GIO
 import gio.Application;
-import gtk.Main;
 
-import std.process;
+// STD
 import std.functional;
+import std.process;
 
 /**
  *	tray.d - Tray icon for the application

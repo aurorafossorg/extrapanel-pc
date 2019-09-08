@@ -1,6 +1,7 @@
 module extrapanel.core.util.paths;
 
-import std.path;
+// STD
+public import std.path;
 import std.file;
 
 /**

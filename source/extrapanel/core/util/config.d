@@ -1,20 +1,17 @@
 module extrapanel.core.util.config;
 
-import extrapanel.core.util.paths;
+// Extra Panel
 import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
 
-import std.net.curl;
-import std.file;
-import std.path;
-import std.stdio;
+// STD
 import std.array;
-import std.string;
 import std.conv;
+import std.file;
+import std.stdio;
+import std.string;
 import std.typecons;
-import std.traits;
 import std.uuid;
-
-import core.stdc.stdlib;
 
 /**
  *	config.d - Configuration framework for the application

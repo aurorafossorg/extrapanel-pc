@@ -1,5 +1,6 @@
 module extrapanel.core.util.formatter;
 
+// Pango
 import pango.PgAttribute;
 
 public static string bold(string text) {

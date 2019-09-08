@@ -1,54 +1,39 @@
 module extrapanel.app.plugin.browser;
 
-import std.path;
-import std.file;
-import std.algorithm.searching;
-import std.concurrency;
-import std.parallelism;
-import std.process;
-
+// Extra Panel
 import extrapanel.app.main;
-
 import extrapanel.core.plugin.info;
-import extrapanel.core.util.paths;
-import extrapanel.core.util.logger;
-import extrapanel.core.util.util;
-import extrapanel.core.util.exception;
-import extrapanel.core.util.config;
-import extrapanel.core.util.formatter;
 import extrapanel.core.script.runner;
+import extrapanel.core.util.exception;
+import extrapanel.core.util.formatter;
+import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
+import extrapanel.core.util.util;
 
-import gtk.c.types;
-import pango.c.types;
-
-import gtk.Builder;
-import gtk.TreeView;
-import gtk.Widget;
-import gtk.Box;
-import gtk.VBox;
-import gtk.HBox;
-import gtk.Label;
-import gtk.Image;
-import gtk.Window;
-import gtk.Separator;
-import gtk.Button;
-import gtk.Stack;
-import gtk.ListStore;
-import gtk.TreeIter;
-import gobject.Signals;
-
-import gdkpixbuf.Pixbuf;
+// GDK
 import gdk.Threads;
+import gdkpixbuf.Pixbuf;
 
+// GTK
+import gtk.Box;
+import gtk.Builder;
+import gtk.Button;
+import gtk.HBox;
+import gtk.Image;
+import gtk.Label;
+import gtk.ListStore;
+import gtk.Separator;
+import gtk.TreeIter;
+import gtk.VBox;
+import gtk.Widget;
+
+// Pango
 import pango.PgAttributeList;
-import pango.PgAttribute;
 
-import riverd.lua.statfun;
-import riverd.lua.types;
-
-import std.json;
-import std.string;
+// STD
+import std.concurrency;
 import std.net.curl;
+import std.path;
 
 /**
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements

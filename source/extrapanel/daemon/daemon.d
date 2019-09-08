@@ -1,24 +1,23 @@
 module extrapanel.daemon.daemon;
 
-import extrapanel.core.util.config;
-import extrapanel.core.util.paths;
+// Core
+import core.stdc.stdlib;
+import core.sys.posix.signal;
+import core.sys.posix.unistd;
+import core.thread;
+
+// Extra Panel
 import extrapanel.core.plugin.info;
 import extrapanel.core.script.runner;
+import extrapanel.core.util.config;
 import extrapanel.core.util.logger;
+import extrapanel.core.util.paths;
 
-import core.stdc.stdlib;
-import core.sys.posix.unistd;
-import core.sys.posix.signal;
-import core.sys.linux.errno;
-import core.thread;
-import core.time;
-
+// STD
+import std.conv;
 import std.file;
-import std.path;
 import std.stdio;
 import std.math;
-import std.process;
-import std.conv;
 
 extern (C)
 {
