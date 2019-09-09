@@ -9,7 +9,6 @@ import std.file;
  */
 
 public immutable string CONFIG_PATH = "xpanel.cfg";
-// FIXME: On Windows, without extensions enabled, both daemon files will look the same and will confuse the user
 public immutable string LOCK_PATH = "daemon.lock";
 public immutable string LOG_PATH = "daemon.log";
 public immutable string APP_BASE_PATH = "extrapanel";
@@ -19,11 +18,9 @@ public immutable string CDN_PATH = "https://dl.aurorafoss.org/aurorafoss/pub/rel
 
 private static string getConfigRootDir() {
 	version (Windows) {
-		// TODO: Get way of obtaining AppData
 		return "null";
 	}
 	version(OSX) {
-		// TODO: Get home folder
 		return "null";
 	}
 	version(linux) {

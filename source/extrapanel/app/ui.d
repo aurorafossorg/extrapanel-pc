@@ -63,7 +63,6 @@ import std.stdio;
  *	app.d - Main UI manager for the app
  */
 
-// TODO - Dirty debug code, refactor with development of communication
 enum State {
 	Online,
 	Offline,

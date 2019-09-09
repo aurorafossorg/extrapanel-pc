@@ -23,7 +23,6 @@ extern (C)
 {
 	// These are for control of termination
 	// druntime rt.critical_
-	// TODO: Investigate what these do and if they're needed
 	//void _d_critical_term();
 	// druntime rt.monitor_
 	//void _d_monitor_staticdtor();
