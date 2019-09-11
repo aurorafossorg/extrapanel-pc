@@ -12,6 +12,7 @@ public immutable string CONFIG_PATH = "xpanel.cfg";
 public immutable string LOCK_PATH = "daemon.lock";
 public immutable string LOG_PATH = "daemon.log";
 public immutable string APP_BASE_PATH = "extrapanel";
+public immutable string PID_PATH = "extrapanel-daemon.pid";
 public immutable string PLUGIN_BASE_PATH = "plugins";
 
 public immutable string CDN_PATH = "https://dl.aurorafoss.org/aurorafoss/pub/releases/xpanel-plugins/";

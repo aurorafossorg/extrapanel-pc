@@ -57,7 +57,9 @@
 			"targetName": "extrapanel-daemon",
 			"targetPath": "build/",
 			"dependencies": {
-				"extrapanel:core": "*"
+				"extrapanel:core": "*",
+				"daemonize": "~>0.2.0",
+				"dlogg": "~>0.4.0"
 			},
 			"versions": ["daemon"]
 		},

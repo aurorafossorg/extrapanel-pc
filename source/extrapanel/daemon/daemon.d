@@ -3,8 +3,13 @@ module extrapanel.daemon.daemon;
 // Core
 import core.stdc.stdlib;
 import core.sys.posix.signal;
-import core.sys.posix.unistd;
 import core.thread;
+
+// Dlogg
+import dlogg.log;
+
+// Daemominze
+import daemonize.d;
 
 // Extra Panel
 import extrapanel.core.plugin.info;
@@ -18,103 +23,63 @@ import std.conv;
 import std.file;
 import std.stdio;
 import std.math;
+import std.parallelism;
 
-extern (C)
-{
-	// These are for control of termination
-	// druntime rt.critical_
-	//void _d_critical_term();
-	// druntime rt.monitor_
-	//void _d_monitor_staticdtor();
-
-	//void gc_term();
-
-	alias int pid_t;
-
-	// daemon functions
-	pid_t fork();
-	int umask(int);
-	int setsid();
-	int close(int fd);
-
-	// Signal trapping in Linux
-	alias void function(int) sighandler_t;
-	sighandler_t signal(int signum, sighandler_t handler);
-	char* strerror(int errnum) pure;
-}
-
-// Signal handler for the daemon
-extern (C) void signalHandler(int signal) {
-	logger.info("Signal: ", signal);
-	shouldExit = true;
-}
-
-bool shouldExit = false;
-
-// Checks for existance of the lock file
-bool lockFileExists() {
-	return exists(buildPath(appConfigPath(), LOCK_PATH));
-}
-
-// Generates lock file
-void makeLockFile(pid_t pid) {
-	File lockF = File(buildPath(appConfigPath(), LOCK_PATH), "w");
-	lockF.write(to!string(pid));
-	lockF.close();
-}
-
-// Deletes lock file
-void deleteLockFile() {
-	remove(buildPath(appConfigPath(), LOCK_PATH));
-}
+immutable string DAEMON_NAME = "extrapanel-daemon";
 
 // Gets the delay in miliseconds from the config file
 int getMsecsDelay() {
 	return cast(int) round(Configuration.getOption!(float)(Options.CommDelay) * 1000);
 }
 
-pid_t daemonize() {
-	// Process and Session ID's
-	pid_t pid, sid;
+extern (C) uid_t geteuid();
 
-	// Fork of of parent
-	pid = fork();
+alias daemon = Daemon!(
+	// Unique daemon name
+	DAEMON_NAME,
 
-	if(pid < 0) {
-		logger.critical("Daemon process failed: fork failed");
-		deleteLockFile();
-		logger.file.close();
+	// Associative mapping of signals -> callbacks
+	KeyValueList!(
+		Composition!(Signal.Terminate, Signal.Quit, Signal.Shutdown, Signal.Stop), (unusedLogger, signal) {
+			logger.info("Exiting...");
+			return false;
+		},
+		Composition!(Signal.HangUp,Signal.Pause,Signal.Continue), (unusedLogger)
+		{
+			return true;
+		}
+	),
 
-		exit(EXIT_FAILURE);
+	// Main daemon function
+	(unusedLogger, shouldExit) {
+		// Setup our plugin runner
+		logger.trace("Loading PluginManager and ScriptRunner...");
+		PluginManager pluginManager = PluginManager.getInstance();
+		PluginInfo[] plugins = pluginManager.getInstalledPlugins();
+
+		ScriptRunner scriptRunner = ScriptRunner.getInstance();
+		foreach(plugin; plugins) {
+			logger.trace("Loading plugin \"" ~ plugin.id ~ "\"...");
+			scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
+		}
+
+		// Main loop
+		while(!shouldExit()) {
+			string query;
+			foreach(plugin; taskPool.parallel(plugins)) {
+				query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
+			}
+			logger.info(query);
+			Thread.sleep(getMsecsDelay.dur!"msecs");
+		}
+
+		// Daemon is quitting
+		destroy(scriptRunner);
+		logger.info("Daemon is quitting...");
+
+		return 0;
 	}
-
-	// Forking successfull, leaving parent
-	if(pid > 0) {
-		exit(EXIT_SUCCESS);
-	}
-
-	// Change umask mode
-	umask(0);
-
-	// Creates a new SID for the child process
-	sid = setsid();
-	if(sid < 0) {
-		deleteLockFile();
-		logger.file.close();
-
-		exit(EXIT_FAILURE);
-	}
-
-	makeLockFile(sid);
-
-	// Closes file descriptors
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-
-	// Daemon process finished; we return it's pid now
-	return pid;
-}
+);
 
 ScriptRunner scriptRunner;
 
@@ -125,51 +90,12 @@ int main(string[] args) {
 	// Appends args to global args
 	Configuration.appArgs ~= args;
 	
-	// Check for existence of lock file
-	if(lockFileExists && !Configuration.hasArg(Args.OVERWRITE)) {
-		writeln("Lock file already exists! If you're sure no daemon is running, delete " ~ buildPath(appConfigPath(), LOCK_PATH) ~ " manually");
-		return -1;
-	}
-
-	// Daemonize
-	int pid = daemonize();
-
-	// Makes lock file and loads general config
+	// Loads general config
 	Configuration.load();
 
-	// Connect signals to signalHandler
-	signal(SIGINT, &signalHandler);
-	signal(SIGABRT, &signalHandler);
-	signal(SIGQUIT, &signalHandler);
-	signal(SIGTERM, &signalHandler);
-
-	// Setup our plugin runner
-	logger.trace("Loading PluginManager and ScriptRunner...");
-	PluginManager pluginManager = PluginManager.getInstance();
-	PluginInfo[] plugins = pluginManager.getInstalledPlugins();
-
-	scriptRunner = ScriptRunner.getInstance();
-	foreach(plugin; plugins) {
-		logger.trace("Loading plugin \"", plugin.id, "\"...");
-		scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
-	}
-
-	// Main loop
-	while(!shouldExit) {
-		string query;
-		foreach(plugin; plugins) {
-			query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
-			
-		}
-		logger.trace(query);
-		Thread.sleep(getMsecsDelay.dur!"msecs");
-	}
-
-	// Daemon is quitting
-	destroy(scriptRunner);
-	logger.info("Daemon is quitting...");
-	logger.file.close();
-	deleteLockFile();
-
-	return 0;
+	// Builds the required paths and starts the daemon
+	string logPath = buildPath(appConfigPath(), LOG_PATH);
+	string pidPath = buildPath(appConfigPath(), PID_PATH);
+	string lockPath = buildPath(appConfigPath(), LOCK_PATH);
+	return buildDaemon!daemon.run(new shared DloggLogger(logPath), pidPath, lockPath);
 }
