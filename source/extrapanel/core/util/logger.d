@@ -1,5 +1,8 @@
 module extrapanel.core.util.logger;
 
+// Daemonize
+import daemonize.d;
+
 // Extra Panel
 version (daemon) import extrapanel.core.util.paths;
 
@@ -22,4 +25,41 @@ void initLogger() {
 	} else {
 		logger = new FileLogger(stderr, logLevel);
 	}
+}
+
+synchronized class DaemonizeLogger : IDaemonLogger {
+	void logDebug(string message) nothrow
+	{
+		try {
+			logger.trace(message);
+		} catch (Exception) {}
+	}
+
+	void logInfo(lazy string message) nothrow
+	{
+		try {
+			logger.info(message);
+		} catch (Exception) {}
+	}
+
+	void logWarning(lazy string message) nothrow
+	{
+		try {
+			logger.warning(message);
+		} catch (Exception) {}
+	}
+
+	void logError(lazy string message) @trusted nothrow
+	{
+		try {
+			logger.critical(message);
+		} catch (Exception) {}
+	}
+
+	DaemonLogLevel minLogLevel() @property {return DaemonLogLevel.Debug;}
+	void minLogLevel(DaemonLogLevel level) @property {}
+	DaemonLogLevel minOutputLevel() @property {return DaemonLogLevel.Debug;}
+	void minOutputLevel(DaemonLogLevel level) @property {}
+	void finalize() @trusted nothrow {}
+	void reload() {}
 }

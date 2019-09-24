@@ -5,9 +5,6 @@ import core.stdc.stdlib;
 import core.sys.posix.signal;
 import core.thread;
 
-// Dlogg
-import dlogg.log;
-
 // Daemominze
 import daemonize.d;
 
@@ -97,5 +94,5 @@ int main(string[] args) {
 	string logPath = buildPath(appConfigPath(), LOG_PATH);
 	string pidPath = buildPath(appConfigPath(), PID_PATH);
 	string lockPath = buildPath(appConfigPath(), LOCK_PATH);
-	return buildDaemon!daemon.run(new shared DloggLogger(logPath), pidPath, lockPath);
+	return buildDaemon!daemon.run(new shared DaemonizeLogger(), pidPath, lockPath);
 }
