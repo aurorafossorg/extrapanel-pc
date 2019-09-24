@@ -1,7 +1,7 @@
 module extrapanel.app.plugin.browser;
 
 // Extra Panel
-import extrapanel.app.main;
+import extrapanel.app.ui;
 import extrapanel.core.plugin.info;
 import extrapanel.core.script.runner;
 import extrapanel.core.util.exception;

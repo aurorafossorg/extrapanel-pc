@@ -5,7 +5,6 @@ import core.sys.posix.signal;
 import core.thread;
 
 // Extra Panel
-import extrapanel.app.main;
 import extrapanel.app.plugin.browser;
 import extrapanel.core.plugin.info;
 import extrapanel.core.util.config;
@@ -74,6 +73,8 @@ static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbSta
 static bool currentStatus = false;
 
 shared bool fetching = false;
+
+static ExtraPanelGUI xPanelApp;
 
 /// Main application
 class ExtraPanelGUI : Application

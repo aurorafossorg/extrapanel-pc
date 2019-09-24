@@ -13,9 +13,6 @@
 				"riverd-lua": "~>1.0.3",
 				"gtk-d:gtkd": "~>3.8.4",
 				"daemonize":"~>0.2.1"
-			},
-			"subConfigurations": {
-				"riverd-lua": "static"
 			}
 		},
 		{
@@ -24,7 +21,7 @@
 			"sourcePaths": [
 				"source/extrapanel/app"
 			],
-			"sourceFiles": ["build-aux/main.d"],
+			"mainSourceFile": "build-aux/main.d",
 			"targetType": "executable",
 			"targetName": "extrapanel",
 			"targetPath": "build/",
@@ -39,7 +36,7 @@
 			"sourcePaths": [
 				"source/extrapanel/manager"
 			],
-			"sourceFiles": ["build-aux/main.d"],
+			"mainSourceFile": "build-aux/main.d",
 			"targetType": "executable",
 			"targetName": "extrapanel-manager",
 			"targetPath": "build/",
@@ -51,9 +48,9 @@
 		{
 			"name": "daemon",
 			"sourcePaths": [
-				"source/extrapanel/core",
 				"source/extrapanel/daemon"
 			],
+			"mainSourceFile": "source/extrapanel/daemon/daemon.d",
 			"targetType": "executable",
 			"targetName": "extrapanel-daemon",
 			"targetPath": "build/",

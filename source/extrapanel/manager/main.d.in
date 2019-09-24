@@ -29,8 +29,6 @@ static immutable enum Args : string {
 	UNINSTALL = "-u"        // Uninstall a plugin
 }
 
-static Application app;
-
 int main(string[] args) {
 	for(int i = 1; i < args.length; i++) {
 		// Prints help
@@ -106,12 +104,12 @@ int runInstallerUI(string inputPath) {
 	}
 
 	// Start UI
-	import extrapanel.manager.ui.installer : InstallerUI;
+	import extrapanel.manager.ui.installer;
 	string[] empty;
 	Main.init(empty);
 	app = new InstallerUI(inputPath);
 	app.run(empty);
-	return (cast(InstallerUI)app).returnState;
+	return app.returnState;
 }
 
 int runUninstallerUI(string inputPath) {
@@ -144,10 +142,10 @@ int runUninstallerUI(string inputPath) {
 	}
 
 	// Start UI
-	import extrapanel.manager.ui.uninstaller : UninstallerUI;
+	import extrapanel.manager.ui.uninstaller;
 	string[] empty;
 	Main.init(empty);
 	app = new UninstallerUI(inputPath);
 	app.run(empty);
-	return (cast(UninstallerUI)app).returnState;
+	return app.returnState;
 }

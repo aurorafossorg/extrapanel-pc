@@ -51,7 +51,7 @@ editorconfig:
 
 .x86_64-linux-deps_template: &x86_64-linux-deps_definition
   before_script:
-    - pacman -Sy luarocks lua-lgi python --noconfirm
+    - pacman -Sy gtk3 luarocks lua-lgi python --noconfirm
 
 x86_64-linux-dub-dmd-debug:
   stage: build
@@ -82,10 +82,10 @@ x86_64-linux-dub-gdcd-debug:
 unittests:
   stage: test
   <<: *artifacts_definition
+  <<: *linux-dub_definition
   <<: *x86_64-linux-deps_definition
-  image: aurorafossorg/dlang:latest
-  script:
-    - dub build :core --build=unittest
+  variables:
+    BUILD_DUB_FLAGS: $CI_JOB_STAGE --build=unittest
 
 code_coverage:
   <<: *linux-dub_definition

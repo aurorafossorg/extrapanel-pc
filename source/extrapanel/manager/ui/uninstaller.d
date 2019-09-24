@@ -6,7 +6,6 @@ import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.util;
-import extrapanel.manager.main;
 
 // GDK
 import gdk.Cursor;
@@ -48,6 +47,8 @@ enum PluginType : int {
 	COMMUNITY,
 	UNTRUSTED
 }
+
+static UninstallerUI app;
 
 /// Main application
 class UninstallerUI : Application
@@ -222,9 +223,9 @@ shared bool pluginUninstalling = false;
 extern(C) nothrow int pluginUninstall_idleFetch(void* data) {
 	try {
 		receive((string output) {
-			(cast(UninstallerUI)app).appendPluginUninstallTextBuffer(output);
+			app.appendPluginUninstallTextBuffer(output);
 			if(output == "Completed") {
-				(cast(UninstallerUI)app).completedPluginUninstallation();
+				app.completedPluginUninstallation();
 				pluginUninstalling = false;
 			}
 		});

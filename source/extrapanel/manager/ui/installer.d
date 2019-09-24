@@ -13,7 +13,6 @@ import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 import extrapanel.core.util.util;
-import extrapanel.manager.main;
 
 // GDK
 import gdk.Cursor;
@@ -64,6 +63,8 @@ enum PluginType : int {
 	COMMUNITY,
 	UNTRUSTED
 }
+
+static InstallerUI app;
 
 /// Main application
 class InstallerUI : Application
@@ -348,11 +349,11 @@ shared bool luaDepInstalling = false;
 extern(C) nothrow int luaDepInstall_idleFetch(void* data) {
 	try {
 		receiveTimeout(dur!("msecs")(10), (string output) {
-			(cast(InstallerUI)app).appendLuaInstallTextBuffer(output);
+			app.appendLuaInstallTextBuffer(output);
 		});
 		if(!luaDepInstalling) {
-			(cast(InstallerUI)app).appendLuaInstallTextBuffer("\n-------\n");
-			(cast(InstallerUI)app).installLuaDep();
+			app.appendLuaInstallTextBuffer("\n-------\n");
+			app.installLuaDep();
 			return 0;
 		}
 	} catch(Throwable t) return 0;
@@ -398,9 +399,9 @@ shared bool pluginInstalling = false;
 extern(C) nothrow int pluginInstall_idleFetch(void* data) {
 	try {
 		receive((string output) {
-			(cast(InstallerUI)app).appendPluginInstallTextBuffer(output);
+			app.appendPluginInstallTextBuffer(output);
 			if(output == "Completed") {
-				(cast(InstallerUI)app).completedPluginInstallation();
+				app.completedPluginInstallation();
 				pluginInstalling = false;
 			}
 		});
