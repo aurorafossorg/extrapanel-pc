@@ -562,7 +562,7 @@ public:
 	}
 
 	string getDaemonPID() {
-		return File(buildPath(appConfigPath, LOCK_PATH), "r").readln();
+		return File(buildPath(appConfigPath, PID_PATH), "r").readln();
 	}
 
 	string getProcFile(string pid) {
