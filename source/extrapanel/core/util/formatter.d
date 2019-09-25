@@ -84,28 +84,25 @@ unittest {
 
 @("Formatter: console red text")
 unittest {
-	initLogger();
 	string text = "This should appear red on console";
 
-	logger.info(consoleRed(text));
+	info(consoleRed(text));
 	assert(consoleRed(text) == "\033[0;31mThis should appear red on console\033[0m");
 }
 
 @("Formatter: console yellow text")
 unittest {
-	initLogger();
 	string text = "This should appear yellow on console";
 
-	logger.info(consoleYellow(text));
+	info(consoleYellow(text));
 	assert(consoleYellow(text) == "\033[1;33mThis should appear yellow on console\033[0m");
 }
 
 @("Formatter: console green text")
 unittest {
-	initLogger();
 	string text = "This should appear green on console";
 
-	logger.info(consoleGreen(text));
+	info(consoleGreen(text));
 	assert(consoleGreen(text) == "\033[0;32mThis should appear green on console\033[0m");
 }
 

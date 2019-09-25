@@ -23,19 +23,19 @@ public static void stackDump (lua_State *L) {
 		switch (t) {
 	
 		case LUA_TSTRING:  // strings
-			logger.log("String: ", lua_tostring(L, i).fromStringz);
+			log("String: ", lua_tostring(L, i).fromStringz);
 			break;
 	
 		case LUA_TBOOLEAN:  // booleans
-			logger.log("Boolean: ", lua_toboolean(L, i) ? "true" : "false");
+			log("Boolean: ", lua_toboolean(L, i) ? "true" : "false");
 			break;
 	
 		case LUA_TNUMBER:  // numbers
-			logger.log("Number: ", lua_tonumber(L, i));
+			log("Number: ", lua_tonumber(L, i));
 			break;
 	
 		default:  // other values
-			logger.log("Other type: ", lua_typename(L, t).fromStringz, "\t", lua_touserdata(L, i));
+			log("Other type: ", lua_typename(L, t).fromStringz, "\t", lua_touserdata(L, i));
 			break;
 	
 		}

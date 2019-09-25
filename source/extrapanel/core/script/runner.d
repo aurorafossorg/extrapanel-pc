@@ -36,7 +36,7 @@ public:
 	}
 
 	void loadPlugin(string pluginId, ScriptType scriptType = ScriptType.PLUGIN_SCRIPT) {
-		logger.trace("[", pluginId, "]");
+		trace("[", pluginId, "]");
 
 		// Get the root path of the plugin's files
 		string pluginPath = pluginRootPath(pluginId);
@@ -47,7 +47,7 @@ public:
 		// Creates a lua_State
 		lua_State* lua = luaL_newstate();
 		luaL_openlibs(lua);
-		logger.trace(">" ~ consoleYellow("\tLua state created"));
+		trace(">" ~ consoleYellow("\tLua state created"));
 
 		// Loads the script file
 		string luaFile;
@@ -84,26 +84,24 @@ public:
 		}
 
 		// Lua state created successfully, and script loaded
-		logger.trace(">" ~ consoleGreen("\tScript loaded successfully"));
+		trace(">" ~ consoleGreen("\tScript loaded successfully"));
 		pluginScripts[pluginId][scriptType] = lua;
 	}
 
 	void removePlugin(string pluginId) {
-		foreach(scriptType; pluginScripts[pluginId].keys) {
+		foreach(scriptType; pluginScripts[pluginId].byKey()) {
 			lua_close(pluginScripts[pluginId][scriptType]);
 			pluginScripts[pluginId].remove(scriptType);
 		}
 
 		pluginScripts.remove(pluginId);
-		
-		logger.trace("Plugin \"", pluginId, "\" successfully closed.");
 	}
 
 	GtkBox* setupConfigMenu(string pluginId) {
 		// Finds the lua_State
 		lua_State* lua = pluginScripts[pluginId][ScriptType.CONFIG_SCRIPT];
 		if(lua is null) {
-			logger.critical("Error: no lua script for config menu for \"", pluginId, "\"");
+			critical("Error: no lua script for config menu for \"", pluginId, "\"");
 			return null;
 		}
 
@@ -124,7 +122,7 @@ public:
 		lua_pushstring(lua, parsedConfig.toStringz);
 		runLuaCommand(lua_pcall(lua, 1, 0, 0), lua, pluginId, "main");
 
-		logger.trace("[", pluginId, "] Config passed successfully");
+		trace("[", pluginId, "] Config passed successfully");
 
 		return configBox;
 	}
@@ -133,7 +131,7 @@ public:
 		// Finds the lua_State
 		lua_State* lua = pluginScripts[pluginId][ScriptType.PLUGIN_SCRIPT];
 		if(lua is null) {
-			logger.critical("Error: no lua script for config menu for \"", pluginId, "\"");
+			critical("Error: no lua script for config menu for \"", pluginId, "\"");
 			return null;
 		}
 
@@ -142,7 +140,7 @@ public:
 
 		// Calls query()
 		if(lua_pcall(lua, 0, 1, 0)) {
-			logger.critical("[", pluginId, "] query() call failed for plugin ", pluginId, "! Error: ", lua_tostring(lua, -1).fromStringz);
+			critical("[", pluginId, "] query() call failed for plugin ", pluginId, "! Error: ", lua_tostring(lua, -1).fromStringz);
 			return "";
 		}
 
@@ -158,7 +156,7 @@ private:
 
 	void runLuaCommand(int errCode, lua_State* lua, string pluginId, string method) {
 		if(errCode) {
-			logger.critical("[", pluginId, "] Failed to pass config to Lua script for ", pluginId,
+			critical("[", pluginId, "] Failed to pass config to Lua script for ", pluginId,
 			"! Error: ", lua_tostring(lua, -1).fromStringz);
 			lua_close(lua);
 			throw new ScriptExecutionException(pluginId, method);
@@ -166,7 +164,7 @@ private:
 	}
 
 	~this() {
-			foreach(pluginId; pluginScripts.keys)
+			foreach(pluginId; pluginScripts.byKey())
 				removePlugin(pluginId);
 	}
 
@@ -189,7 +187,6 @@ unittest {
 
 @("Script: test a plugin script")
 unittest {
-	initLogger();
 	Configuration.load();
 	createAppPaths();
 

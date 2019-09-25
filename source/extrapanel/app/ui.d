@@ -53,7 +53,7 @@ import std.concurrency;
 import std.conv;
 import std.file;
 import std.json;
-import std.net.curl;
+import std.net.curl : download;
 import std.parallelism;
 import std.process;
 import std.stdio;
@@ -96,16 +96,16 @@ public:
 
 	// App activated
 	void onAppActivate(GApplication app) {
-		logger.trace("Activate App Signal");
+		trace("Activate App Signal");
 		// Detect if there are other instances of this app running
 		if (!app.getIsRemote() && window is null)
 		{
 			// Loads the UI files
-			logger.trace("Primary instance, loading UI...");
+			trace("Primary instance, loading UI...");
 			builder = new Builder();
 			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/window.ui"))
 			{
-				logger.critical("Window resource cannot be found");
+				critical("Window resource cannot be found");
 				return;
 			}
 
@@ -113,7 +113,7 @@ public:
 			initElements();
 			updateElements();
 		} else {
-			logger.trace("Another instance exists, taking control...");
+			trace("Another instance exists, taking control...");
 		}
 
 		// Show
@@ -342,9 +342,9 @@ public:
 	}
 
 	void startWizard_onApply(Assistant a) {
-		logger.trace(wizardInstallPack);
+		trace(wizardInstallPack);
 		bool installPack = wizardInstallPack.getActive();
-		logger.info("Wizard completed successfully, and user's choice yas ", installPack);
+		info("Wizard completed successfully, and user's choice yas ", installPack);
 		this.startWizard.hide();
 		this.window.setSensitive(true);
 		Configuration.setOption(Options.AcceptedWizard, true);
@@ -359,7 +359,7 @@ public:
 	}
 
 	void sidebar_onRowActivated(ListBoxRow lbr, ListBox lb) {
-		logger.trace("sidebar_onRowActivated()");
+		trace("sidebar_onRowActivated()");
 		backButton.setVisible(true);
 		if(lb == generalBar) {
 			if(lbr == gConfigOption) {
@@ -424,18 +424,18 @@ public:
 
 	void cpLocalFolder_onClicked(Button b) {
 		string path = "file://" ~ pluginRootPath();
-		logger.trace("path: ", path);
+		trace("path: ", path);
 		import gio.AppInfoIF;
 		AppInfoIF.launchDefaultForUri(path, null);
 	}
 
 	void backButton_onClicked(Button b) {
 		if(savedSidebar !is null && savedInterface !is null) {
-			logger.trace("backButton_onClicked(): restoring interface.");
+			trace("backButton_onClicked(): restoring interface.");
 			restoreSavedInterface();
 			sidebar.setVisible(true);
 		} else {
-			logger.trace("backButton_onClicked(): going to main interface.");
+			trace("backButton_onClicked(): going to main interface.");
 			sidebar.setVisibleChild(generalBar);
 			mainInterface.setVisibleChild(generalInterface);
 			backButton.setVisible(false);
@@ -445,12 +445,12 @@ public:
 
 	bool once = false;
 	void pPluginsInterface_onMap(Widget w) {
-		logger.trace("pPluginsInterface_onMap called");
+		trace("pPluginsInterface_onMap called");
 		if(!once) {
 			once = true;
 			ppRefresh.setSensitive(false);
 			setCursorLoading(true);
-			logger.trace("Spawning fetching thread...");
+			trace("Spawning fetching thread...");
 			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
 			fetchTID = spawn(&fetchPlugins);
 			fetching = true;
@@ -507,7 +507,7 @@ public:
 	void openPluginInfo(Button button) {
 		PluginInfo info = pluginManager.getMappedPlugin(button);
 		if(info !is null) {
-			logger.trace("Plugin info is: ", info.id);
+			trace("Plugin info is: ", info.id);
 			saveCurrentInterface();
 			mainInterface.setVisibleChild(pluginInfoInterface);
 			sidebar.setVisible(false);
@@ -536,7 +536,7 @@ public:
 
 	void startDaemon() {
 		if(wait(spawnProcess("extrapanel-daemon")))
-			logger.warning("Daemon failed to launch!!");
+			warning("Daemon failed to launch!!");
 	}
 
 	void stopDaemon() {
@@ -549,7 +549,7 @@ public:
 	bool queryDaemon() {
 		if(exists(buildPath(appConfigPath, LOCK_PATH))) {
 			string pid = getDaemonPID();
-			logger.trace(pid);
+			trace(pid);
 			try {
 				string line = getProcFile(pid);
 				if(find(line, "extrapanel-daemon"))
@@ -570,7 +570,7 @@ public:
 	}
 
 	void cpLoadPlugins() {
-		logger.trace("Showed up");
+		trace("Showed up");
 
 		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
 
@@ -598,9 +598,9 @@ public:
 	}
 
 	void setCursorLoading(bool loading) {
-		logger.trace(loadingCursor.getCursorType());
+		trace(loadingCursor.getCursorType());
 		window.getWindow().setCursor(loading ? loadingCursor : null);
-		logger.trace(window.getWindow().getCursor() == loadingCursor ? "true" : "false");
+		trace(window.getWindow().getCursor() == loadingCursor ? "true" : "false");
 	}
 }
 

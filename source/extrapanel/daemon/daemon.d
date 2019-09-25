@@ -38,7 +38,7 @@ alias daemon = Daemon!(
 	// Associative mapping of signals -> callbacks
 	KeyValueList!(
 		Composition!(Signal.Terminate, Signal.Quit, Signal.Shutdown, Signal.Stop), (unusedLogger, signal) {
-			logger.info("Exiting...");
+			info("Exiting...");
 			return false;
 		},
 		Composition!(Signal.HangUp,Signal.Pause,Signal.Continue), (unusedLogger)
@@ -50,13 +50,13 @@ alias daemon = Daemon!(
 	// Main daemon function
 	(unusedLogger, shouldExit) {
 		// Setup our plugin runner
-		logger.trace("Loading PluginManager and ScriptRunner...");
+		trace("Loading PluginManager and ScriptRunner...");
 		PluginManager pluginManager = PluginManager.getInstance();
 		PluginInfo[] plugins = pluginManager.getInstalledPlugins();
 
 		ScriptRunner scriptRunner = ScriptRunner.getInstance();
 		foreach(plugin; plugins) {
-			logger.trace("Loading plugin \"" ~ plugin.id ~ "\"...");
+			trace("Loading plugin \"" ~ plugin.id ~ "\"...");
 			scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
 		}
 
@@ -66,13 +66,13 @@ alias daemon = Daemon!(
 			foreach(plugin; taskPool.parallel(plugins)) {
 				query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
 			}
-			logger.info(query);
+			info(query);
 			Thread.sleep(getMsecsDelay.dur!"msecs");
 		}
 
 		// Daemon is quitting
 		destroy(scriptRunner);
-		logger.info("Daemon is quitting...");
+		info("Daemon is quitting...");
 
 		return 0;
 	}
@@ -82,7 +82,7 @@ ScriptRunner scriptRunner;
 
 int main(string[] args) {
 	// Init logger
-	initLogger();
+	setupDaemonLogger();
 
 	// Appends args to global args
 	Configuration.appArgs ~= args;

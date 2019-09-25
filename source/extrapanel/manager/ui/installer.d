@@ -85,16 +85,16 @@ public:
 
 	// App activated
 	void onAppActivate(GApplication app) {
-		logger.trace("Activate App Signal");
+		trace("Activate App Signal");
 		// Detect if there are other instances of this app running
 		if (!app.getIsRemote() && wizard is null)
 		{
 			// Loads the UI files
-			logger.trace("Primary instance, loading UI...");
+			trace("Primary instance, loading UI...");
 			builder = new Builder();
 			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/installer.ui"))
 			{
-				logger.critical("Window resource cannot be found");
+				critical("Window resource cannot be found");
 				return;
 			}
 
@@ -102,7 +102,7 @@ public:
 			initElements();
 			updateElements();
 		} else {
-			logger.trace("Another instance exists, taking control...");
+			trace("Another instance exists, taking control...");
 		}
 
 		// Show
@@ -187,13 +187,13 @@ public:
 	}
 
 	void wizardOnCancel(Assistant a) {
-		logger.trace("Closed");
+		trace("Closed");
 		returnState = -1;
 		this.wizard.destroy();
 	}
 
 	void wizardOnClose(Assistant a) {
-		logger.trace("Finished");
+		trace("Finished");
 		returnState = 0;
 		this.wizard.destroy();
 	}
@@ -264,7 +264,7 @@ public:
 
 	void onPluginInstallPage(Widget w) {
 		string archiveName = buildPath(inputPath, pluginMeta["id"].str ~ ".tar.gz");
-		logger.trace("Archive: ", archiveName);
+		trace("Archive: ", archiveName);
 		gdk.Threads.threadsAddIdle(&pluginInstall_idleFetch, null);
 		spawn(&pluginInstall, pluginMeta["id"].str, archiveName);
 		pluginInstalling = true;
@@ -310,7 +310,7 @@ public:
 
 	void installLuaDep() {
 		if(!neededLuaDeps.empty) {
-			logger.trace("Installing a Lua dependency...");
+			trace("Installing a Lua dependency...");
 			immutable string luaDep = neededLuaDeps[0];
 			neededLuaDeps = neededLuaDeps.remove(0);
 

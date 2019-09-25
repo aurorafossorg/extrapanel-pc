@@ -32,7 +32,7 @@ import pango.PgAttributeList;
 
 // STD
 import std.concurrency;
-import std.net.curl;
+import std.net.curl : download;
 import std.path;
 
 /**
@@ -127,13 +127,13 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 		try {
 			// If it's a simple UI, load it's definition file
 			builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-			logger.trace(info.id ~ "_configWindow");
+			trace(info.id ~ "_configWindow");
 			configPanel = cast(Box) builder.getObject(info.id ~ "_configWindow");
-			logger.trace("Config panel added");
+			trace("Config panel added");
 		} catch(Exception e) {
 			// No UI could be found, create a simple UI stating that
-			logger.trace("Error caught: ", e.msg);
-			logger.warning("[", info.id, "] No config UI found.");
+			trace("Error caught: ", e.msg);
+			warning("[", info.id, "] No config UI found.");
 
 			configPanel = new Box(GtkOrientation.VERTICAL, 5);
 			Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
@@ -156,17 +156,17 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 	buttonBox.packStart(btInfo, true, false, 0);
 	buttonBox.packStart(btUninstall, true, false, 0);
 	headerInfo.packStart(buttonBox, true, true, 0);
-	logger.trace("headerInfo packed");
+	trace("headerInfo packed");
 
 	topLevel.packStart(headerInfo, true, false, 0);
 	topLevel.packStart(sep, true, false, 0);
 	topLevel.packStart(configPanel, true, false, 0);
-	logger.trace("topLevel packed");
+	trace("topLevel packed");
 
 	configBox.packStart(topLevel, true, false, 0);
 	configBox.showAll();
 
-	logger.trace("configBox packed");
+	trace("configBox packed");
 }
 
 // Populates a plugin info page

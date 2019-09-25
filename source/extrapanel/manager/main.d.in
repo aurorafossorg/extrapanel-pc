@@ -75,11 +75,7 @@ void printHelp() {
 }
 
 int runInstallerUI(string inputPath) {
-
-	// Inits logger
-	initLogger();
-
-	logger.trace("Starting extrapanel-manager...");
+	trace("Starting extrapanel-manager...");
 
 	// Load the UI resources
 	Resource resource;
@@ -87,16 +83,16 @@ int runInstallerUI(string inputPath) {
 		// Try to load from build path, if it exists
 		resource = Resource.load(buildPath(builddatadir,
 											"org.aurorafoss.extrapanel.gresource"));
-		logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+		info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
 	} catch(GException e) {
 		// Try to load from install path
-		logger.info("No local gresource file found, assuming it's installed...");
+		info("No local gresource file found, assuming it's installed...");
 		try {
 			resource = Resource.load(buildPath(pkgdatadir,
 											"org.aurorafoss.extrapanel.gresource"));
-			logger.info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+			info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
 		} catch(GException e) {
-			logger.error("No gresource found! App was not installed correctly!");
+			error("No gresource found! App was not installed correctly!");
 			return -1;
 		}
 	} finally {
@@ -113,11 +109,7 @@ int runInstallerUI(string inputPath) {
 }
 
 int runUninstallerUI(string inputPath) {
-
-	// Inits logger
-	initLogger();
-
-	logger.trace("Starting extrapanel-manager...");
+	trace("Starting extrapanel-manager...");
 
 	// Load the UI resources
 	Resource resource;
@@ -125,16 +117,16 @@ int runUninstallerUI(string inputPath) {
 		// Try to load from build path, if it exists
 		resource = Resource.load(buildPath(builddatadir,
 											"org.aurorafoss.extrapanel.gresource"));
-		logger.info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+		info("Found gresource at path \"" ~ buildPath(builddatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
 	} catch(GException e) {
 		// Try to load from install path
-		logger.info("No local gresource file found, assuming it's installed...");
+		info("No local gresource file found, assuming it's installed...");
 		try {
 			resource = Resource.load(buildPath(pkgdatadir,
 											"org.aurorafoss.extrapanel.gresource"));
-			logger.info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
+			info("Found gresource at path \"" ~ buildPath(pkgdatadir, "org.aurorafoss.extrapanel.gresource") ~ "\"");
 		} catch(GException e) {
-			logger.error("No gresource found! App was not installed correctly!");
+			error("No gresource found! App was not installed correctly!");
 			return -1;
 		}
 	} finally {

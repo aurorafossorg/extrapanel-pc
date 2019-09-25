@@ -93,12 +93,12 @@ class PluginInfo {
 		this.authors = "authors" in j ? j["authors"].arrayNoRef : null;
 		this.repoUrl = "repoUrl" in j ? j["repoUrl"].str : "unspecified";
 
-		logger.trace(this.id);
-		logger.trace(this.name);
-		logger.trace(this.description);
-		logger.trace(this.icon);
-		logger.trace(this.strVersion);
-		logger.trace(this.url);
+		trace(this.id);
+		trace(this.name);
+		trace(this.description);
+		trace(this.icon);
+		trace(this.strVersion);
+		trace(this.url);
 	}
 
 	immutable string id, name, description, icon, strVersion, url, repoUrl;
@@ -107,7 +107,6 @@ class PluginInfo {
 
 @("Plugin: read info from a JSON file")
 unittest {
-	initLogger();
 	createAppPaths();
 	string pluginRoot = pluginRootPath("plugin-example");
 

@@ -4,55 +4,50 @@ module extrapanel.core.util.logger;
 import daemonize.d;
 
 // Extra Panel
-version (daemon) import extrapanel.core.util.paths;
+import extrapanel.core.util.paths;
 
 // STD
-import std.experimental.logger;
+public import std.experimental.logger;
 import std.stdio;
 
 /**
  *	logger.d - Global logger for application
  */
 
-public static FileLogger logger;
 public static immutable LogLevel logLevel = LogLevel.all;
 
 // Constructs the logger
-void initLogger() {
+void setupDaemonLogger() {
 	// If it's the daemon, the logger needs to be a file since we don't have console I/O
-	version(daemon) {
-		if(!logger) logger = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
-	} else {
-		if(!logger) logger = new FileLogger(stdout, logLevel);
-	}
+	sharedLog = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
 }
 
 synchronized class DaemonizeLogger : IDaemonLogger {
 	void logDebug(string message) nothrow
 	{
 		try {
-			logger.trace(message);
+			trace(message);
 		} catch (Exception) {}
 	}
 
 	void logInfo(lazy string message) nothrow
 	{
 		try {
-			logger.info(message);
+			info(message);
 		} catch (Exception) {}
 	}
 
 	void logWarning(lazy string message) nothrow
 	{
 		try {
-			logger.warning(message);
+			warning(message);
 		} catch (Exception) {}
 	}
 
 	void logError(lazy string message) @trusted nothrow
 	{
 		try {
-			logger.critical(message);
+			critical(message);
 		} catch (Exception) {}
 	}
 
@@ -62,12 +57,4 @@ synchronized class DaemonizeLogger : IDaemonLogger {
 	void minOutputLevel(DaemonLogLevel level) @property {}
 	void finalize() @trusted nothrow {}
 	void reload() {}
-}
-
-@("Logger: loggers exists after initialization")
-unittest {
-	initLogger();
-
-	// Assert logger is non null
-	assert(logger);
 }

@@ -39,12 +39,12 @@ public static shared class Configuration {
 		// If config doesn't exist or we need to --reconfigure, generate a clean config file
 		if(!exists(buildPath(appConfigPath, CONFIG_PATH)) || hasArg(Args.RECONFIGURE)) {
 			firstTime = true;
-			logger.info("No existing configuration file, creating one...");
+			info("No existing configuration file, creating one...");
 			populate();
 		}
 
 		// Loads the cfgFile
-		logger.info("Loading " ~ buildPath(appConfigPath, CONFIG_PATH));
+		info("Loading " ~ buildPath(appConfigPath, CONFIG_PATH));
 		cfgFile = File(buildPath(appConfigPath, CONFIG_PATH), "r+");
 
 		// Parses each config
@@ -57,7 +57,7 @@ public static shared class Configuration {
 
 		// Closes file
 		cfgFile.close();
-		logger.info("Configuration loaded successfully");
+		info("Configuration loaded successfully");
 	}
 
 	// Load plugin config file
@@ -69,7 +69,7 @@ public static shared class Configuration {
 		}
 
 		// Loads the plugin cfgFile
-		logger.trace("Loading " ~ path);
+		trace("Loading " ~ path);
 		File pluginFile = File(path, "r+");
 		pluginOptions[id] = string[string].init;
 
@@ -80,7 +80,7 @@ public static shared class Configuration {
 
 		// Closes file
 		pluginFile.close();
-		logger.trace("Finished loading ", id, "config file");
+		trace("Finished loading ", id, "config file");
 		return true;
 	}
 
@@ -126,7 +126,7 @@ public static shared class Configuration {
 	// Parses a plugin configuration for Lua scripts
 	static string parsePlugin(string id) {
 		string parsedConfig;
-		logger.trace("Parsing config options for plugin ", id);
+		trace("Parsing config options for plugin ", id);
 		foreach(opt ; pluginOptions[id].keys) {
 			parsedConfig ~= opt ~ ": " ~ pluginOptions[id][opt] ~ ";";
 		}
@@ -137,7 +137,7 @@ public static shared class Configuration {
 	// Unparses a plugin configuration from Lua scripts
 	static void unparsePlugin(string id, string parsedConfig) {
 		string[] formattedPlugin = chomp(parsedConfig, ";").split(";");
-		logger.trace("Unparsing config options for plugin ", id);
+		trace("Unparsing config options for plugin ", id);
 		foreach(line ; formattedPlugin) {
 			string[] text = chomp(line).split(": ");
 			pluginOptions[id][text[0]] = text[1];
@@ -209,7 +209,7 @@ private:
 
 		// Separates key from value
 		string[] text = chomp(source).split(": ");
-		logger.trace("Text is \"", text, "\"");
+		trace("Text is \"", text, "\"");
 		if(text != []) {
 			string opt = text[0];
 			string data = text[1];
@@ -258,7 +258,6 @@ unittest {
 
 @("Config: load config file")
 unittest {
-	initLogger();
 	Configuration.load();
 
 	// Assert config was loaded
@@ -273,8 +272,6 @@ unittest {
 
 @("Config: parsing config files")
 unittest {
-	initLogger();
-
 	string configLine = "key: value\n";
 	string[string] buffer;
 	Configuration.parseConfig(configLine, buffer);
@@ -284,7 +281,6 @@ unittest {
 
 @("Config: saving config files")
 unittest {
-	initLogger();
 	Configuration.load();
 
 	// Assert configuration is intact
@@ -307,8 +303,6 @@ unittest {
 
 @("Config: load a plugin config")
 unittest {
-	initLogger();
-
 	createAppPaths();
 	string pluginRoot = pluginRootPath("plugin-example");
 
@@ -337,8 +331,6 @@ unittest {
 
 @("Config: parse plugin config for Lua")
 unittest {
-	initLogger();
-
 	createAppPaths();
 	string pluginRoot = pluginRootPath("plugin-example");
 
@@ -355,14 +347,12 @@ unittest {
 
 	// Assert plugin parsing is working
 	string parsedConfig = Configuration.parsePlugin("plugin-example");
-	logger.log(parsedConfig);
+	log(parsedConfig);
 	assert(parsedConfig == "option-int: 300;option-string: string;option-bool: false;");
 }
 
 @("Config: unparse config from Lua")
 unittest {
-	initLogger();
-
 	createAppPaths();
 	string pluginRoot = pluginRootPath("plugin-example");
 
