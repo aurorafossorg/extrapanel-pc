@@ -21,9 +21,9 @@ public static immutable LogLevel logLevel = LogLevel.all;
 void initLogger() {
 	// If it's the daemon, the logger needs to be a file since we don't have console I/O
 	version(daemon) {
-		logger = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
+		if(!logger) logger = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
 	} else {
-		logger = new FileLogger(stderr, logLevel);
+		if(!logger) logger = new FileLogger(stdout, logLevel);
 	}
 }
 
@@ -62,4 +62,12 @@ synchronized class DaemonizeLogger : IDaemonLogger {
 	void minOutputLevel(DaemonLogLevel level) @property {}
 	void finalize() @trusted nothrow {}
 	void reload() {}
+}
+
+@("Logger: loggers exists after initialization")
+unittest {
+	initLogger();
+
+	// Assert logger is non null
+	assert(logger);
 }

@@ -135,15 +135,13 @@ public static shared class Configuration {
 	}
 
 	// Unparses a plugin configuration from Lua scripts
-	static string[string] unparsePlugin(string id, string parsedConfig) {
-		string formattedPlugin = parsedConfig.replace(";", "\n");
+	static void unparsePlugin(string id, string parsedConfig) {
+		string[] formattedPlugin = chomp(parsedConfig, ";").split(";");
 		logger.trace("Unparsing config options for plugin ", id);
-		string[string] unparsedConfig;
-		foreach(opt ; pluginOptions[id].keys) {
-			unparsedConfig["a"] ~= opt ~ ": " ~ pluginOptions[id][opt] ~ ";";
+		foreach(line ; formattedPlugin) {
+			string[] text = chomp(line).split(": ");
+			pluginOptions[id][text[0]] = text[1];
 		}
-
-		return unparsedConfig;
 	}
 
 	// Returns if a given arg was passed
@@ -186,12 +184,9 @@ private:
 		writeln(buildPath(appConfigPath, CONFIG_PATH));
 
 		// Generates UUID
-		//string uuid = retrieveUUID();
 		string uuid = to!string(randomUUID());
 
-		// We write() here instead of writeln() because retrieveUUID() returns a string with a new-line at the end
 		cfgFile.writeln(Options.DeviceUUID[0] ~ ": " ~ uuid);
-
 		cfgFile.writeln(unparseOption(Options.LoadOnBoot));
 		cfgFile.writeln(unparseOption(Options.CommDelay));
 		cfgFile.writeln(unparseOption(Options.WiFiEnabled));
@@ -227,4 +222,187 @@ private:
 	static bool firstTime = false, changed = false;
 	static string[string] metaOptions;
 	static string[string][string] pluginOptions;
+}
+
+@("Config: bootstraping config file")
+unittest {
+	// Creates a blank config file
+	Configuration.populate();
+
+	// Asserts that file exists
+	string configFilePath = buildPath(appConfigPath(), CONFIG_PATH);
+	assert(configFilePath.exists);
+
+	// Opens both generated and correct file to compare them
+	File configFile = File(configFilePath);
+	File bootstrapFile = File(buildPath("tools", "example-files", "extrapanel-bootstrap-config.cfg"));
+
+	// Assert an UUID was created
+	string generatedUUID = configFile.readln(), nullUUID = bootstrapFile.readln();
+	assert(generatedUUID != nullUUID);
+
+	// Assert every line from now on is an exact copy from the intended config file
+	while(!configFile.eof) {
+		assert(configFile.readln() == bootstrapFile.readln());
+	}
+
+	// Assert that the file has no more lines than it should
+	assert(bootstrapFile.eof);
+}
+
+@("Config: unparsing options")
+unittest {
+	// Assert that a tuple ("device-uuid", "null") gets transformed to CFG format properly
+	assert(Configuration.unparseOption(Options.DeviceUUID) == "device-uuid: null");
+}
+
+@("Config: load config file")
+unittest {
+	initLogger();
+	Configuration.load();
+
+	// Assert config was loaded
+	assert(!Configuration.metaOptions.empty);
+
+	// Assert it's first time config
+	assert(Configuration.isFirstTime());
+
+	// Assert plugin configuration is still empty
+	assert(Configuration.pluginOptions.empty);
+
+	// Assert the file is closed, meaning the config is stored on memory
+	assert(!Configuration.cfgFile.isOpen());
+}
+
+@("Config: parsing config files")
+unittest {
+	initLogger();
+
+	string configLine = "key: value\n";
+	string[string] buffer;
+	Configuration.parseConfig(configLine, buffer);
+
+	assert(buffer["key"] == "value");
+}
+
+@("Config: saving config files")
+unittest {
+	initLogger();
+	Configuration.load();
+
+	// Assert configuration is intact
+	assert(!Configuration.changed);
+
+	// Simulate UUID change and check if it's not null
+	string originalUUID = Configuration.getOption!(string)(Options.DeviceUUID);
+	assert(originalUUID != "null");
+
+	Configuration.setOption!(string)(Options.DeviceUUID, "null");
+	assert(Configuration.getOption!(string)(Options.DeviceUUID) != originalUUID);
+	assert(Configuration.changed);
+
+	// Restore the UUID and simulate saving
+	Configuration.setOption!(string)(Options.DeviceUUID, originalUUID);
+	assert(Configuration.changed);
+
+	Configuration.save();
+}
+
+@("Config: load a plugin config")
+unittest {
+	initLogger();
+
+	createAppPaths();
+	string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the CFG file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "default.cfg"), buildPath(pluginRoot, "default.cfg"));
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "config.cfg"), buildPath(pluginRoot, "config.cfg"));
+
+	// Load the plugin config
+	Configuration.loadPlugin("plugin-example");
+
+	// Assert config was loaded
+	assert(!Configuration.pluginOptions["plugin-example"].empty);
+
+	// Assert configs are correct
+	assert(Configuration.getPluginOption!(string)("plugin-example", "option-string") == "string");
+	assert(Configuration.getPluginOption!(int)("plugin-example", "option-int") == 300);
+	assert(Configuration.getPluginOption!(bool)("plugin-example", "option-bool") == false);
+
+	// Assert config file and default file are the same
+	auto configData = read(buildPath(pluginRoot, "config.cfg"));
+	auto defaultData = read(buildPath(pluginRoot, "default.cfg"));
+
+	assert(configData == defaultData);
+}
+
+@("Config: parse plugin config for Lua")
+unittest {
+	initLogger();
+
+	createAppPaths();
+	string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the CFG file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "default.cfg"), buildPath(pluginRoot, "default.cfg"));
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "config.cfg"), buildPath(pluginRoot, "config.cfg"));
+
+	// Load the plugin config
+	Configuration.loadPlugin("plugin-example");
+
+	// Assert config was loaded
+	assert(!Configuration.pluginOptions["plugin-example"].empty);
+
+	// Assert plugin parsing is working
+	string parsedConfig = Configuration.parsePlugin("plugin-example");
+	logger.log(parsedConfig);
+	assert(parsedConfig == "option-int: 300;option-string: string;option-bool: false;");
+}
+
+@("Config: unparse config from Lua")
+unittest {
+	initLogger();
+
+	createAppPaths();
+	string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the CFG file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "default.cfg"), buildPath(pluginRoot, "default.cfg"));
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "config.cfg"), buildPath(pluginRoot, "config.cfg"));
+
+	// Load the plugin config
+	Configuration.loadPlugin("plugin-example");
+
+	// Unparse a config from Lua
+	string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;";
+	Configuration.unparsePlugin("plugin-example", parsedConfig);
+
+	// Assert new configs were extracted
+	assert(Configuration.getPluginOption!(string)("plugin-example", "option-string") == "newString");
+	assert(Configuration.getPluginOption!(int)("plugin-example", "option-int") == 200);
+	assert(Configuration.getPluginOption!(bool)("plugin-example", "option-bool") == true);
+}
+
+@("Config: remove custom args")
+unittest {
+	string[] args = ["--overwrite", "--gtk-arg"];
+	Configuration.appArgs = args;
+
+	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
+
+	// Assert unfriendly args have been removed
+	assert(friendlyArgs == ["--gtk-arg"]);
+	assert(args != friendlyArgs);
+}
+
+@("Config: get args")
+unittest {
+	Configuration.appArgs ~= Args.OVERWRITE;
+
+	assert(Configuration.hasArg(Args.OVERWRITE));
+	assert(!Configuration.hasArg(Args.RECONFIGURE));
 }

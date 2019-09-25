@@ -8,24 +8,41 @@ import std.file;
  *	paths.d - Utility methods for path building
  */
 
-public immutable string CONFIG_PATH = "xpanel.cfg";
+public immutable string CONFIG_PATH = "extrapanel.cfg";
 public immutable string LOCK_PATH = "daemon.lock";
 public immutable string LOG_PATH = "daemon.log";
-public immutable string APP_BASE_PATH = "extrapanel";
+
+version(unittest)
+	public immutable string APP_BASE_PATH = ".extrapanel-temp-config";
+else
+	public immutable string APP_BASE_PATH = "extrapanel";
+
+version(unittest) {
+	public immutable string EXAMPLE_FILES_PATH = buildPath("tools", "example-files");
+	public immutable string EXAMPLE_PLUGIN_PATH = EXAMPLE_FILES_PATH.buildPath("example-plugin-installed");
+
+	public immutable string EXAMPLE_BOOTSTRAP_CONFIG = "extrapanel-bootstrap-config.cfg";
+}
+
 public immutable string PID_PATH = "extrapanel-daemon.pid";
 public immutable string PLUGIN_BASE_PATH = "plugins";
 
 public immutable string CDN_PATH = "https://dl.aurorafoss.org/aurorafoss/pub/releases/xpanel-plugins/";
 
 private static string getConfigRootDir() {
-	version (Windows) {
-		return "null";
+	version(unittest) {
+		return buildPath(getcwd());
 	}
-	version(OSX) {
-		return "null";
-	}
-	version(linux) {
-		return buildPath(expandTilde("~"), ".config");
+	else {
+		version (Windows) {
+			return "null";
+		}
+		version(OSX) {
+			return "null";
+		}
+		version(linux) {
+			return buildPath(expandTilde("~"), ".config");
+		}
 	}
 }
 
@@ -62,4 +79,41 @@ public static string pluginRootPath(string pluginID = null) {
 		return buildPath(appConfigPath(), PLUGIN_BASE_PATH);
 	else
 		return buildPath(appConfigPath(), PLUGIN_BASE_PATH, pluginID ~ dirSeparator);
+}
+
+@("Paths: Root config path exists")
+unittest {
+	string rootPath = getConfigRootDir();
+	assert(exists(rootPath));
+}
+
+@("Paths: Base app paths exist")
+unittest {
+	createAppPaths();
+	string rootPath = getConfigRootDir();
+
+	assert(rootPath.exists);
+	assert(rootPath.buildPath(APP_BASE_PATH).exists);
+	assert(rootPath.buildPath(APP_BASE_PATH, PLUGIN_BASE_PATH).exists);
+
+	assert(appConfigPath().exists);
+	assert(appConfigPath() == rootPath.buildPath(APP_BASE_PATH));
+}
+
+@("Paths: Temp path exist")
+unittest {
+	string tmpDir = createTempPath();
+
+	assert(tmpDir.exists);
+	assert(tmpDir.buildPath("pc").exists);
+}
+
+@("Paths: Plugin paths exist")
+unittest {
+	string rootPluginPath = pluginRootPath();
+	assert(rootPluginPath.exists);
+
+	string nullPluginPath = pluginRootPath("null");
+	assert(!nullPluginPath.exists);
+	assert(rootPluginPath != nullPluginPath);
 }

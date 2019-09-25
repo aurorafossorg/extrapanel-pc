@@ -8,6 +8,7 @@ import riverd.lua.statfun;
 import riverd.lua.types;
 
 // STD
+import std.array;
 import std.conv;
 import std.json;
 import std.string;
@@ -45,8 +46,15 @@ public static void stackDump (lua_State *L) {
 public static string formatArray(JSONValue[] arr) {
 	string formatedStr;
 	foreach(str; arr) {
-		formatedStr ~= to!string(str) ~ ", ";
+		formatedStr ~= to!string(str).replace("\"", "") ~ ", ";
 	}
 
 	return chomp(formatedStr, ", ");
+}
+
+@("Util: Format a JSON array")
+unittest {
+	JSONValue arr = JSONValue(["Rei Ayanami", "Asuka Sohryu", "Shinji Ikari", "Tōji Suzuhara"]);
+
+	assert(formatArray(arr.array) == "Rei Ayanami, Asuka Sohryu, Shinji Ikari, Tōji Suzuhara");
 }

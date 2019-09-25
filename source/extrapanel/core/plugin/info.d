@@ -104,3 +104,30 @@ class PluginInfo {
 	immutable string id, name, description, icon, strVersion, url, repoUrl;
 	JSONValue[] authors;
 }
+
+@("Plugin: read info from a JSON file")
+unittest {
+	initLogger();
+	createAppPaths();
+	string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the CFG file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "meta.json"), buildPath(pluginRoot, "meta.json"));
+
+	// Load example plugin meta info
+	PluginInfo info = new PluginInfo("plugin-example");
+
+	// Assert required fields exist
+	assert(info.id == "plugin-example");
+	assert(info.name == "Example Plugin");
+	assert(info.description == "Example plugin for unittesting");
+	assert(info.icon == "assets/icon.png");
+	assert(info.strVersion == "0.0.1");
+	assert(info.url == "null");
+
+	// Assert optional fields exist even not in the file
+	import extrapanel.core.util.util : formatArray;
+	assert(formatArray(info.authors) == "Ev1lbl0w"); // This exists in the file
+	assert(info.repoUrl == "unspecified"); // This doesn't exist in the file
+}

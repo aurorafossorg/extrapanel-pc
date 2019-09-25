@@ -1,0 +1,9 @@
+{
+	"id": "plugin-example",
+	"name": "Example Plugin",
+	"description": "Example plugin for unittesting",
+	"icon": "assets/icon.png",
+	"authors": ["Ev1lbl0w"],
+	"version": "0.0.1",
+	"url": "null"
+}

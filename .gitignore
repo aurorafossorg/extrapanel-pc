@@ -16,3 +16,6 @@ build-aux/main.d
 *.log
 *.out
 *.gresource
+
+# Unittesting local files
+/.extrapanel-temp-config

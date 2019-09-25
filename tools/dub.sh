@@ -3,6 +3,7 @@
 set -e
 
 PACKAGES="
+core
 ui
 manager
 tray
