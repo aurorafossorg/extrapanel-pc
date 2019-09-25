@@ -17,6 +17,7 @@ import riverd.lua.types;
 
 // STD
 import std.conv;
+import std.exception;
 import std.file;
 import std.string;
 
@@ -69,7 +70,7 @@ public:
 		// Loads the script to the lua_State
 		runLuaCommand(luaL_loadfile(lua, luaFile.toStringz), lua, pluginId, "load");
 
-		// If we're loading a plugin, we'll need to already run some methods
+		// If we're loading a plugin, we'll need to already run some methods at this stage
 		if(scriptType == ScriptType.PLUGIN_SCRIPT) {
 			string parsedConfig = Configuration.parsePlugin(pluginId);
 
@@ -88,8 +89,12 @@ public:
 	}
 
 	void removePlugin(string pluginId) {
-		foreach(scriptType; pluginScripts[pluginId].keys)
+		foreach(scriptType; pluginScripts[pluginId].keys) {
 			lua_close(pluginScripts[pluginId][scriptType]);
+			pluginScripts[pluginId].remove(scriptType);
+		}
+
+		pluginScripts.remove(pluginId);
 		
 		logger.trace("Plugin \"", pluginId, "\" successfully closed.");
 	}
@@ -167,4 +172,50 @@ private:
 
 	static ScriptRunner scriptRunner;
 	lua_State*[ScriptType][string] pluginScripts;
+}
+
+@("Script: ensure singleton")
+unittest {
+	ScriptRunner runner;
+
+	assert(runner is null);
+
+	runner = ScriptRunner.getInstance();
+	assert(!(runner is null));
+
+	ScriptRunner runner2 = ScriptRunner.getInstance();
+	assert(runner == runner2);
+}
+
+@("Script: test a plugin script")
+unittest {
+	initLogger();
+	Configuration.load();
+	createAppPaths();
+
+	ScriptRunner scriptRunner = ScriptRunner.getInstance();
+
+	string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the script file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "main.lua"), buildPath(pluginRoot, "main.lua"));
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "config.cfg"), buildPath(pluginRoot, "config.cfg"));
+
+	// Assert loading a plugin works. This also ensure Lua ran the script's setup() method
+	scriptRunner.loadPlugin("plugin-example");
+	assert(!scriptRunner.pluginScripts.empty);
+
+	// Assert a query can be made and is equal to "example"
+	assert(scriptRunner.runQuery("plugin-example") == "example");
+
+	// Assert that script runner throws an exception for a non existing script
+	assertThrown!FileNotFoundException(scriptRunner.loadPlugin("non-existing-plugin"));
+
+	// Assert that "plugin-example" has no UI script
+	assertThrown!FileNotFoundException(scriptRunner.loadPlugin("plugin-example", ScriptType.CONFIG_SCRIPT));
+
+	// Remove the plugin and assert it doesn't exist in memory
+	scriptRunner.removePlugin("plugin-example");
+	assert(!("plugin-example" in scriptRunner.pluginScripts));
 }

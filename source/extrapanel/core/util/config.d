@@ -267,9 +267,6 @@ unittest {
 	// Assert it's first time config
 	assert(Configuration.isFirstTime());
 
-	// Assert plugin configuration is still empty
-	assert(Configuration.pluginOptions.empty);
-
 	// Assert the file is closed, meaning the config is stored on memory
 	assert(!Configuration.cfgFile.isOpen());
 }
