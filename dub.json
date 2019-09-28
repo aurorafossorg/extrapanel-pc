@@ -27,8 +27,7 @@
 			"targetName": "extrapanel",
 			"targetPath": "build/",
 			"dependencies": {
-				"extrapanel:core": "*",
-				"archive": "~>0.6.0"
+				"extrapanel:core": "*"
 			}
 		},
 		{
