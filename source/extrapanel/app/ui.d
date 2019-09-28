@@ -554,7 +554,7 @@ public:
 		stopButton.setSensitive(currentStatus);
 		startButton.setSensitive(!currentStatus);
 		status.setLabel(currentStatus ? "Running" : "Stopped");
-		
+
 		PgAttributeList attrs = status.getAttributes() is null ? new PgAttributeList() : status.getAttributes();
 		attrs.change(currentStatus ? uiGreen() : uiRed());
 		status.setAttributes(attrs);
@@ -636,7 +636,7 @@ void fetchPlugins() {
 	JSONValue metaJson = parseJSON(readText(localMetaPath));
 
 	Tid parentTid = ownerTid();
-	
+
 	foreach(plugin; taskPool.parallel(metaJson["official"].array)) {
 		try {
 			string localPluginMetaPath = buildPath(createTempPath(), "pc", plugin.str.replace("/", "-"));

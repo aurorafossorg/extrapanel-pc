@@ -90,7 +90,7 @@ int main(string[] args) {
 	// Appends args to global args
 	Configuration.appArgs ~= args;
 	setupLogLevel();
-	
+
 	// Loads general config
 	Configuration.load();
 

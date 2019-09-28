@@ -31,7 +31,7 @@ public:
 	static ScriptRunner getInstance() {
 		if(this.scriptRunner is null)
 			this.scriptRunner = new ScriptRunner();
-		
+
 		return this.scriptRunner;
 	}
 

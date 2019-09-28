@@ -19,7 +19,7 @@ class BluetoothBackend : ConnectionBackend {
 		}
 
 		void onEvent(PluginInfo pInfo) {
-			
+
 		}
 	}
 }

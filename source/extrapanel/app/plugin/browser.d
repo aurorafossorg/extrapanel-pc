@@ -199,7 +199,7 @@ shared bool thread_downloadPlugin_completed;
 void thread_downloadPlugin(immutable PluginInfo info) {
 	string archiveFile = info.id ~ ".tar.gz";
 	string archivePath = buildPath(CDN_PATH, info.id, archiveFile);
-	
+
 	download(archivePath, buildPath(createTempPath(), "pc", archiveFile));
 
 	thread_downloadPlugin_completed = true;

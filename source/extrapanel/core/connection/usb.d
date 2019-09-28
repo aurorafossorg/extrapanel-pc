@@ -19,7 +19,7 @@ class UsbBackend : ConnectionBackend {
 		}
 
 		void onEvent(PluginInfo pInfo) {
-			
+
 		}
 	}
 }

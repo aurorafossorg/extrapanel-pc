@@ -61,7 +61,7 @@ public static string createTempPath() {
 	string root = tempDir.buildPath(APP_BASE_PATH);
 	if(!exists(root))
 		mkdir(root);
-	
+
 	if(!exists(root.buildPath("pc")))
 		mkdir(root.buildPath("pc"));
 

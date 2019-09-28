@@ -21,23 +21,23 @@ public static void stackDump (lua_State *L) {
 	for (i = 1; i <= top; i++) {  // repeat for each level
 		int t = lua_type(L, i);
 		switch (t) {
-	
+
 		case LUA_TSTRING:  // strings
 			log("String: ", lua_tostring(L, i).fromStringz);
 			break;
-	
+
 		case LUA_TBOOLEAN:  // booleans
 			log("Boolean: ", lua_toboolean(L, i) ? "true" : "false");
 			break;
-	
+
 		case LUA_TNUMBER:  // numbers
 			log("Number: ", lua_tonumber(L, i));
 			break;
-	
+
 		default:  // other values
 			log("Other type: ", lua_typename(L, t).fromStringz, "\t", lua_touserdata(L, i));
 			break;
-	
+
 		}
 	}
 }

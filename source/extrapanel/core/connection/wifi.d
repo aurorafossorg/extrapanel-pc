@@ -19,7 +19,7 @@ class WifiBackend : ConnectionBackend {
 		}
 
 		void onEvent(PluginInfo pInfo) {
-			
+
 		}
 	}
 }

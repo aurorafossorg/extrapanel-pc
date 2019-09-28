@@ -152,7 +152,7 @@ public static shared class Configuration {
 		foreach(string s; appArgs)
 			if(s == arg)
 				return true;
-		
+
 		return false;
 	}
 
@@ -174,7 +174,7 @@ public static shared class Configuration {
 	}
 
 	static string[] appArgs;
-	
+
 private:
 	// Creates a new config file
 	static void populate() {

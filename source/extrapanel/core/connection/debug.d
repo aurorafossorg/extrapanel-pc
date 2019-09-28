@@ -34,12 +34,12 @@ class DebugBackend : ConnectionBackend {
 			commFile = File("commFile");
 
 			while(!commFile.eof) {
-				
+
 			}
 		}
 
 		void onEvent(PluginInfo pInfo) {
-			
+
 		}
 	}
 
