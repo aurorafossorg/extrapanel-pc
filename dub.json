@@ -17,7 +17,7 @@
 			}
 		},
 		{
-			"name": "ui",
+			"name": "app",
 			"preBuildCommands": ["./build-aux/preinstall.py app"],
 			"sourcePaths": [
 				"source/extrapanel/app"
@@ -55,7 +55,7 @@
 			"targetName": "extrapanel-daemon",
 			"targetPath": "build/",
 			"dependencies": {
-				"extrapanel:core": "*",
+				"extrapanel:core": "*"
 			},
 			"versions": ["daemon"]
 		},
