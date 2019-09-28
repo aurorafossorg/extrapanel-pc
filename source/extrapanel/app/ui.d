@@ -119,7 +119,7 @@ public:
 		this.window.present();
 	}
 
-	void onAppDestroy(GApplication app) {
+	void onAppDestroy(GApplication) {
 		// Saves Configs
 		Configuration.save();
 	}
@@ -342,25 +342,25 @@ public:
 	}
 
 	// Callbacks
-	void startWizard_onCancel(Assistant a) {
+	void startWizard_onCancel(Assistant) {
 		trace("startWizard: canceled");
 		this.window.close();
 	}
 
-	void startWizard_onApply(Assistant a) {
+	void startWizard_onApply(Assistant) {
 		trace("startWizard: completed");
-		bool installPack = wizardInstallPack.getActive();
+		immutable bool installPack = wizardInstallPack.getActive();
 		this.startWizard.hide();
 		this.window.setSensitive(true);
 		Configuration.setOption(Options.AcceptedWizard, true);
 	}
 
-	void startButton_onClicked(Button b) {
+	void startButton_onClicked(Button) {
 		trace("startButton: clicked");
 		startDaemon();
 	}
 
-	void stopButton_onClicked(Button b) {
+	void stopButton_onClicked(Button) {
 		trace("stopButton: clicked");
 		stopDaemon();
 	}
@@ -426,7 +426,7 @@ public:
 
 	void ccEnableCheck_onToggled(ToggleButton tb) {
 		trace("Config -> Connection -> enableCheck: toggled");
-		State state = tb.getActive() ? State.Offline : State.Disabled;
+		immutable State state = tb.getActive() ? State.Offline : State.Disabled;
 		if(tb == ccwEnableCheck) {
 			trace("\twifiEnableCheck: toggled");
 			wifiState = state;
@@ -445,15 +445,15 @@ public:
 		}
 	}
 
-	void cpLocalFolder_onClicked(Button b) {
+	void cpLocalFolder_onClicked(Button) {
 		trace("Config -> Plugins -> cpLocalFolder: clicked");
 		string path = "file://" ~ pluginRootPath();
 		trace("Opening file explorer for path: ", path);
-		import gio.AppInfoIF;
+		import gio.AppInfoIF : AppInfoIF;
 		AppInfoIF.launchDefaultForUri(path, null);
 	}
 
-	void backButton_onClicked(Button b) {
+	void backButton_onClicked(Button) {
 		trace("backButton: clicked");
 		if(savedSidebar !is null && savedInterface !is null) {
 			trace("\trestoring interface.");
@@ -469,7 +469,7 @@ public:
 	}
 
 	bool once = false;
-	void pPluginsInterface_onMap(Widget w) {
+	void pPluginsInterface_onMap(Widget) {
 		trace("Plugins -> pPluginsInterface: map");
 		if(!once) {
 			once = true;
@@ -482,7 +482,7 @@ public:
 		}
 	}
 
-	void ppRefresh_onClicked(Button b) {
+	void ppRefresh_onClicked(Button) {
 		trace("Plugins -> ppRefresh: clicked");
 		pPluginsTreeModel.clear();
 		once = false;
@@ -542,7 +542,7 @@ public:
 	}
 
 	bool updateDaemonStatus() {
-		bool newStatus = queryDaemon();
+		immutable bool newStatus = queryDaemon();
 		if(currentStatus != newStatus) {
 			currentStatus = newStatus;
 			updateMetaElements();
@@ -579,7 +579,7 @@ public:
 				string line = getProcFile(pid);
 				if(find(line, "extrapanel-daemon"))
 					return true;
-			} catch(Exception e) {
+			} catch(Exception) {
 				return false;
 			}
 		}
@@ -594,7 +594,7 @@ public:
 		return File("/proc/" ~ pid ~ "/cmdline", "r").readln();
 	}
 
-	void cpLoadPlugins(Widget w) {
+	void cpLoadPlugins(Widget) {
 		trace("Config -> Plugins: Loading plugin configuration menu's");
 
 		// Empty the container
@@ -647,7 +647,7 @@ void fetchPlugins() {
 			immutable JSONValue pluginJson = parseJSON(readText(localPluginMetaPath));
 
 			parentTid.send(pluginJson);
-		} catch(Throwable t) {}
+		} catch(Exception e) {}
 	}
 
 	fetching = false;
@@ -664,10 +664,10 @@ extern(C) nothrow static int processIdleFetch(void* data) {
 			xPanelApp.ppRefresh.setSensitive(true);
 			return 0;
 		}
-	} catch(Throwable t) {
+	} catch(Exception e) {
 		try {
-			writeln("Error! ", t);
-		} catch(Throwable t) {}
+			writeln("Error! ", e);
+		} catch(Exception) {}
 		return 0;
 	}
 

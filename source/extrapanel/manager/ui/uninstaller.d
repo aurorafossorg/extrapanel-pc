@@ -149,30 +149,29 @@ public:
 		loadingCursor = new Cursor(wizard.getDisplay(), GdkCursorType.WATCH);
 	}
 
-	void wizardOnCancel(Assistant a) {
+	void wizardOnCancel(Assistant) {
 		trace("Closed");
 		returnState = -1;
 		this.wizard.destroy();
 	}
 
-	void wizardOnClose(Assistant a) {
+	void wizardOnClose(Assistant) {
 		trace("Finished");
 		returnState = 0;
 		this.wizard.destroy();
 	}
 
-	void onIntroPage(Widget w) {
+	void onIntroPage(Widget) {
 		parseInfo(new PluginInfo(pluginMeta));
 	}
 
-	void onPluginUninstallPage(Widget w) {
-		string archiveName = buildPath(inputPath, pluginMeta["id"].str ~ ".tar.gz");
+	void onPluginUninstallPage(Widget) {
 		gdk.Threads.threadsAddIdle(&pluginUninstall_idleFetch, null);
 		spawn(&pluginUninstall, inputPath);
 		pluginUninstalling = true;
 	}
 
-	void onCompletedPage(Widget w) {
+	void onCompletedPage(Widget) {
 
 	}
 
@@ -232,7 +231,7 @@ extern(C) nothrow int pluginUninstall_idleFetch(void* data) {
 		if(!pluginUninstalling) {
 			return 0;
 		}
-	} catch(Throwable t) return 0;
+	} catch(Exception) return 0;
 
 	return 1;
 }

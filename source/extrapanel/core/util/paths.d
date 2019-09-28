@@ -102,7 +102,7 @@ unittest {
 
 @("Paths: Temp path exist")
 unittest {
-	string tmpDir = createTempPath();
+	immutable string tmpDir = createTempPath();
 
 	assert(tmpDir.exists);
 	assert(tmpDir.buildPath("pc").exists);
@@ -110,10 +110,10 @@ unittest {
 
 @("Paths: Plugin paths exist")
 unittest {
-	string rootPluginPath = pluginRootPath();
+	immutable string rootPluginPath = pluginRootPath();
 	assert(rootPluginPath.exists);
 
-	string nullPluginPath = pluginRootPath("null");
+	immutable string nullPluginPath = pluginRootPath("null");
 	assert(!nullPluginPath.exists);
 	assert(rootPluginPath != nullPluginPath);
 }

@@ -101,7 +101,7 @@ int runInstallerUI(string inputPath, string[] args) {
 	}
 
 	// Start UI
-	import extrapanel.manager.ui.installer;
+	import extrapanel.manager.ui.installer : app, InstallerUI;
 	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
 	Main.init(friendlyArgs);
 	app = new InstallerUI(inputPath);
@@ -138,7 +138,7 @@ int runUninstallerUI(string inputPath, string[] args) {
 	}
 
 	// Start UI
-	import extrapanel.manager.ui.uninstaller;
+	import extrapanel.manager.ui.uninstaller : app, UninstallerUI;
 	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
 	Main.init(friendlyArgs);
 	app = new UninstallerUI(inputPath);

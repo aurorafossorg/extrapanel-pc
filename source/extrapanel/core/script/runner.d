@@ -142,7 +142,8 @@ public:
 
 		// Calls query()
 		if(lua_pcall(lua, 0, 1, 0)) {
-			critical("[", pluginId, "] query() call failed for plugin ", pluginId, "! Error: ", lua_tostring(lua, -1).fromStringz);
+			critical("[", pluginId, "] query() call failed for plugin ", pluginId, "! Error: ",
+					lua_tostring(lua, -1).fromStringz);
 			return "";
 		}
 

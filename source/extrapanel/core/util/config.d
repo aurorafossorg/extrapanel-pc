@@ -214,8 +214,8 @@ private:
 		// Separates key from value
 		string[] text = chomp(source).split(": ");
 		if(text != []) {
-			string opt = text[0];
-			string data = text[1];
+			immutable string opt = text[0];
+			immutable string data = text[1];
 
 			buffer[opt] = data;
 		}
@@ -233,7 +233,7 @@ unittest {
 	Configuration.populate();
 
 	// Asserts that file exists
-	string configFilePath = buildPath(appConfigPath(), CONFIG_PATH);
+	immutable string configFilePath = buildPath(appConfigPath(), CONFIG_PATH);
 	assert(configFilePath.exists);
 
 	// Opens both generated and correct file to compare them
@@ -241,7 +241,7 @@ unittest {
 	File bootstrapFile = File(buildPath("tools", "example-files", "extrapanel-bootstrap-config.cfg"));
 
 	// Assert an UUID was created
-	string generatedUUID = configFile.readln(), nullUUID = bootstrapFile.readln();
+	immutable string generatedUUID = configFile.readln(), nullUUID = bootstrapFile.readln();
 	assert(generatedUUID != nullUUID);
 
 	// Assert every line from now on is an exact copy from the intended config file
@@ -275,7 +275,7 @@ unittest {
 
 @("Config: parsing config files")
 unittest {
-	string configLine = "key: value\n";
+	immutable string configLine = "key: value\n";
 	string[string] buffer;
 	Configuration.parseConfig(configLine, buffer);
 
@@ -290,7 +290,7 @@ unittest {
 	assert(!Configuration.changed);
 
 	// Simulate UUID change and check if it's not null
-	string originalUUID = Configuration.getOption!(string)(Options.DeviceUUID);
+	immutable string originalUUID = Configuration.getOption!(string)(Options.DeviceUUID);
 	assert(originalUUID != "null");
 
 	Configuration.setOption!(string)(Options.DeviceUUID, "null");
@@ -307,7 +307,7 @@ unittest {
 @("Config: load a plugin config")
 unittest {
 	createAppPaths();
-	string pluginRoot = pluginRootPath("plugin-example");
+	immutable string pluginRoot = pluginRootPath("plugin-example");
 
 	// Copy the CFG file to plugin path
 	if(!exists(pluginRoot)) mkdir(pluginRoot);
@@ -335,7 +335,7 @@ unittest {
 @("Config: parse plugin config for Lua")
 unittest {
 	createAppPaths();
-	string pluginRoot = pluginRootPath("plugin-example");
+	immutable string pluginRoot = pluginRootPath("plugin-example");
 
 	// Copy the CFG file to plugin path
 	if(!exists(pluginRoot)) mkdir(pluginRoot);
@@ -349,7 +349,7 @@ unittest {
 	assert(!Configuration.pluginOptions["plugin-example"].empty);
 
 	// Assert plugin parsing is working
-	string parsedConfig = Configuration.parsePlugin("plugin-example");
+	immutable string parsedConfig = Configuration.parsePlugin("plugin-example");
 	log(parsedConfig);
 	assert(parsedConfig == "option-int: 300;option-string: string;option-bool: false;");
 }
@@ -357,7 +357,7 @@ unittest {
 @("Config: unparse config from Lua")
 unittest {
 	createAppPaths();
-	string pluginRoot = pluginRootPath("plugin-example");
+	immutable string pluginRoot = pluginRootPath("plugin-example");
 
 	// Copy the CFG file to plugin path
 	if(!exists(pluginRoot)) mkdir(pluginRoot);
@@ -368,7 +368,7 @@ unittest {
 	Configuration.loadPlugin("plugin-example");
 
 	// Unparse a config from Lua
-	string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;";
+	immutable string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;";
 	Configuration.unparsePlugin("plugin-example", parsedConfig);
 
 	// Assert new configs were extracted

@@ -54,7 +54,7 @@ private:
 }
 
 // Creates the popup menu
-public void createPopupMenu(uint button, uint timestamp, StatusIcon icon) {
+public void createPopupMenu(uint, uint, StatusIcon) {
 	Menu menu = createTrayMenu();
 	menu.popupAtPointer(null);
 }
@@ -75,15 +75,15 @@ public Menu createTrayMenu() {
 }
 
 // Opens the main app
-public void openMainAppStatusIcon(StatusIcon si) {
+public void openMainAppStatusIcon(StatusIcon) {
 	spawnProcess("extrapanel");
 }
 
-public void openMainAppMenuItem(MenuItem mi) {
+public void openMainAppMenuItem(MenuItem) {
 	spawnProcess("extrapanel");
 }
 
 // Exits the tray app
-public void exit(MenuItem mi) {
+public void exit(MenuItem) {
 	app.release();
 }

@@ -60,10 +60,10 @@ synchronized class DaemonizeLogger : IDaemonLogger {
 		} catch (Exception) {}
 	}
 
-	DaemonLogLevel minLogLevel() @property {return DaemonLogLevel.Debug;}
-	void minLogLevel(DaemonLogLevel level) @property {}
-	DaemonLogLevel minOutputLevel() @property {return DaemonLogLevel.Debug;}
-	void minOutputLevel(DaemonLogLevel level) @property {}
+	DaemonLogLevel minLogLevel() @property const {return DaemonLogLevel.Debug;}
+	void minLogLevel(DaemonLogLevel) @property {}
+	DaemonLogLevel minOutputLevel() @property const {return DaemonLogLevel.Debug;}
+	void minOutputLevel(DaemonLogLevel) @property const {}
 	void finalize() @trusted nothrow {}
 	void reload() {}
 }

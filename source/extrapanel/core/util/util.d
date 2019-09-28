@@ -17,7 +17,7 @@ public static immutable int MARGIN_DEFAULT = 10;	// UI default
 
 public static void stackDump (lua_State *L) {
 	int i;
-	int top = lua_gettop(L);
+	immutable int top = lua_gettop(L);
 	for (i = 1; i <= top; i++) {  // repeat for each level
 		int t = lua_type(L, i);
 		switch (t) {

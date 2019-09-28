@@ -135,10 +135,10 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 
 			configPanel = new Box(GtkOrientation.VERTICAL, 5);
 			Label nothingFound = new Label("This plugin doesn't have a configuration menu.");
-			PgAttributeList tempAttribs = nothingFound.getAttributes() is null ? new PgAttributeList() : nothingFound.getAttributes();
-			tempAttribs.change(uiItalic());
-			tempAttribs.change(uiGrey());
-			nothingFound.setAttributes(tempAttribs);
+			PgAttributeList labelAttribs = new PgAttributeList();
+			labelAttribs.change(uiItalic());
+			labelAttribs.change(uiGrey());
+			nothingFound.setAttributes(labelAttribs);
 			configPanel.packStart(nothingFound, true, false, 0);
 		}
 	}
@@ -208,7 +208,7 @@ void thread_downloadPlugin(immutable PluginInfo info) {
 extern(C) nothrow int downloadPlugin_idleFetch(void* data) {
 	try {
 		if(thread_downloadPlugin_completed) return 0;
-	} catch(Throwable t) return 0;
+	} catch(Exception) return 0;
 
 	return 1;
 }

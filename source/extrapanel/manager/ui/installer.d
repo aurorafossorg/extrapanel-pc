@@ -186,23 +186,23 @@ public:
 		loadingCursor = new Cursor(wizard.getDisplay(), GdkCursorType.WATCH);
 	}
 
-	void wizardOnCancel(Assistant a) {
+	void wizardOnCancel(Assistant) {
 		trace("Closed");
 		returnState = -1;
 		this.wizard.destroy();
 	}
 
-	void wizardOnClose(Assistant a) {
+	void wizardOnClose(Assistant) {
 		trace("Finished");
 		returnState = 0;
 		this.wizard.destroy();
 	}
 
-	void onIntroPage(Widget w) {
+	void onIntroPage(Widget) {
 		parseInfo(new PluginInfo(pluginMeta));
 	}
 
-	void onLuaDepsPage(Widget w) {
+	void onLuaDepsPage(Widget) {
 		try {
 			// Obtaines the needed Lua dependencies
 			auto luaDeps = pluginMeta["install-steps"].object["lua-deps"].arrayNoRef;
@@ -234,7 +234,7 @@ public:
 		}
 	}
 
-	void onLuaDepsProgressPage(Widget w) {
+	void onLuaDepsProgressPage(Widget) {
 		installLuaDep();
 	}
 
@@ -244,9 +244,9 @@ public:
 		return true;
 	}
 
-	void onRootRequestPage(Widget w) {
+	void onRootRequestPage(Widget) {
 		try {
-			bool needsRoot = pluginMeta["install-steps"].object["needs-root"].boolean;
+			immutable bool needsRoot = pluginMeta["install-steps"].object["needs-root"].boolean;
 
 			if(!needsRoot) {
 				wizard.setCurrentPage(Pages.PLUGIN_INSTALL);
@@ -262,15 +262,15 @@ public:
 		}
 	}
 
-	void onPluginInstallPage(Widget w) {
+	void onPluginInstallPage(Widget) {
 		string archiveName = buildPath(inputPath, pluginMeta["id"].str ~ ".tar.gz");
 		trace("Archive: ", archiveName);
 		gdk.Threads.threadsAddIdle(&pluginInstall_idleFetch, null);
-		spawn(&pluginInstall, pluginMeta["id"].str, archiveName);
+		spawn(&pluginInstall, archiveName);
 		pluginInstalling = true;
 	}
 
-	void onCompletedPage(Widget w) {
+	void onCompletedPage(Widget) {
 
 	}
 
@@ -356,12 +356,12 @@ extern(C) nothrow int luaDepInstall_idleFetch(void* data) {
 			app.installLuaDep();
 			return 0;
 		}
-	} catch(Throwable t) return 0;
+	} catch(Exception) return 0;
 
 	return 1;
 }
 
-void pluginInstall(string pluginId, string archiveName) {
+void pluginInstall(string archiveName) {
 	writeln("Creating archive...");
 	TarGzArchive archive = new TarGzArchive(read(archiveName));
 	string outputPath = pluginRootPath();
@@ -408,7 +408,7 @@ extern(C) nothrow int pluginInstall_idleFetch(void* data) {
 		if(!pluginInstalling) {
 			return 0;
 		}
-	} catch(Throwable t) return 0;
+	} catch(Exception) return 0;
 
 	return 1;
 }
