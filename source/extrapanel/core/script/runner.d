@@ -70,7 +70,9 @@ public:
 		}
 
 		// Loads the script to the lua_State
-		runLuaCommand(luaL_loadfile(lua, luaFile.toStringz), lua, pluginId, "load");
+		if(luaL_loadfile(lua, luaFile.toStringz)) {
+			throw new ScriptLoadingException(pluginId);
+		}
 
 		// If we're loading a plugin, we'll need to already run some methods at this stage
 		if(scriptType == ScriptType.PLUGIN_SCRIPT) {
@@ -162,7 +164,7 @@ private:
 			critical("[", pluginId, "] Failed to pass config to Lua script for ", pluginId,
 			"! Error: ", lua_tostring(lua, -1).fromStringz);
 			lua_close(lua);
-			throw new ScriptExecutionException(pluginId, method);
+			throw new ScriptMethodExecutionException(pluginId, method);
 		}
 	}
 

@@ -6,8 +6,14 @@ public class FileNotFoundException : Exception {
 	}
 }
 
-public class ScriptExecutionException : Exception {
+public class ScriptMethodExecutionException : Exception {
 	this(string script, string method) {
 		super("Script \"" ~ script ~ "\" failed on executing " ~ method ~ "().", file, line);
+	}
+}
+
+public class ScriptLoadingException : Exception {
+	this(string script) {
+		super("Script\"" ~ script ~ "\" failed on loading.", file, line);
 	}
 }

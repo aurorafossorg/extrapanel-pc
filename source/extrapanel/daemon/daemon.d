@@ -52,18 +52,21 @@ alias daemon = Daemon!(
 		// Setup our plugin runner
 		trace("Loading PluginManager and ScriptRunner...");
 		PluginManager pluginManager = PluginManager.getInstance();
-		PluginInfo[] plugins = pluginManager.getInstalledPlugins();
+		PluginInfo[] plugins = pluginManager.getInstalledPlugins(), loadedPlugins;
 
 		ScriptRunner scriptRunner = ScriptRunner.getInstance();
 		foreach(plugin; plugins) {
 			trace("Loading plugin \"" ~ plugin.id ~ "\"...");
-			scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
+			try {
+				scriptRunner.loadPlugin(plugin.id, ScriptType.PLUGIN_SCRIPT);
+				loadedPlugins ~= plugin;
+			} catch(Exception) {}
 		}
 
 		// Main loop
 		while(!shouldExit()) {
 			string query;
-			foreach(plugin; taskPool.parallel(plugins)) {
+			foreach(plugin; taskPool.parallel(loadedPlugins)) {
 				query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
 			}
 			trace(query);
