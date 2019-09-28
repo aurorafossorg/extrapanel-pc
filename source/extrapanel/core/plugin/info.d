@@ -92,13 +92,6 @@ class PluginInfo {
 		// Optional fields
 		this.authors = "authors" in j ? j["authors"].arrayNoRef : null;
 		this.repoUrl = "repoUrl" in j ? j["repoUrl"].str : "unspecified";
-
-		trace(this.id);
-		trace(this.name);
-		trace(this.description);
-		trace(this.icon);
-		trace(this.strVersion);
-		trace(this.url);
 	}
 
 	immutable string id, name, description, icon, strVersion, url, repoUrl;

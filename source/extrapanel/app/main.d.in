@@ -27,10 +27,11 @@ string builddatadir = "@builddatadir@";
 
 void main (string[] args)
 {
-	trace("Starting extrapanel...");
-
 	// Save the args for global usage
 	Configuration.appArgs = args;
+	setupLogLevel();
+
+	trace("Starting extrapanel...");
 
 	// Load the UI resources
 	Resource resource;

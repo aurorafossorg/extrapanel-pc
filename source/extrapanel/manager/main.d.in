@@ -1,6 +1,7 @@
 module extrapanel.manager.main;
 
 // Extra Panel
+import extrapanel.core.util.config;
 import extrapanel.core.util.logger;
 
 // GLib
@@ -39,15 +40,12 @@ int main(string[] args) {
 		// Install argument
 		} else if(args[i] == "-i") {
 			string inputPath = (i+1) < args.length ? args[i+1] : ".";
-			i++;
-			return runInstallerUI(inputPath);
+			return runInstallerUI(inputPath, args[i+2..$]);
 		
 		// Uninstall argument
 		} else if(args[i] == "-u") {
 			string inputPath = (i+1) < args.length ? args[i+1] : ".";
-			i++;
-			runUninstallerUI(inputPath);
-			return 0;
+			return runUninstallerUI(inputPath, args[i+2..$]);
 
 		// Unknown argument
 		} else {
@@ -74,7 +72,10 @@ void printHelp() {
 	writeln(text);
 }
 
-int runInstallerUI(string inputPath) {
+int runInstallerUI(string inputPath, string[] args) {
+	Configuration.appArgs ~= args;
+	setupLogLevel();
+
 	trace("Starting extrapanel-manager...");
 
 	// Load the UI resources
@@ -101,14 +102,17 @@ int runInstallerUI(string inputPath) {
 
 	// Start UI
 	import extrapanel.manager.ui.installer;
-	string[] empty;
-	Main.init(empty);
+	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
+	Main.init(friendlyArgs);
 	app = new InstallerUI(inputPath);
-	app.run(empty);
+	app.run(friendlyArgs);
 	return app.returnState;
 }
 
-int runUninstallerUI(string inputPath) {
+int runUninstallerUI(string inputPath, string[] args) {
+	Configuration.appArgs ~= args;
+	setupLogLevel();
+
 	trace("Starting extrapanel-manager...");
 
 	// Load the UI resources
@@ -135,9 +139,9 @@ int runUninstallerUI(string inputPath) {
 
 	// Start UI
 	import extrapanel.manager.ui.uninstaller;
-	string[] empty;
-	Main.init(empty);
+	string[] friendlyArgs = Configuration.getGTKFriendlyArgs();
+	Main.init(friendlyArgs);
 	app = new UninstallerUI(inputPath);
-	app.run(empty);
+	app.run(friendlyArgs);
 	return app.returnState;
 }

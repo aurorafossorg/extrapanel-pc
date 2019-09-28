@@ -66,7 +66,7 @@ alias daemon = Daemon!(
 			foreach(plugin; taskPool.parallel(plugins)) {
 				query ~= "\"" ~ scriptRunner.runQuery(plugin.id) ~ "\", ";
 			}
-			info(query);
+			trace(query);
 			Thread.sleep(getMsecsDelay.dur!"msecs");
 		}
 
@@ -86,12 +86,12 @@ int main(string[] args) {
 
 	// Appends args to global args
 	Configuration.appArgs ~= args;
+	setupLogLevel();
 	
 	// Loads general config
 	Configuration.load();
 
 	// Builds the required paths and starts the daemon
-	string logPath = buildPath(appConfigPath(), LOG_PATH);
 	string pidPath = buildPath(appConfigPath(), PID_PATH);
 	string lockPath = buildPath(appConfigPath(), LOCK_PATH);
 	return buildDaemon!daemon.run(new shared DaemonizeLogger(), pidPath, lockPath);

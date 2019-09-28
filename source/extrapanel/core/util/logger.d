@@ -4,6 +4,7 @@ module extrapanel.core.util.logger;
 import daemonize.d;
 
 // Extra Panel
+import extrapanel.core.util.config;
 import extrapanel.core.util.paths;
 
 // STD
@@ -14,12 +15,20 @@ import std.stdio;
  *	logger.d - Global logger for application
  */
 
-public static immutable LogLevel logLevel = LogLevel.all;
+// Setup logger level depending on args
+void setupLogLevel() {
+	if(Configuration.hasArg(Args.SILENT))
+		globalLogLevel = LogLevel.off;
+	else if(Configuration.hasArg(Args.VERBOSE))
+		globalLogLevel = LogLevel.all;
+	else
+		debug globalLogLevel = LogLevel.all;
+		else globalLogLevel = LogLevel.info;
+}
 
-// Constructs the logger
+// Setups a file based logger for the daemon
 void setupDaemonLogger() {
-	// If it's the daemon, the logger needs to be a file since we don't have console I/O
-	sharedLog = new FileLogger(buildPath(appConfigPath, LOG_PATH), logLevel);
+	sharedLog = new FileLogger(buildPath(appConfigPath, LOG_PATH));
 }
 
 synchronized class DaemonizeLogger : IDaemonLogger {

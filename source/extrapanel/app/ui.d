@@ -70,9 +70,8 @@ enum State {
 
 static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
 
-static bool currentStatus = false;
-
-shared bool fetching = false;
+static bool currentStatus, pluginsConfigLoaded;
+shared bool fetching;
 
 static ExtraPanelGUI xPanelApp;
 
@@ -202,6 +201,8 @@ public:
 	// Inits the builder defined elements
 	void initElements()
 	{
+		trace("Initializing elements...");
+
 		// Top level
 		window = cast(ApplicationWindow) builder.getObject("window");
 		window.setApplication(this);
@@ -276,6 +277,8 @@ public:
 
 	void updateElements()
 	{
+		trace("Connection callbacks...");
+
 		// If it's the first time the app is launcher, show the starting wizard
 		if(Configuration.isFirstTime()) {
 			startWizard.addOnCancel(&startWizard_onCancel);
@@ -321,7 +324,7 @@ public:
 		ccbEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
 		ccuEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
 
-		cpLoadPlugins();
+		cPluginsInterface.addOnMap(&cpLoadPlugins);
 		cpLocalFolder.addOnClicked(&cpLocalFolder_onClicked);
 
 		backButton.addOnClicked(&backButton_onClicked);
@@ -333,43 +336,50 @@ public:
 		currentStatus = queryDaemon();
 		updateMetaElements();
 
+		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
+
 		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
 
 	// Callbacks
 	void startWizard_onCancel(Assistant a) {
+		trace("startWizard: canceled");
 		this.window.close();
 	}
 
 	void startWizard_onApply(Assistant a) {
-		trace(wizardInstallPack);
+		trace("startWizard: completed");
 		bool installPack = wizardInstallPack.getActive();
-		info("Wizard completed successfully, and user's choice yas ", installPack);
 		this.startWizard.hide();
 		this.window.setSensitive(true);
 		Configuration.setOption(Options.AcceptedWizard, true);
 	}
 
 	void startButton_onClicked(Button b) {
+		trace("startButton: clicked");
 		startDaemon();
 	}
 
 	void stopButton_onClicked(Button b) {
+		trace("stopButton: clicked");
 		stopDaemon();
 	}
 
 	void sidebar_onRowActivated(ListBoxRow lbr, ListBox lb) {
-		trace("sidebar_onRowActivated()");
+		trace("Sidebar: row activated");
 		backButton.setVisible(true);
 		if(lb == generalBar) {
 			if(lbr == gConfigOption) {
+					trace("\tconfigOption: changing to config interface");
 					sidebar.setVisibleChild(configBar);
 					mainInterface.setVisibleChild(configInterface);
 					configInterface.setVisibleChild(cGeneralInterface);
 			} else if(lbr == gPluginsOption) {
+					trace("\tpluginsOption: changing to plugins");
 					sidebar.setVisibleChild(pluginsBar);
 					mainInterface.setVisibleChild(pluginsInterface);
 			} else if(lbr == gAboutOption) {
+					trace("\taboutOption: changing to about");
 					sidebar.setVisible(false);
 					mainInterface.setVisibleChild(aboutInterface);
 			}
@@ -377,45 +387,58 @@ public:
 
 		} else if(lb == configBar) {
 			if(lbr == cGeneralOption) {
+				trace("\tgeneralOutton: clicked");
 				configInterface.setVisibleChild(cGeneralInterface);
 			} else if(lbr == cConnectionOption) {
+				trace("\tconnectionOutton: clicked");
 				configInterface.setVisibleChild(cConnectionInterface);
 			} else if(lbr == cPluginsOption) {
+				trace("\tpluginsOutton: clicked");
 				configInterface.setVisibleChild(cPluginsInterface);
 			} else if(lbr == cDevicesOption) {
+				trace("\tdevicesOutton: clicked");
 				configInterface.setVisibleChild(cDevicesInterface);
 			}
 		}
 	}
 
 	void connectionButton_onClicked(Button b) {
+		trace("connectionButton: clicked");
 		if(b == wifiButton) {
+			trace("\twifiButton: toggled");
 			wifiState = wifiState is State.Online ? State.Offline : State.Online;
 			setConnectionButtonState(wifiButton, wifiState);
 		} else if (b == bluetoothButton) {
+			trace("\tbluetoothButton: toggled");
 			bluetoothState = bluetoothState is State.Online ? State.Offline : State.Online;
 			setConnectionButtonState(bluetoothButton, bluetoothState);
 		} else if (b == usbButton) {
+			trace("\tusbButton: toggled");
 			usbState = usbState is State.Online ? State.Offline : State.Online;
 			setConnectionButtonState(usbButton, usbState);
 		}
 	}
 
 	void cgOpenAppStartup_onToggled(ToggleButton tb) {
+		trace("Config -> General -> openAppStartup: toggled");
 		Configuration.setOption(Options.LoadOnBoot, tb.getActive());
 	}
 
 	void ccEnableCheck_onToggled(ToggleButton tb) {
+		trace("Config -> Connection -> enableCheck: toggled");
 		State state = tb.getActive() ? State.Offline : State.Disabled;
 		if(tb == ccwEnableCheck) {
+			trace("\twifiEnableCheck: toggled");
 			wifiState = state;
 			Configuration.setOption(Options.WiFiEnabled, tb.getActive());
 			setConnectionButtonState(wifiButton, wifiState);
 		} else if(tb == ccbEnableCheck) {
+			trace("\tbluetoothEnableCheck: toggled");
 			bluetoothState = state;
 			Configuration.setOption(Options.BluetoothEnabled, tb.getActive());
 			setConnectionButtonState(bluetoothButton, bluetoothState);
 		} else if(tb == ccuEnableCheck) {
+			trace("\tusbEnableCheck: toggled");
 			usbState = state;
 			Configuration.setOption(Options.UsbEnabled, tb.getActive());
 			setConnectionButtonState(usbButton, usbState);
@@ -423,19 +446,21 @@ public:
 	}
 
 	void cpLocalFolder_onClicked(Button b) {
+		trace("Config -> Plugins -> cpLocalFolder: clicked");
 		string path = "file://" ~ pluginRootPath();
-		trace("path: ", path);
+		trace("Opening file explorer for path: ", path);
 		import gio.AppInfoIF;
 		AppInfoIF.launchDefaultForUri(path, null);
 	}
 
 	void backButton_onClicked(Button b) {
+		trace("backButton: clicked");
 		if(savedSidebar !is null && savedInterface !is null) {
-			trace("backButton_onClicked(): restoring interface.");
+			trace("\trestoring interface.");
 			restoreSavedInterface();
 			sidebar.setVisible(true);
 		} else {
-			trace("backButton_onClicked(): going to main interface.");
+			trace("\tgoing back to main interface.");
 			sidebar.setVisibleChild(generalBar);
 			mainInterface.setVisibleChild(generalInterface);
 			backButton.setVisible(false);
@@ -445,12 +470,12 @@ public:
 
 	bool once = false;
 	void pPluginsInterface_onMap(Widget w) {
-		trace("pPluginsInterface_onMap called");
+		trace("Plugins -> pPluginsInterface: map");
 		if(!once) {
 			once = true;
 			ppRefresh.setSensitive(false);
 			setCursorLoading(true);
-			trace("Spawning fetching thread...");
+			trace("\tSpawning plugin fetching thread...");
 			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
 			fetchTID = spawn(&fetchPlugins);
 			fetching = true;
@@ -458,6 +483,7 @@ public:
 	}
 
 	void ppRefresh_onClicked(Button b) {
+		trace("Plugins -> ppRefresh: clicked");
 		pPluginsTreeModel.clear();
 		once = false;
 		pPluginsInterface_onMap(null);
@@ -549,7 +575,6 @@ public:
 	bool queryDaemon() {
 		if(exists(buildPath(appConfigPath, LOCK_PATH))) {
 			string pid = getDaemonPID();
-			trace(pid);
 			try {
 				string line = getProcFile(pid);
 				if(find(line, "extrapanel-daemon"))
@@ -569,14 +594,15 @@ public:
 		return File("/proc/" ~ pid ~ "/cmdline", "r").readln();
 	}
 
-	void cpLoadPlugins() {
-		trace("Showed up");
-
-		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
+	void cpLoadPlugins(Widget w) {
+		trace("Config -> Plugins: Loading plugin configuration menu's");
 
 		// Empty the container
-		foreach(pluginInfo; pluginManager.getInstalledPlugins()) {
-			buildConfigPanel(pluginInfo, cpPanels, builder);
+		if(!pluginsConfigLoaded) {
+			pluginsConfigLoaded = true;
+			foreach(pluginInfo; pluginManager.getInstalledPlugins()) {
+				buildConfigPanel(pluginInfo, cpPanels, builder);
+			}
 		}
 	}
 
@@ -598,9 +624,7 @@ public:
 	}
 
 	void setCursorLoading(bool loading) {
-		trace(loadingCursor.getCursorType());
 		window.getWindow().setCursor(loading ? loadingCursor : null);
-		trace(window.getWindow().getCursor() == loadingCursor ? "true" : "false");
 	}
 }
 

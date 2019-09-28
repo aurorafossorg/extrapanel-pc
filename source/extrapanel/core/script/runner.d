@@ -36,7 +36,7 @@ public:
 	}
 
 	void loadPlugin(string pluginId, ScriptType scriptType = ScriptType.PLUGIN_SCRIPT) {
-		trace("[", pluginId, "]");
+		trace("[", pluginId, "] Loading script...");
 
 		// Get the root path of the plugin's files
 		string pluginPath = pluginRootPath(pluginId);
@@ -47,7 +47,7 @@ public:
 		// Creates a lua_State
 		lua_State* lua = luaL_newstate();
 		luaL_openlibs(lua);
-		trace(">" ~ consoleYellow("\tLua state created"));
+		trace("[", pluginId, "]", consoleYellow("\tLua state created"));
 
 		// Loads the script file
 		string luaFile;
@@ -64,6 +64,8 @@ public:
 
 		// If the file doesn't exists throw an exception
 		if(!exists(luaFile)) {
+			trace("[", pluginId, "]", consoleRed("\tScript file not found!"));
+			lua_close(lua);
 			throw new FileNotFoundException(luaFile);
 		}
 
@@ -84,7 +86,7 @@ public:
 		}
 
 		// Lua state created successfully, and script loaded
-		trace(">" ~ consoleGreen("\tScript loaded successfully"));
+		trace("[", pluginId, "]", consoleGreen("\tScript loaded successfully"));
 		pluginScripts[pluginId][scriptType] = lua;
 	}
 

@@ -1,6 +1,7 @@
 module extrapanel.core.util.config;
 
 // Extra Panel
+import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 
@@ -30,7 +31,9 @@ public static enum Options : Tuple!(string, string) {
 
 public static immutable enum Args : string {
 	RECONFIGURE = "--reconfigure",	// Force the app to regenereate the configuration file
-	OVERWRITE = "--overwrite"		// Force the daemon to run even with a lock file present
+	OVERWRITE = "--overwrite",		// Force the daemon to run even with a lock file present
+	SILENT = "--silent",			// Disables any output from logger
+	VERBOSE = "--verbose"			// Shows verbose information
 }
 
 public static shared class Configuration {
@@ -69,7 +72,7 @@ public static shared class Configuration {
 		}
 
 		// Loads the plugin cfgFile
-		trace("Loading " ~ path);
+		trace("[", id ,"] ", consoleYellow("Loading " ~ path));
 		File pluginFile = File(path, "r+");
 		pluginOptions[id] = string[string].init;
 
@@ -80,7 +83,7 @@ public static shared class Configuration {
 
 		// Closes file
 		pluginFile.close();
-		trace("Finished loading ", id, "config file");
+		trace("[", id ,"] ", consoleGreen("Finished loading config file"));
 		return true;
 	}
 
@@ -157,7 +160,8 @@ public static shared class Configuration {
 	static string[] getGTKFriendlyArgs() {
 		string[] parsedArgs;
 		foreach(arg; appArgs) {
-			if(!(arg == Args.RECONFIGURE || arg == Args.OVERWRITE))
+			if(!(arg == Args.RECONFIGURE || arg == Args.OVERWRITE ||
+				arg == Args.SILENT || arg == Args.VERBOSE))
 				parsedArgs ~= arg;
 		}
 
@@ -209,7 +213,6 @@ private:
 
 		// Separates key from value
 		string[] text = chomp(source).split(": ");
-		trace("Text is \"", text, "\"");
 		if(text != []) {
 			string opt = text[0];
 			string data = text[1];

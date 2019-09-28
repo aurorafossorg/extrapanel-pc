@@ -127,9 +127,7 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 		try {
 			// If it's a simple UI, load it's definition file
 			builder.addFromFile(buildPath(pluginRootPath(info.id), "configMenu.ui"));
-			trace(info.id ~ "_configWindow");
 			configPanel = cast(Box) builder.getObject(info.id ~ "_configWindow");
-			trace("Config panel added");
 		} catch(Exception e) {
 			// No UI could be found, create a simple UI stating that
 			trace("Error caught: ", e.msg);
@@ -156,17 +154,13 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 	buttonBox.packStart(btInfo, true, false, 0);
 	buttonBox.packStart(btUninstall, true, false, 0);
 	headerInfo.packStart(buttonBox, true, true, 0);
-	trace("headerInfo packed");
 
 	topLevel.packStart(headerInfo, true, false, 0);
 	topLevel.packStart(sep, true, false, 0);
 	topLevel.packStart(configPanel, true, false, 0);
-	trace("topLevel packed");
 
 	configBox.packStart(topLevel, true, false, 0);
 	configBox.showAll();
-
-	trace("configBox packed");
 }
 
 // Populates a plugin info page
