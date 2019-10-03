@@ -48,6 +48,7 @@ enum PluginType : int {
 	UNTRUSTED
 }
 
+/// The app instance for global access.
 static UninstallerUI app;
 
 /// Main application
@@ -67,6 +68,10 @@ public:
 		this.addOnActivate(&onAppActivate);
 	}
 
+	/// Return state of the app
+	int returnState;
+
+private:
 	// App activated
 	void onAppActivate(GApplication app) {
 		trace("Activate App Signal");
@@ -102,9 +107,6 @@ public:
 
 	// Assistant
 	Assistant wizard;
-
-	// Return State
-	int returnState;
 
 	// Pages
 	Box pageIntro;

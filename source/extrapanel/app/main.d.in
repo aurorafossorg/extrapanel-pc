@@ -18,11 +18,15 @@ import gtk.Main;
 // STD
 import std.path;
 
-string pkgdatadir = "@pkgdatadir@";
-string builddatadir = "@builddatadir@";
+string pkgdatadir = "@pkgdatadir@"; /// The path to the package data, containing the UI files.
+string builddatadir = "@builddatadir@"; /// The path to the build path, containing the UI files.
 
 /**
  *  main.d - Main entrypoint for the application
+ *
+ * This is the main entrypoint for the UI application.
+ *
+ * Authors: Ricardo Subtil <subtil@aurorafoss.org>
  */
 
 void main (string[] args)

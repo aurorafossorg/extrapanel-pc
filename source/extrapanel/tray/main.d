@@ -19,6 +19,7 @@ import std.process;
 
 private StatusIcon trayIcon;
 
+/// The main app for the tray icon.
 TrayApp app;
 
 void main(string[] args) {
@@ -53,13 +54,13 @@ private:
 	}
 }
 
-// Creates the popup menu
+/// Creates the popup menu
 public void createPopupMenu(uint, uint, StatusIcon) {
 	Menu menu = createTrayMenu();
 	menu.popupAtPointer(null);
 }
 
-// Creates the tray menu
+/// Creates the tray menu
 public Menu createTrayMenu() {
 	Menu menu = new Menu();
 
@@ -74,16 +75,17 @@ public Menu createTrayMenu() {
 	return menu;
 }
 
-// Opens the main app
+/// Callback to open the main app from the icon
 public void openMainAppStatusIcon(StatusIcon) {
 	spawnProcess("extrapanel");
 }
 
+/// Callback to open the main app from the menu option
 public void openMainAppMenuItem(MenuItem) {
 	spawnProcess("extrapanel");
 }
 
-// Exits the tray app
+// /// Callback to close the tray
 public void exit(MenuItem) {
 	app.release();
 }

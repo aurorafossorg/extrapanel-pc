@@ -15,7 +15,9 @@ import std.json;
  *	plugin.d - General plugin code for the app
  */
 
-// Singleton to manage current plugins
+/**
+ * Singleton to manage current plugins.
+ */
 class PluginManager {
 public:
 	static PluginManager getInstance() {
@@ -25,6 +27,16 @@ public:
 		return pluginManager;
 	}
 
+	/**
+	 * Gets a list of currently installed plugins.
+	 *
+	 * This list is generated only once; the refresh argument is used to regenerate the list.
+	 *
+	 * Params:
+	 *  refresh = wheter to refresh the current list of installed plugins. Defaults to false.
+	 *
+	 * Returns: array of PluginInfo's installed.
+	 */
 	PluginInfo[] getInstalledPlugins(bool refresh = false) {
 		if(!plugins.length || !refresh)
 			populateInstalledPlugins();
@@ -32,18 +44,51 @@ public:
 		return plugins.values;
 	}
 
+	/**
+	 * Get the PluginInfo of an installed plugin.
+	 *
+	 * Params:
+	 *  id = the plugin's id.
+	 *
+	 * Returns: the PluginInfo associated.
+	 */
 	PluginInfo getPlugin(string id) {
 		return plugins[id];
 	}
 
+	/**
+	 * Finds if a certain plugin is installed.
+	 *
+	 * Params:
+	 *  pluginInfo = the PluginInfo to test.
+	 *
+	 * Returns: true if that PluginInfo is an installed plugin, false otherwise.
+	 */
 	bool isPluginInstalled(PluginInfo pluginInfo) {
 		return (pluginInfo.id in plugins) !is null;
 	}
 
+	/**
+	 * Maps a UI widget to a PluginInfo.
+	 *
+	 * This is a workaround for GtkD not allowind to pass user_data to callbacks.
+	 *
+	 * Params:
+	 *  pluginInfo = the PluginInfo to associate.
+	 *		widget = the Widget to associate.
+	 */
 	void mapWidgetWithPlugin(PluginInfo pluginInfo, Widget widget) {
 		mappedWidgets[widget] = pluginInfo;
 	}
 
+	/**
+	 * Finds a PluginInfo that's mapped to a widget.
+	 *
+	 * Params:
+	 *  widget = the Widget that's mapped.
+	 *
+	 * Returns: the PluginInfo associated with the Widget. If it doesn't exists is equal to PluginInfo.init.
+	 */
 	PluginInfo getMappedPlugin(Widget widget) {
 		return mappedWidgets[widget];
 	}

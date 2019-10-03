@@ -36,7 +36,21 @@ This specification is based on K&R variants: 1TBS, Stroustrup, Linux kernel and 
 In Extra Panel code files, we have a very well defined anatomy for comment blocks. You have two types of comments: documentation comments and code comments. All of them need to be written in English and well explained for easier development of other programmers that want to contribute to the project.
 
 #### Documentation Comments
-At the moment of writing, we have yet to decide which documentation framework and style to use. For this reason, do not start documenting code until this matter is decided.
+Documentation follows the [DDOC Design](https://dlang.org/spec/ddoc.html) from **Dlang**, with the additional following rules:
+
+- A single line comment is defined using `/// ...` and is written on the same line as the object to document, with one whitespace *(no tabs)*
+- For more complex documentation, `/** ... */` is used and is written on top of the object to document
+
+```d
+int var; /// A simple var variable.
+
+/**
+ * This is a class, so it deserves more detail.
+ *
+ * ...
+ */
+class Foo { ... }
+```
 
 #### Code Comments
 The purpose of these comments is to help people understand an instruction or even a block of code. We use the common syntax of a comment: `//` and:

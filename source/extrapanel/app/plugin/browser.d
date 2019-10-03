@@ -37,9 +37,14 @@ import std.path;
 
 /**
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements
+ *
+ * This file holds many helper methods to populate UI elements with plugin information,
+ * as well as downloading/installing/uninstalling them.
+ *
+ * Authors: Ev1lbl0w
  */
 
-enum ListStoreColumns : int {
+enum ListStoreColumns : int { /// Enum containing the structure of elements inside a TreeView
 	Installed,
 	Logo,
 	Text,
@@ -47,9 +52,13 @@ enum ListStoreColumns : int {
 	Type
 }
 
-// Methods that populate GTK objects with plugin info
-
-// Populates the parent TreeView of plugins/packs/installed with all the plugins
+/**
+ * Populates the parent TreeView of plugins/packs/installed with all the plugins
+ *
+ * Params:
+ *		pluginInfo = the PluginInfo to add to the TreeView.
+ *		store = the ListStore from the TreeView.
+ */
 public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	TreeIter iterator = store.createIter();
 	PluginManager pluginManager = PluginManager.getInstance();
@@ -67,7 +76,18 @@ public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	store.setValue(iterator, ListStoreColumns.Type, "Official");
 }
 
-// Builds the config panel for a plugin
+/**
+ * Builds the configuration panel for a plugin.
+ *
+ * A configuration panel will always be built and added to parent. If a file exists,
+ * it will be loaded. Otherwise, a default panel will be created to indicate that the
+ * plugin has no configuration menu.
+ *
+ * Params:
+ *		info = the PluginInfo to build the config panel for.
+ *		parent = the Widget that will act as a parent, receiving the config panel as a child.
+ *		builder = a Builder class, used to load an UI from a file.
+ */
 public static void buildConfigPanel(PluginInfo info, Widget parent, Builder builder) {
 	Box configBox = cast(Box) parent;
 
@@ -163,7 +183,13 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 	configBox.showAll();
 }
 
-// Populates a plugin info page
+/**
+ * Populates a plugin info page.
+ *
+ * Params:
+ *		info = the PluginInfo to parse.
+ *		builder = a Builder object to retrieve the UI elements to populate.
+ */
 public static void parseInfo(PluginInfo info, Builder builder) {
 	// Retrieve the necessary elements
 	Image pihIcon = cast(Image) builder.getObject("pihIcon");
@@ -188,15 +214,20 @@ public static void parseInfo(PluginInfo info, Builder builder) {
 	piiType.setLabel("Official");
 }
 
-// Downloads a plugin to a temporary folder
+/**
+ * Downloads a plugin to a temporary folder.
+ *
+ * Params:
+ *		info = the PluginInfo to download.
+ */
 public static void downloadPlugin(PluginInfo info) {
 	gdk.Threads.threadsAddIdle(&downloadPlugin_idleFetch, null);
 	spawn(&thread_downloadPlugin, cast(immutable)info);
 	thread_downloadPlugin_completed = false;
 }
 
-shared bool thread_downloadPlugin_completed;
-void thread_downloadPlugin(immutable PluginInfo info) {
+private shared bool thread_downloadPlugin_completed;
+private void thread_downloadPlugin(immutable PluginInfo info) {
 	string archiveFile = info.id ~ ".tar.gz";
 	string archivePath = buildPath(CDN_PATH, info.id, archiveFile);
 
@@ -205,7 +236,7 @@ void thread_downloadPlugin(immutable PluginInfo info) {
 	thread_downloadPlugin_completed = true;
 }
 
-extern(C) nothrow int downloadPlugin_idleFetch(void* data) {
+extern(C) nothrow private int downloadPlugin_idleFetch(void* data) {
 	try {
 		if(thread_downloadPlugin_completed) return 0;
 	} catch(Exception) return 0;

@@ -64,6 +64,7 @@ enum PluginType : int {
 	UNTRUSTED
 }
 
+/// The app instance for global access.
 static InstallerUI app;
 
 /// Main application
@@ -83,6 +84,10 @@ public:
 		this.addOnActivate(&onAppActivate);
 	}
 
+	/// Return state of the app
+	int returnState;
+
+private:
 	// App activated
 	void onAppActivate(GApplication app) {
 		trace("Activate App Signal");
@@ -113,9 +118,6 @@ public:
 	immutable JSONValue pluginMeta;
 	string inputPath;
 	string[] neededLuaDeps;
-
-	// Return state
-	int returnState;
 
 	// Constructor
 	Builder builder;

@@ -15,7 +15,7 @@ import std.stdio;
  *	logger.d - Global logger for application
  */
 
-// Setup logger level depending on args
+/// Setup logger level depending on args.
 void setupLogLevel() {
 	if(Configuration.hasArg(Args.SILENT))
 		globalLogLevel = LogLevel.off;
@@ -26,7 +26,7 @@ void setupLogLevel() {
 		else globalLogLevel = LogLevel.info;
 }
 
-// Setups a file based logger for the daemon
+/// Setups a file based logger for the daemon.
 void setupDaemonLogger() {
 	sharedLog = new FileLogger(buildPath(appConfigPath, LOG_PATH));
 }

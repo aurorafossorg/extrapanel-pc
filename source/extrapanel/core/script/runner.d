@@ -21,11 +21,15 @@ import std.exception;
 import std.file;
 import std.string;
 
+/// Enum that represents the type of scripts being used.
 public enum ScriptType : byte {
 	PLUGIN_SCRIPT,
 	CONFIG_SCRIPT
 }
 
+/**
+ * Singleton to manage the loading, running and cleanup of external scripts.
+ */
 public class ScriptRunner {
 public:
 	static ScriptRunner getInstance() {
@@ -35,6 +39,13 @@ public:
 		return this.scriptRunner;
 	}
 
+	/**
+	 * Loads a plugin into memory.
+	 *
+	 * Params:
+	 *  pluginId = the plugin's id to load
+	 *		scriptType = the script that's being loaded. Defaults to PLUGIN_SCRIPT.
+	 */
 	void loadPlugin(string pluginId, ScriptType scriptType = ScriptType.PLUGIN_SCRIPT) {
 		trace("[", pluginId, "] Loading script...");
 
@@ -92,6 +103,12 @@ public:
 		pluginScripts[pluginId][scriptType] = lua;
 	}
 
+	/**
+	 * Removes a plugin from memory
+	 *
+	 * Params:
+	 *  pluginId = the plugin's id to unload.
+	 */
 	void removePlugin(string pluginId) {
 		foreach(scriptType; pluginScripts[pluginId].byKey()) {
 			lua_close(pluginScripts[pluginId][scriptType]);
@@ -101,6 +118,14 @@ public:
 		pluginScripts.remove(pluginId);
 	}
 
+	/**
+	 * Sets up a configuration panel for a plugin.
+	 *
+	 * Params:
+	 *  pluginId = the plugin's id to set up.
+	 *
+	 * Returns: a GtkBox* object. This will always be a valid object even if no custom UI exists.
+	 */
 	GtkBox* setupConfigMenu(string pluginId) {
 		// Finds the lua_State
 		lua_State* lua = pluginScripts[pluginId][ScriptType.CONFIG_SCRIPT];
@@ -131,6 +156,14 @@ public:
 		return configBox;
 	}
 
+	/**
+	 * Runs a query call on a plugin.
+	 *
+	 * Params:
+	 *  pluginId = the plugin's id to query.
+	 *
+	 * Returns: result from the query.
+	 */
 	string runQuery(string pluginId) {
 		// Finds the lua_State
 		lua_State* lua = pluginScripts[pluginId][ScriptType.PLUGIN_SCRIPT];

@@ -13,8 +13,15 @@ import std.conv;
 import std.json;
 import std.string;
 
-public static immutable int MARGIN_DEFAULT = 10;	// UI default
+/// Default margin for UI layouts.
+public static immutable int MARGIN_DEFAULT = 10;
 
+/**
+ * Performs a stack dump on a Lua script to the logger.
+ *
+ * Params:
+ *		L = the lua_State* to dump.
+ */
 public static void stackDump (lua_State *L) {
 	int i;
 	immutable int top = lua_gettop(L);
@@ -42,7 +49,14 @@ public static void stackDump (lua_State *L) {
 	}
 }
 
-// This turn an JSON array into a nice comma-separated list
+/**
+ * Turns an JSON array into a nice comma-separated list.
+ *
+ * Params:
+ *		arr: a JSONValue[] array containing only strings of data.
+ *
+ * Returns: a formatted string containing the info on the array.
+ */
 public static string formatArray(JSONValue[] arr) {
 	string formatedStr;
 	foreach(str; arr) {

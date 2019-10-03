@@ -22,14 +22,13 @@ import std.stdio;
 import std.math;
 import std.parallelism;
 
+/// The name of for the daemon's process.
 immutable string DAEMON_NAME = "extrapanel-daemon";
 
 // Gets the delay in miliseconds from the config file
 int getMsecsDelay() {
 	return cast(int) round(Configuration.getOption!(float)(Options.CommDelay) * 1000);
 }
-
-extern (C) uid_t geteuid();
 
 alias daemon = Daemon!(
 	// Unique daemon name
@@ -80,8 +79,6 @@ alias daemon = Daemon!(
 		return 0;
 	}
 );
-
-ScriptRunner scriptRunner;
 
 int main(string[] args) {
 	// Init logger

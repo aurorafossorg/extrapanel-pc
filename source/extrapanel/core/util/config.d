@@ -18,8 +18,8 @@ import std.uuid;
  *	config.d - Configuration framework for the application
  */
 
-// Default configs for the app
-public static enum Options : Tuple!(string, string) {
+/// Enum with all the default options of the application.
+public static immutable enum Options : Tuple!(string, string) {
 	DeviceUUID 			= tuple("device-uuid", "null"),
 	LoadOnBoot 			= tuple("launch-at-startup", "false"),
 	CommDelay			= tuple("comm-delay", "0.1"),
@@ -29,6 +29,7 @@ public static enum Options : Tuple!(string, string) {
 	AcceptedWizard		= tuple("accepted-wizard", "false")
 }
 
+/// Enum with all the args the app accepts.
 public static immutable enum Args : string {
 	RECONFIGURE = "--reconfigure",	// Force the app to regenereate the configuration file
 	OVERWRITE = "--overwrite",		// Force the daemon to run even with a lock file present
@@ -36,8 +37,11 @@ public static immutable enum Args : string {
 	VERBOSE = "--verbose"			// Shows verbose information
 }
 
+/**
+ * Class holding all the configuration logic of the application.
+ */
 public static shared class Configuration {
-	// Loads the configuration
+	/// Loads the configuration file to memory.
 	static void load() {
 		// If config doesn't exist or we need to --reconfigure, generate a clean config file
 		if(!exists(buildPath(appConfigPath, CONFIG_PATH)) || hasArg(Args.RECONFIGURE)) {
@@ -63,7 +67,14 @@ public static shared class Configuration {
 		info("Configuration loaded successfully");
 	}
 
-	// Load plugin config file
+	/**
+	 * Loads a plugin config file to memory.
+	 *
+	 * Params:
+	 *  id = the plugin's id to load.
+	 *
+	 * Returns: true if loading was successful, false otherwise.
+	 */
 	static bool loadPlugin(string id) {
 		// If the path doesn't exist the plugin wasn't installed properly
 		string path = buildPath(pluginRootPath(id), "config.cfg");
@@ -87,7 +98,7 @@ public static shared class Configuration {
 		return true;
 	}
 
-	// Saves the configuration
+	/// Saves the configuration on memory to the file.
 	static void save() {
 		// Save only if config changed, for optimization
 		if(changed) {
@@ -100,33 +111,69 @@ public static shared class Configuration {
 		}
 	}
 
+	/// Saves the plugin's configuration on memory to the file.
 	static void savePlugin() {
 
 	}
 
-	// Retrieves a plugin config
+	/**
+	 * Retrieves a plugin config.
+	 *
+	 * Params:
+	 *  id = the plugin's id to access.
+	 *		data = the data to retrieve.
+	 *
+	 * Returns: the configuration requested. If it doesn't exists, it equals to string.init.
+	 */
 	static T getPluginOption(T)(string id, string data) {
 		return to!(T)(pluginOptions[id][data]);
 	}
 
-	// Retrieves a general config
+	/**
+	 * Retrieves a general config.
+	 *
+	 * Params:
+	 *  data = the data to retrieve.
+	 *
+	 * Returns: the configuration requested. If it doesn't exists, it equals to string.init.
+	 */
 	static T getOption(T)(Options data) {
 		return to!(T)(metaOptions[data[0]]);
 	}
 
-	// Sets a plugin config
+	/**
+	 * Sets a plugin config.
+	 *
+	 * Params:
+	 *  id = the plugin's id to access.
+	 *		op = the plugin's option to modify.
+	 *		data = the data to save.
+	 */
 	static void setPluginOption(T)(string id, string op, T data) {
 		changed = true;
 		pluginOptions[id][op] = to!string(data);
 	}
 
-	// Sets a general config
+	/**
+	 * Sets a general config.
+	 *
+	 * Params:
+	 *  op = the option to modify.
+	 *		data = the data to save.
+	 */
 	static void setOption(T)(Options op, T data) {
 		changed = true;
 		metaOptions[op[0]] = to!string(data);
 	}
 
-	// Parses a plugin configuration for Lua scripts
+	/**
+	 * Parses a plugin configuration for Lua scripts.
+	 *
+	 * Params:
+	 *  id = the plugin's id to parse the config.
+	 *
+	 * Returns: a string containing the plugin's info, suitable for Lua scripts.
+	 */
 	static string parsePlugin(string id) {
 		string parsedConfig;
 		trace("Parsing config options for plugin ", id);
@@ -137,7 +184,13 @@ public static shared class Configuration {
 		return parsedConfig;
 	}
 
-	// Unparses a plugin configuration from Lua scripts
+	/**
+	 * Unparses a plugin configuration from Lua scripts.
+	 *
+	 * Params:
+	 *  id = the plugin's id to unparse the config.
+	 *		parsedConfig = the generated parsed config to extract.
+	 */
 	static void unparsePlugin(string id, string parsedConfig) {
 		string[] formattedPlugin = chomp(parsedConfig, ";").split(";");
 		trace("Unparsing config options for plugin ", id);
@@ -147,7 +200,14 @@ public static shared class Configuration {
 		}
 	}
 
-	// Returns if a given arg was passed
+	/**
+	 * Returns if a given arg was passed.
+	 *
+	 * Params:
+	 *  arg = the argument to check.
+	 *
+	 * Returns: true if that arg was given, false otherwise.
+	 */
 	static bool hasArg(Args arg) {
 		foreach(string s; appArgs)
 			if(s == arg)
@@ -156,7 +216,13 @@ public static shared class Configuration {
 		return false;
 	}
 
-	// Return a list of GTK friendly args. GTK will crash if we give him invalid arguments, for some reason
+	/**
+	 * Return a list of GTK friendly args.
+	 *
+	 * GTK will crash if we give him invalid arguments, for some reason.
+	 *
+	 * Returns: a string array of arguments without custom arguments from the app.
+	 */
 	static string[] getGTKFriendlyArgs() {
 		string[] parsedArgs;
 		foreach(arg; appArgs) {
@@ -168,11 +234,16 @@ public static shared class Configuration {
 		return parsedArgs;
 	}
 
-	// Returns if it's the first time the app was launched
+	/**
+	 * Returns if it's the first time the app was launched.
+	 *
+	 * Returns: true if it's the first time, false otherwise.
+	 */
 	static bool isFirstTime() {
 		return firstTime;
 	}
 
+	/// The string array with the application arguments.
 	static string[] appArgs;
 
 private:

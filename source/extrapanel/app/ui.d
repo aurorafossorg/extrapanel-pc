@@ -68,12 +68,12 @@ enum State {
 	Disabled
 }
 
-static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
+private static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
 
-static bool currentStatus, pluginsConfigLoaded;
-shared bool fetching;
+private static bool currentStatus, pluginsConfigLoaded;
+private shared bool fetching;
 
-static ExtraPanelGUI xPanelApp;
+static ExtraPanelGUI xPanelApp; /// The global instance of the UI.
 
 /// Main application
 class ExtraPanelGUI : Application
@@ -93,37 +93,86 @@ public:
 		Timeout timeout = new Timeout(250, &updateDaemonStatus);
 	}
 
-	// App activated
-	void onAppActivate(GApplication app) {
-		trace("Activate App Signal");
-		// Detect if there are other instances of this app running
-		if (!app.getIsRemote() && window is null)
-		{
-			// Loads the UI files
-			trace("Primary instance, loading UI...");
-			builder = new Builder();
-			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/window.ui"))
-			{
-				critical("Window resource cannot be found");
-				return;
-			}
+	/**
+	 * Sets a connection state to a button.
+	 *
+	 * Depending on the connection state, modifies the button to represent that state properly.
+	 *
+	 * Params:
+	 *  button = the Button to modify.
+	 *		state = the State to present.
+	 */
+	void setConnectionButtonState(Button button, State state) {
+		string id;
+		if(button == wifiButton)
+			id = "wifiButton";
+		else if(button == bluetoothButton)
+			id = "bluetoothButton";
+		else if(button == usbButton)
+			id = "usbButton";
 
-			// Setup the app
-			initElements();
-			updateElements();
-		} else {
-			trace("Another instance exists, taking control...");
+		switch(state) {
+			case State.Online:
+				button.setSensitive(true);
+				Label label = cast(Label) builder.getObject(id ~ "Label");
+				label.setLabel("Active");
+				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
+				attrs.change(uiGreen());
+				label.setAttributes(attrs);
+
+				break;
+			case State.Offline:
+				button.setSensitive(true);
+				Label label = cast(Label) builder.getObject(id ~ "Label");
+				label.setLabel("Offline");
+				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
+				attrs.change(uiRed());
+				label.setAttributes(attrs);
+
+				break;
+			case State.Disabled:
+				button.setSensitive(false);
+				Label label = cast(Label) builder.getObject(id ~ "Label");
+				label.setLabel("Disabled");
+				label.setAttributes(new PgAttributeList());
+
+				break;
+			default:
+				break;
 		}
-
-		// Show
-		this.window.present();
 	}
 
-	void onAppDestroy(GApplication) {
-		// Saves Configs
-		Configuration.save();
+	/**
+	 * Opens the plugin info panel associated with a button.
+	 *
+	 * This is a workaround for GtkD not allowing to pass user_data to callbacks.
+	 *
+	 * Params:
+	 *  button = the Button associated with a PluginInfo.
+	 */
+	void openPluginInfo(Button button) {
+		PluginInfo info = pluginManager.getMappedPlugin(button);
+		if(info !is null) {
+			trace("Plugin info is: ", info.id);
+			saveCurrentInterface();
+			mainInterface.setVisibleChild(pluginInfoInterface);
+			sidebar.setVisible(false);
+			parseInfo(info, builder);
+		}
 	}
 
+	/**
+	 * Adds a PluginInfo to the TreeView.
+	 *
+	 * Params:
+	 *  pluginInfo = the PluginInfo to add.
+	 */
+	void addPluginListElement(PluginInfo pluginInfo) {
+		populateList(pluginInfo, pPluginsTreeModel);
+		downloadPlugin(pluginInfo);
+	}
+
+private:
 	// Plugin Manager
 	PluginManager pluginManager;
 
@@ -197,6 +246,37 @@ public:
 
 	// TID for fetching process
 	Tid fetchTID;
+
+	// App activated
+	void onAppActivate(GApplication app) {
+		trace("Activate App Signal");
+		// Detect if there are other instances of this app running
+		if (!app.getIsRemote() && window is null)
+		{
+			// Loads the UI files
+			trace("Primary instance, loading UI...");
+			builder = new Builder();
+			if(!builder.addFromResource("/org/aurorafoss/extrapanel/ui/window.ui"))
+			{
+				critical("Window resource cannot be found");
+				return;
+			}
+
+			// Setup the app
+			initElements();
+			updateElements();
+		} else {
+			trace("Another instance exists, taking control...");
+		}
+
+		// Show
+		this.window.present();
+	}
+
+	void onAppDestroy(GApplication) {
+		// Saves Configs
+		Configuration.save();
+	}
 
 	// Inits the builder defined elements
 	void initElements()
@@ -489,58 +569,6 @@ public:
 		pPluginsInterface_onMap(null);
 	}
 
-	// Helper methods
-	void setConnectionButtonState(Button button, State state) {
-		string id;
-		if(button == wifiButton)
-			id = "wifiButton";
-		else if(button == bluetoothButton)
-			id = "bluetoothButton";
-		else if(button == usbButton)
-			id = "usbButton";
-
-		switch(state) {
-			case State.Online:
-				button.setSensitive(true);
-				Label label = cast(Label) builder.getObject(id ~ "Label");
-				label.setLabel("Active");
-				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
-				attrs.change(uiGreen());
-				label.setAttributes(attrs);
-
-				break;
-			case State.Offline:
-				button.setSensitive(true);
-				Label label = cast(Label) builder.getObject(id ~ "Label");
-				label.setLabel("Offline");
-				PgAttributeList attrs = label.getAttributes() is null ? new PgAttributeList() : label.getAttributes();
-				attrs.change(uiRed());
-				label.setAttributes(attrs);
-
-				break;
-			case State.Disabled:
-				button.setSensitive(false);
-				Label label = cast(Label) builder.getObject(id ~ "Label");
-				label.setLabel("Disabled");
-				label.setAttributes(new PgAttributeList());
-
-				break;
-			default:
-				break;
-		}
-	}
-
-	void openPluginInfo(Button button) {
-		PluginInfo info = pluginManager.getMappedPlugin(button);
-		if(info !is null) {
-			trace("Plugin info is: ", info.id);
-			saveCurrentInterface();
-			mainInterface.setVisibleChild(pluginInfoInterface);
-			sidebar.setVisible(false);
-			parseInfo(info, builder);
-		}
-	}
-
 	bool updateDaemonStatus() {
 		immutable bool newStatus = queryDaemon();
 		if(currentStatus != newStatus) {
@@ -572,6 +600,7 @@ public:
 		}
 	}
 
+
 	bool queryDaemon() {
 		if(exists(buildPath(appConfigPath, LOCK_PATH))) {
 			string pid = getDaemonPID();
@@ -594,7 +623,7 @@ public:
 		return File("/proc/" ~ pid ~ "/cmdline", "r").readln();
 	}
 
-	void cpLoadPlugins(Widget) {
+		void cpLoadPlugins(Widget) {
 		trace("Config -> Plugins: Loading plugin configuration menu's");
 
 		// Empty the container
@@ -616,11 +645,6 @@ public:
 		mainInterface.setVisibleChild(savedInterface);
 		savedSidebar = null;
 		savedInterface = null;
-	}
-
-	void addPluginListElement(PluginInfo pluginInfo) {
-		populateList(pluginInfo, pPluginsTreeModel);
-		downloadPlugin(pluginInfo);
 	}
 
 	void setCursorLoading(bool loading) {
