@@ -378,6 +378,7 @@ private:
 		ccuEnableCheck.setActive(Configuration.getOption!(bool)(Options.UsbEnabled));
 
 		// UUID
+		cgCommDelay.setValue(Configuration.getOption!(float)(Options.CommDelay));
 		cgOpenAppStartup.setActive(Configuration.getOption!(bool)(Options.LoadOnBoot));
 		uuidLabel.setLabel("UUID: " ~ Configuration.getOption!(string)(Options.DeviceUUID));
 
@@ -398,6 +399,7 @@ private:
 		bluetoothButton.addOnClicked(&connectionButton_onClicked);
 		usbButton.addOnClicked(&connectionButton_onClicked);
 
+		cgCommDelay.addOnValueChanged(&cgCommDelay_onValueChanged);
 		cgOpenAppStartup.addOnToggled(&cgOpenAppStartup_onToggled);
 
 		ccwEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
@@ -497,6 +499,10 @@ private:
 			usbState = usbState is State.Online ? State.Offline : State.Online;
 			setConnectionButtonState(usbButton, usbState);
 		}
+	}
+
+	void cgCommDelay_onValueChanged(SpinButton sb) {
+		Configuration.setOption(Options.CommDelay, sb.getValue());
 	}
 
 	void cgOpenAppStartup_onToggled(ToggleButton tb) {
