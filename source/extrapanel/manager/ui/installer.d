@@ -293,7 +293,7 @@ private:
 
 		piiID.setLabel(info.id);
 		piiVersion.setLabel(info.strVersion);
-		piiAuthors.setLabel(formatArray(info.authors));
+		piiAuthors.setLabel(arrayToString(info.authors));
 		piiURL.setLabel(url(info.url));
 		piiType.setLabel("Official");
 	}

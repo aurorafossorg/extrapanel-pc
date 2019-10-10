@@ -12,6 +12,7 @@ import std.array;
 import std.conv;
 import std.json;
 import std.string;
+import std.traits;
 
 /// Default margin for UI layouts.
 public static immutable int MARGIN_DEFAULT = 10;
@@ -57,7 +58,7 @@ public static void stackDump (lua_State *L) {
  *
  * Returns: a formatted string containing the info on the array.
  */
-public static string formatArray(JSONValue[] arr) {
+public static string arrayToString(T)(T[] arr) {
 	string formatedStr;
 	foreach(str; arr) {
 		formatedStr ~= to!string(str).replace("\"", "") ~ ", ";
@@ -66,9 +67,20 @@ public static string formatArray(JSONValue[] arr) {
 	return chomp(formatedStr, ", ");
 }
 
+public static T stringToArray(T)(string data) {
+	T arr;
+	foreach(string s; split(data, ", ")) {
+		arr ~= to!(ForeachType!(T))(s);
+	}
+
+	return arr;
+}
+
 @("Util: Format a JSON array")
 unittest {
 	JSONValue arr = JSONValue(["Rei Ayanami", "Asuka Sohryu", "Shinji Ikari", "Tōji Suzuhara"]);
+	float[] floatArr = [3.14f, 0.8f];
 
-	assert(formatArray(arr.array) == "Rei Ayanami, Asuka Sohryu, Shinji Ikari, Tōji Suzuhara");
+	assert(arrayToString(arr.array) == "Rei Ayanami, Asuka Sohryu, Shinji Ikari, Tōji Suzuhara");
+	assert(arrayToString(floatArr) == "3.14, 0.8");
 }
