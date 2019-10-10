@@ -7,6 +7,7 @@ import core.thread;
 // Extra Panel
 import extrapanel.app.plugin.browser;
 import extrapanel.core.plugin.info;
+import extrapanel.core.script.runner;
 import extrapanel.core.util.config;
 import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
@@ -275,6 +276,7 @@ private:
 
 	void onAppDestroy(GApplication) {
 		// Saves Configs
+		ScriptRunner.getInstance().cleanup();
 		Configuration.save();
 	}
 

@@ -73,7 +73,7 @@ alias daemon = Daemon!(
 		}
 
 		// Daemon is quitting
-		destroy(scriptRunner);
+		scriptRunner.cleanup();
 		info("Daemon is quitting...");
 
 		return 0;

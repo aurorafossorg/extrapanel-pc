@@ -112,8 +112,13 @@ public static shared class Configuration {
 	}
 
 	/// Saves the plugin's configuration on memory to the file.
-	static void savePlugin() {
+	static void savePlugin(string pluginId) {
+		cfgFile = File(buildPath(pluginRootPath(pluginId), "config.cfg"), "w");
+		foreach(string s; pluginOptions[pluginId].keys) {
+			cfgFile.writeln(s ~ ": " ~ pluginOptions[pluginId][s]);
+		}
 
+		cfgFile.close();
 	}
 
 	/**

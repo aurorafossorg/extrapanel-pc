@@ -111,11 +111,32 @@ public:
 	 */
 	void removePlugin(string pluginId) {
 		foreach(scriptType; pluginScripts[pluginId].byKey()) {
+			// If it's a config script, we need to save possibly updated configs.
+			if(scriptType == ScriptType.CONFIG_SCRIPT) {
+				lua_State* lua = pluginScripts[pluginId][scriptType];
+
+				lua_getglobal(lua, ("saveConfig").toStringz);
+				runLuaCommand(lua_pcall(lua, 0, 1, 0), lua, pluginId, "saveConfig");
+				string parsedConfig = to!(string)(lua_tostring(lua, -1).fromStringz);
+				Configuration.unparsePlugin(pluginId, parsedConfig);
+				Configuration.savePlugin(pluginId);
+			}
 			lua_close(pluginScripts[pluginId][scriptType]);
 			pluginScripts[pluginId].remove(scriptType);
 		}
 
 		pluginScripts.remove(pluginId);
+	}
+
+	/**
+	 * Cleans up all the loaded plugins.
+	 *
+	 * This needs to be called specifically, because a destructor is @nogc and cleanup steps may
+	 * save configuration, which causes memory exceptions.
+	 */
+	void cleanup() {
+		foreach(pluginId; pluginScripts.byKey())
+				removePlugin(pluginId);
 	}
 
 	/**
@@ -199,11 +220,6 @@ private:
 			lua_close(lua);
 			throw new ScriptMethodExecutionException(pluginId, method);
 		}
-	}
-
-	~this() {
-			foreach(pluginId; pluginScripts.byKey())
-				removePlugin(pluginId);
 	}
 
 	static ScriptRunner scriptRunner;
