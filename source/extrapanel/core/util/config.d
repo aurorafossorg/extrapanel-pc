@@ -4,6 +4,7 @@ module extrapanel.core.util.config;
 import extrapanel.core.util.formatter;
 import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
+import extrapanel.core.util.util;
 
 // STD
 import std.array;
@@ -12,6 +13,7 @@ import std.file;
 import std.stdio;
 import std.string;
 import std.typecons;
+import std.traits;
 import std.uuid;
 
 /**
@@ -134,6 +136,13 @@ public static shared class Configuration {
 		return to!(T)(pluginOptions[id][data]);
 	}
 
+	/// ditto
+	static T[] getPluginOption(T : T[])(string id, string data) {
+		return isSomeString!(T[])
+			? to!(T[])(pluginOptions[id][data])
+			: stringToArray!(T)(pluginOptions[id][data]);
+	}
+
 	/**
 	 * Retrieves a general config.
 	 *
@@ -155,8 +164,16 @@ public static shared class Configuration {
 	 *		data = the data to save.
 	 */
 	static void setPluginOption(T)(string id, string op, T data) {
-		changed = true;
 		pluginOptions[id][op] = to!string(data);
+	}
+
+	/// ditto
+	static void setPluginOption(T : T[])(string id, string op, T[] data) {
+		if(isArray!T) {
+			pluginOptions[id][op] = isSomeString!T
+				? data.to!string
+				: data.arrayToString;
+		}
 	}
 
 	/**
@@ -400,6 +417,8 @@ unittest {
 	assert(Configuration.getPluginOption!(string)("plugin-example", "option-string") == "string");
 	assert(Configuration.getPluginOption!(int)("plugin-example", "option-int") == 300);
 	assert(Configuration.getPluginOption!(bool)("plugin-example", "option-bool") == false);
+	assert(Configuration.getPluginOption!(float[])("plugin-example", "option-float-arr") == [3.1f, 4.5f, 0.2f]);
+	assert(Configuration.getPluginOption!(string[])("plugin-example", "option-str-arr") == ["str1", "another string", "yay"]);
 
 	// Assert config file and default file are the same
 	auto configData = read(buildPath(pluginRoot, "config.cfg"));
@@ -427,7 +446,7 @@ unittest {
 	// Assert plugin parsing is working
 	immutable string parsedConfig = Configuration.parsePlugin("plugin-example");
 	log(parsedConfig);
-	assert(parsedConfig == "option-int: 300;option-string: string;option-bool: false;");
+	assert(parsedConfig == "option-int: 300;option-float-arr: 3.1, 4.5, 0.2;option-string: string;option-bool: false;option-str-arr: str1, another string, yay;");
 }
 
 @("Config: unparse config from Lua")
@@ -444,13 +463,48 @@ unittest {
 	Configuration.loadPlugin("plugin-example");
 
 	// Unparse a config from Lua
-	immutable string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;";
+	immutable string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;option-float-arr: 3.14, 0.9;option-str-arr: less, string;";
 	Configuration.unparsePlugin("plugin-example", parsedConfig);
 
 	// Assert new configs were extracted
 	assert(Configuration.getPluginOption!(string)("plugin-example", "option-string") == "newString");
 	assert(Configuration.getPluginOption!(int)("plugin-example", "option-int") == 200);
 	assert(Configuration.getPluginOption!(bool)("plugin-example", "option-bool") == true);
+	assert(Configuration.getPluginOption!(float[])("plugin-example", "option-float-arr") == [3.14f, 0.9f]);
+	assert(Configuration.getPluginOption!(string[])("plugin-example", "option-str-arr") == ["less", "string"]);
+}
+
+@("Config: saving a plugin config")
+unittest {
+	createAppPaths();
+	immutable string pluginRoot = pluginRootPath("plugin-example");
+
+	// Copy the CFG file to plugin path
+	if(!exists(pluginRoot)) mkdir(pluginRoot);
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "default.cfg"), buildPath(pluginRoot, "default.cfg"));
+	copy(buildPath(EXAMPLE_PLUGIN_PATH, "config.cfg"), buildPath(pluginRoot, "config.cfg"));
+
+	// Load the plugin config
+	Configuration.loadPlugin("plugin-example");
+
+	// Unparse a config from Lua
+	//immutable string parsedConfig = "option-string: newString;option-int: 200;option-bool: true;";
+	//Configuration.unparsePlugin("plugin-example", parsedConfig);
+	// Changes some settings
+	Configuration.setPluginOption!(string)("plugin-example", "option-string", "newString");
+	Configuration.setPluginOption!(int)("plugin-example", "option-int", 200);
+	Configuration.setPluginOption!(bool)("plugin-example", "option-bool", true);
+	Configuration.setPluginOption!(float[])("plugin-example", "option-float-arr", [3.14f, 0.9f]);
+	Configuration.setPluginOption!(string[])("plugin-example", "option-str-arr", ["less", "string"]);
+
+	// Saves the configuration
+	Configuration.savePlugin("plugin-example");
+
+	// Assert config has changed
+	auto originalCfg = read(buildPath(pluginRoot, "default.cfg"));
+	auto changedCfg = read(buildPath(pluginRoot, "config.cfg"));
+
+	assert(originalCfg != changedCfg);
 }
 
 @("Config: remove custom args")

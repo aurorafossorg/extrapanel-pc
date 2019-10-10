@@ -8,6 +8,7 @@ import riverd.lua.statfun;
 import riverd.lua.types;
 
 // STD
+import std.algorithm.iteration;
 import std.array;
 import std.conv;
 import std.json;
@@ -59,21 +60,15 @@ public static void stackDump (lua_State *L) {
  * Returns: a formatted string containing the info on the array.
  */
 public static string arrayToString(T)(T[] arr) {
-	string formatedStr;
-	foreach(str; arr) {
-		formatedStr ~= to!string(str).replace("\"", "") ~ ", ";
-	}
-
-	return chomp(formatedStr, ", ");
+	return to!string(arr.map!(e => to!string(e).replace("\"", ""))
+		.joiner(", ")
+		.array);
 }
 
-public static T stringToArray(T)(string data) {
-	T arr;
-	foreach(string s; split(data, ", ")) {
-		arr ~= to!(ForeachType!(T))(s);
-	}
-
-	return arr;
+public static T[] stringToArray(T)(string data) {
+	return data.splitter(", ")
+		.map!(to!(T))
+		.array;
 }
 
 @("Util: Format a JSON array")
