@@ -36,8 +36,10 @@ import gtk.ListBox;
 import gtk.ListBoxRow;
 import gtk.ListStore;
 import gtk.Notebook;
+import gtk.ProgressBar;
 import gtk.ScrolledWindow;
 import gtk.SpinButton;
+import gtk.Spinner;
 import gtk.Stack;
 import gtk.Switch;
 import gtk.ToggleButton;
@@ -188,8 +190,7 @@ private:
 	Switch wizardInstallPack;
 
 	// Meta Elements
-	Button backButton, startButton, stopButton;
-	Label status;
+	Button backButton;
 	ListStore pPluginsTreeModel;
 	// Cursor's
 	Cursor loadingCursor;
@@ -243,10 +244,25 @@ private:
 		Box aboutInterface;
 		Box pluginInfoInterface;
 
+	// Bottom Bar
+	Stack statusBar;
+		Box daemonStatusBar;
+			Label dStatus;
+			Button dStartButton;
+			Button dStopButton;
+		Box pluginStatusBar;
+			Label pStatus;
+			Spinner pSpinner;
+			ProgressBar pProgressBar;
+			Button pActionButton;
+
 	Widget savedSidebar = null, savedInterface = null;
 
 	// TID for fetching process
 	Tid fetchTID;
+
+	// Values for plugin fetching
+	int maxPlugins, currPlugin;
 
 	// App activated
 	void onAppActivate(GApplication app) {
@@ -295,9 +311,9 @@ private:
 
 		// Meta Elements
 		backButton = cast(Button) builder.getObject("backButton");
-		startButton = cast(Button) builder.getObject("startButton");
-		stopButton = cast(Button) builder.getObject("stopButton");
-		status = cast(Label) builder.getObject("status");
+		dStartButton = cast(Button) builder.getObject("dStartButton");
+		dStopButton = cast(Button) builder.getObject("dStopButton");
+		dStatus = cast(Label) builder.getObject("dStatus");
 		pPluginsTreeModel = cast(ListStore) builder.getObject("pPluginsTreeModel");
 
 		// General Tab Elements
@@ -353,6 +369,18 @@ private:
 		aboutInterface = cast(Box) builder.getObject("aboutInterface");
 		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
 
+		// Bottom Bar
+		statusBar = cast(Stack) builder.getObject("statusBar");
+		daemonStatusBar = cast(Box) builder.getObject("daemonStatusBar");
+		dStatus = cast(Label) builder.getObject("dStatus");
+		dStartButton = cast(Button) builder.getObject("dStartButton");
+		dStopButton = cast(Button) builder.getObject("dStopButton");
+		pluginStatusBar = cast(Box) builder.getObject("pluginStatusBar");
+		pStatus = cast(Label) builder.getObject("pStatus");
+		pSpinner = cast(Spinner) builder.getObject("pSpinner");
+		pProgressBar = cast(ProgressBar) builder.getObject("pProgressBar");
+		pActionButton = cast(Button) builder.getObject("pActionButton");
+
 		// Plugin Manager
 		pluginManager = PluginManager.getInstance();
 	}
@@ -390,8 +418,8 @@ private:
 		setConnectionButtonState(usbButton, usbState);
 
 		// Callbacks
-		startButton.addOnClicked(&startButton_onClicked);
-		stopButton.addOnClicked(&stopButton_onClicked);
+		dStartButton.addOnClicked(&startButton_onClicked);
+		dStopButton.addOnClicked(&stopButton_onClicked);
 
 		generalBar.addOnRowActivated(&sidebar_onRowActivated);
 		pluginsBar.addOnRowActivated(&sidebar_onRowActivated);
@@ -440,12 +468,12 @@ private:
 	}
 
 	void startButton_onClicked(Button) {
-		trace("startButton: clicked");
+		trace("dStartButton: clicked");
 		startDaemon();
 	}
 
 	void stopButton_onClicked(Button) {
-		trace("stopButton: clicked");
+		trace("dStopButton: clicked");
 		stopDaemon();
 	}
 
@@ -462,6 +490,7 @@ private:
 					trace("\tpluginsOption: changing to plugins");
 					sidebar.setVisibleChild(pluginsBar);
 					mainInterface.setVisibleChild(pluginsInterface);
+					statusBar.setVisibleChild(pluginStatusBar);
 			} else if(lbr == gAboutOption) {
 					trace("\taboutOption: changing to about");
 					sidebar.setVisible(false);
@@ -556,24 +585,19 @@ private:
 		}
 	}
 
-	bool once = false;
 	void pPluginsInterface_onMap(Widget) {
 		trace("Plugins -> pPluginsInterface: map");
-		if(!once) {
-			once = true;
-			ppRefresh.setSensitive(false);
-			setCursorLoading(true);
-			trace("\tSpawning plugin fetching thread...");
-			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
-			fetchTID = spawn(&fetchPlugins);
-			fetching = true;
-		}
+		setCursorLoading(true);
+		trace("\tSpawning plugin fetching thread...");
+		ppRefresh.setSensitive(false);
+		gdk.Threads.threadsAddIdle(&processIdleFetch, null);
+		fetchTID = spawn(&fetchPlugins);
+		fetching = true;
 	}
 
 	void ppRefresh_onClicked(Button) {
 		trace("Plugins -> ppRefresh: clicked");
 		pPluginsTreeModel.clear();
-		once = false;
 		pPluginsInterface_onMap(null);
 	}
 
@@ -587,13 +611,13 @@ private:
 	}
 
 	void updateMetaElements() {
-		stopButton.setSensitive(currentStatus);
-		startButton.setSensitive(!currentStatus);
-		status.setLabel(currentStatus ? "Running" : "Stopped");
+		dStopButton.setSensitive(currentStatus);
+		dStartButton.setSensitive(!currentStatus);
+		dStatus.setLabel(currentStatus ? "Running" : "Stopped");
 
-		PgAttributeList attrs = status.getAttributes() is null ? new PgAttributeList() : status.getAttributes();
+		PgAttributeList attrs = dStatus.getAttributes() is null ? new PgAttributeList() : dStatus.getAttributes();
 		attrs.change(currentStatus ? uiGreen() : uiRed());
-		status.setAttributes(attrs);
+		dStatus.setAttributes(attrs);
 	}
 
 	void startDaemon() {
@@ -668,16 +692,16 @@ void fetchPlugins() {
 	JSONValue metaJson = parseJSON(readText(localMetaPath));
 
 	Tid parentTid = ownerTid();
+	parentTid.send(to!int(metaJson["official"].array.length));
 
 	foreach(plugin; taskPool.parallel(metaJson["official"].array)) {
 		try {
-			string localPluginMetaPath = buildPath(createTempPath(), "pc", plugin.str.replace("/", "-"));
-			string localPluginIconPath = buildPath(createTempPath(), "pc", plugin.str.replace("/meta.json", "-icon.png"));
-			string logoCdnPath = plugin.str.replace("meta.json", "icon.png");
+			immutable string localPluginMetaPath = buildPath(createTempPath(), "pc", plugin.str.replace("/", "-"));
+			immutable string localPluginIconPath = buildPath(createTempPath(), "pc", plugin.str.replace("/meta.json", "-icon.png"));
+			immutable string logoCdnPath = plugin.str.replace("meta.json", "icon.png");
 			download(CDN_PATH ~ plugin.str, localPluginMetaPath);
 			download(CDN_PATH ~ logoCdnPath, localPluginIconPath);
 			immutable JSONValue pluginJson = parseJSON(readText(localPluginMetaPath));
-
 			parentTid.send(pluginJson);
 		} catch(Exception e) {}
 	}
@@ -687,12 +711,24 @@ void fetchPlugins() {
 
 extern(C) nothrow static int processIdleFetch(void* data) {
 	try {
+		receiveTimeout(dur!("msecs")(10), (int maxPlugins) {
+			xPanelApp.maxPlugins = maxPlugins;
+			xPanelApp.currPlugin = 0;
+			xPanelApp.pProgressBar.setFraction(0);
+			xPanelApp.pSpinner.start();
+		});
 		receiveTimeout(dur!("msecs")(10), (immutable JSONValue pluginJson) {
 			xPanelApp.addPluginListElement(new PluginInfo(pluginJson));
+			xPanelApp.currPlugin++;
+			xPanelApp.pStatus.setText("Finished downloading plugin " ~ pluginJson["id"].str);
+			xPanelApp.pProgressBar.setFraction(to!float(xPanelApp.currPlugin) / xPanelApp.maxPlugins);
 		});
 
 		if(!fetching) {
 			xPanelApp.setCursorLoading(false);
+			xPanelApp.ppRefresh.setSensitive(true);
+			xPanelApp.pSpinner.stop();
+			xPanelApp.pStatus.setText("Finished fetching plugins");
 			xPanelApp.ppRefresh.setSensitive(true);
 			return 0;
 		}

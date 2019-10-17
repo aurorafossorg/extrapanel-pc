@@ -11,9 +11,9 @@
 			"targetPath": "build/",
 			"dependencies": {
 				"riverd-lua": "~>1.0.3",
-				"gtk-d:gtkd": "~>3.8.4",
+				"gtk-d:gtkd": "~>3.9.0",
 				"daemonize":"~>0.2.1",
-				"aurorafw:unit": "0.0.1-alpha.3"
+				"aurorafw:unit": "~>0.0.1-alpha.3"
 			}
 		},
 		{
