@@ -39,7 +39,6 @@ import gtk.Widget;
 import std.algorithm.mutation;
 import std.algorithm.searching;
 import std.concurrency;
-import std.file;
 import std.json;
 import std.stdio;
 import std.string;
@@ -118,6 +117,7 @@ private:
 	immutable JSONValue pluginMeta;
 	string inputPath;
 	string[] neededLuaDeps;
+	bool pluginInstalled;
 
 	// Constructor
 	Builder builder;
@@ -190,7 +190,7 @@ private:
 
 	void wizardOnCancel(Assistant) {
 		trace("Closed");
-		returnState = -1;
+		returnState = pluginInstalled ? 0 : -1;
 		this.wizard.destroy();
 	}
 
@@ -331,6 +331,8 @@ private:
 		pPluginLabel.setMarkup(italic("Completed"));
 		pPluginSpinner.stop();
 		wizard.setPageComplete(wizard.getNthPage(Pages.PLUGIN_INSTALL), true);
+		wizard.commit();
+		pluginInstalled = true;
 	}
 }
 

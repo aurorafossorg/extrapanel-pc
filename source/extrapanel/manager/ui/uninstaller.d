@@ -28,7 +28,6 @@ import gtk.Widget;
 
 // STD
 import std.concurrency;
-import std.file;
 import std.json;
 import std.stdio;
 
@@ -101,6 +100,7 @@ private:
 	// Plugin information
 	immutable JSONValue pluginMeta;
 	string inputPath;
+	bool pluginUninstalled;
 
 	// Constructor
 	Builder builder;
@@ -153,7 +153,7 @@ private:
 
 	void wizardOnCancel(Assistant) {
 		trace("Closed");
-		returnState = -1;
+		returnState = pluginUninstalled ? 0 : -1;
 		this.wizard.destroy();
 	}
 
@@ -209,6 +209,8 @@ private:
 		pPluginLabel.setMarkup(italic("Completed"));
 		pPluginSpinner.stop();
 		wizard.setPageComplete(wizard.getNthPage(Pages.PLUGIN_UNINSTALL), true);
+		wizard.commit();
+		pluginUninstalled = true;
 	}
 }
 
