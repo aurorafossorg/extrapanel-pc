@@ -9,7 +9,6 @@ import extrapanel.core.util.util;
 // STD
 import std.array;
 import std.conv;
-import std.file;
 import std.stdio;
 import std.string;
 import std.typecons;

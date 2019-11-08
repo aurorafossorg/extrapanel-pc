@@ -5,15 +5,25 @@ import extrapanel.core.util.logger;
 import extrapanel.core.util.paths;
 
 // GTK
+import gtk.TreeIter;
 import gtk.Widget;
 
 // STD
-import std.file;
 import std.json;
 
 /**
  *	plugin.d - General plugin code for the app
  */
+
+
+enum ListStoreColumns : int { /// Enum containing the structure of elements inside a TreeView
+	Installed,
+	Logo,
+	Text,
+	Version,
+	Type,
+	Id
+}
 
 /**
  * Singleton to manage current plugins.
@@ -38,10 +48,14 @@ public:
 	 * Returns: array of PluginInfo's installed.
 	 */
 	PluginInfo[] getInstalledPlugins(bool refresh = false) {
-		if(!plugins.length || !refresh)
+		if(!plugins.length || refresh)
 			populateInstalledPlugins();
 
 		return plugins.values;
+	}
+
+	void updateInstalledPluginList() {
+		populateInstalledPlugins();
 	}
 
 	/**
@@ -71,14 +85,47 @@ public:
 	/**
 	 * Maps a UI widget to a PluginInfo.
 	 *
-	 * This is a workaround for GtkD not allowind to pass user_data to callbacks.
+	 * This is a workaround for GtkD not allowing to pass user_data to callbacks.
 	 *
 	 * Params:
 	 *  pluginInfo = the PluginInfo to associate.
 	 *		widget = the Widget to associate.
 	 */
 	void mapWidgetWithPlugin(PluginInfo pluginInfo, Widget widget) {
-		mappedWidgets[widget] = pluginInfo;
+		if(!(widget in mappedWidgets))
+			mappedWidgets[widget] = pluginInfo;
+	}
+
+	/// ditto
+	void mapTreeIterWithPlugin(PluginInfo pluginInfo, TreeIter treeIter) {
+		if(!(treeIter in mappedTreeIters))
+			mappedTreeIters[treeIter] = pluginInfo;
+	}
+
+	TreeIter findTreeIterWithId(string id) {
+		foreach(treeIter; mappedTreeIters.byKey()) {
+			if(mappedTreeIters[treeIter].id == id)
+				return treeIter;
+		}
+
+		return null;
+	}
+
+	Widget findWidgetWithId(string id) {
+		foreach(widget; mappedWidgets.byKey()) {
+			if(mappedWidgets[widget].id == id)
+				return widget;
+		}
+
+		return null;
+	}
+
+	void unmapWidget(Widget widget) {
+		mappedWidgets.remove(widget);
+	}
+
+	void clearTreeIterMap() {
+		mappedTreeIters.clear();
 	}
 
 	/**
@@ -90,7 +137,16 @@ public:
 	 * Returns: the PluginInfo associated with the Widget. If it doesn't exists is equal to PluginInfo.init.
 	 */
 	PluginInfo getMappedPlugin(Widget widget) {
-		return mappedWidgets[widget];
+		return widget in mappedWidgets ? mappedWidgets[widget] : null;
+	}
+
+	/// ditto
+	PluginInfo getMappedTreeIter(TreeIter treeIter) {
+		foreach(TreeIter ti; mappedTreeIters.byKey()) {
+			if(ti.getValueString(ListStoreColumns.Id) == treeIter.getValueString(ListStoreColumns.Id))
+				return mappedTreeIters[ti];
+		}
+		return null;
 	}
 
 private:
@@ -113,6 +169,7 @@ private:
 
 	PluginInfo[string] plugins;
 	PluginInfo[Widget] mappedWidgets;
+	PluginInfo[TreeIter] mappedTreeIters;
 
 	static PluginManager pluginManager;
 }
@@ -140,6 +197,7 @@ class PluginInfo {
 	}
 
 	immutable string id, name, description, icon, strVersion, url, repoUrl;
+	bool installed;
 	JSONValue[] authors;
 }
 

@@ -21,6 +21,8 @@
       <column type="gchararray"/>
       <!-- column-name type -->
       <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkApplicationWindow" id="window">
@@ -562,6 +564,7 @@
                                     <property name="model">pPluginsTreeModel</property>
                                     <property name="search_column">1</property>
                                     <property name="fixed_height_mode">True</property>
+                                    <property name="activate_on_single_click">True</property>
                                     <child internal-child="selection">
                                       <object class="GtkTreeSelection"/>
                                     </child>
@@ -2093,6 +2096,12 @@ Do you want to download the official "General" pack?</property>
       <placeholder/>
     </child>
     <child type="titlebar">
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
       <placeholder/>
     </child>
     <child>

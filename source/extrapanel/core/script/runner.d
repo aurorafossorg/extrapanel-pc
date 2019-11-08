@@ -18,7 +18,6 @@ import riverd.lua.types;
 // STD
 import std.conv;
 import std.exception;
-import std.file;
 import std.string;
 
 /// Enum that represents the type of scripts being used.
@@ -110,22 +109,25 @@ public:
 	 *  pluginId = the plugin's id to unload.
 	 */
 	void removePlugin(string pluginId) {
-		foreach(scriptType; pluginScripts[pluginId].byKey()) {
-			// If it's a config script, we need to save possibly updated configs.
-			if(scriptType == ScriptType.CONFIG_SCRIPT) {
-				lua_State* lua = pluginScripts[pluginId][scriptType];
+		if(pluginId in pluginScripts) {
+			trace("ScriptRunner: plugin \"", pluginId, "\" being removed");
+			foreach(scriptType; pluginScripts[pluginId].byKey()) {
+				// If it's a config script, we need to save possibly updated configs.
+				if(scriptType == ScriptType.CONFIG_SCRIPT) {
+					lua_State* lua = pluginScripts[pluginId][scriptType];
 
-				lua_getglobal(lua, ("saveConfig").toStringz);
-				runLuaCommand(lua_pcall(lua, 0, 1, 0), lua, pluginId, "saveConfig");
-				string parsedConfig = to!(string)(lua_tostring(lua, -1).fromStringz);
-				Configuration.unparsePlugin(pluginId, parsedConfig);
-				Configuration.savePlugin(pluginId);
+					lua_getglobal(lua, ("saveConfig").toStringz);
+					runLuaCommand(lua_pcall(lua, 0, 1, 0), lua, pluginId, "saveConfig");
+					string parsedConfig = to!(string)(lua_tostring(lua, -1).fromStringz);
+					Configuration.unparsePlugin(pluginId, parsedConfig);
+					Configuration.savePlugin(pluginId);
+				}
+				lua_close(pluginScripts[pluginId][scriptType]);
+				//pluginScripts[pluginId].remove(scriptType);
 			}
-			lua_close(pluginScripts[pluginId][scriptType]);
-			pluginScripts[pluginId].remove(scriptType);
-		}
 
-		pluginScripts.remove(pluginId);
+			pluginScripts.remove(pluginId);
+		}
 	}
 
 	/**
@@ -171,6 +173,7 @@ public:
 		lua_getglobal(lua, ("loadConfig").toStringz);
 		lua_pushstring(lua, parsedConfig.toStringz);
 		runLuaCommand(lua_pcall(lua, 1, 0, 0), lua, pluginId, "main");
+		lua_settop(lua, 0);
 
 		trace("[", pluginId, "] Config passed successfully");
 

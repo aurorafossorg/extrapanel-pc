@@ -1,5 +1,8 @@
 module extrapanel.app.plugin.browser;
 
+// Core
+import core.time;
+
 // Extra Panel
 import extrapanel.app.ui;
 import extrapanel.core.plugin.info;
@@ -34,6 +37,7 @@ import pango.PgAttributeList;
 import std.concurrency;
 import std.net.curl : download;
 import std.path;
+import std.process;
 
 /**
  *	browser.d - Methods responsible for managing plugins and constructing GTK elements
@@ -44,14 +48,6 @@ import std.path;
  * Authors: Ev1lbl0w
  */
 
-enum ListStoreColumns : int { /// Enum containing the structure of elements inside a TreeView
-	Installed,
-	Logo,
-	Text,
-	Version,
-	Type
-}
-
 /**
  * Populates the parent TreeView of plugins/packs/installed with all the plugins
  *
@@ -61,19 +57,23 @@ enum ListStoreColumns : int { /// Enum containing the structure of elements insi
  */
 public static void populateList(PluginInfo pluginInfo, ListStore store) {
 	TreeIter iterator = store.createIter();
+	iterator.setModel(store);
 	PluginManager pluginManager = PluginManager.getInstance();
 
-	immutable bool installed = pluginManager.isPluginInstalled(pluginInfo);
-	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id ~ "-icon.png"));
+	pluginInfo.installed = pluginManager.isPluginInstalled(pluginInfo);
+	Pixbuf logo = new Pixbuf(buildPath(createTempPath(), "pc", pluginInfo.id, "icon.png"));
 	string text = bold(pluginInfo.name) ~ "\n" ~ pluginInfo.description;
 
-	store.setValue(iterator, ListStoreColumns.Installed, installed);
+	store.setValue(iterator, ListStoreColumns.Installed, pluginInfo.installed);
 	store.setValue(iterator, ListStoreColumns.Logo, logo);
 	store.setValue(iterator, ListStoreColumns.Text, text);
 	store.setValue(iterator, ListStoreColumns.Version, pluginInfo.strVersion);
 
 	// Temporary hardcoded value, until we have a reliable method of identifying plugin types
 	store.setValue(iterator, ListStoreColumns.Type, "Official");
+	store.setValue(iterator, ListStoreColumns.Id, pluginInfo.id);
+
+	pluginManager.mapTreeIterWithPlugin(pluginInfo, iterator);
 }
 
 /**
@@ -134,6 +134,8 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 
 	// Uninstall Button
 	Button btUninstall = new Button("Uninstall");
+	pluginManager.mapWidgetWithPlugin(info, btUninstall);
+	btUninstall.addOnClicked(&xPanelApp.btUninstall_onClicked);
 	btUninstall.setHalign(GtkAlign.CENTER);
 	btUninstall.setValign(GtkAlign.CENTER);
 
@@ -180,7 +182,7 @@ public static void buildConfigPanel(PluginInfo info, Widget parent, Builder buil
 	topLevel.packStart(configPanel, true, false, 0);
 
 	configBox.packStart(topLevel, true, false, 0);
-	configBox.showAll();
+	//configBox.showAll();
 }
 
 /**
@@ -231,7 +233,7 @@ private void thread_downloadPlugin(immutable PluginInfo info) {
 	string archiveFile = info.id ~ ".tar.gz";
 	string archivePath = buildPath(CDN_PATH, info.id, archiveFile);
 
-	download(archivePath, buildPath(createTempPath(), "pc", archiveFile));
+	download(archivePath, buildPath(createTempPath(), "pc", info.id, archiveFile));
 
 	thread_downloadPlugin_completed = true;
 }
@@ -245,7 +247,57 @@ extern(C) nothrow private int downloadPlugin_idleFetch(void* data) {
 }
 
 // Installs plugin in the local system
-public static void installPlugin(PluginInfo info) {}
+public static void installPlugin(PluginInfo info) {
+	gdk.Threads.threadsAddIdle(&installPlugin_idleFetch, cast(void*)&(info.id));
+	spawn(&thread_installPlugin, cast(immutable)info);
+	thread_installPlugin_completed = false;
+}
+
+private shared bool thread_installPlugin_completed;
+private void thread_installPlugin(immutable PluginInfo info) {
+	string rootPath = buildPath(createTempPath(), "pc", info.id);
+	Pid pid = spawnProcess(["extrapanel-manager", "-i", rootPath]);
+	ownerTid.send(wait(pid));
+
+	thread_installPlugin_completed = true;
+}
+
+extern(C) nothrow private int installPlugin_idleFetch(void* data) {
+	try {
+		receiveTimeout(dur!("msecs")(10), (int retValue) {
+			string id = *(cast(string*)data);
+			xPanelApp.installRetCode(id, retValue);
+		});
+		if(thread_installPlugin_completed) return 0;
+	} catch(Exception) return 0;
+
+	return 1;
+}
+
+public static void uninstallPlugin(PluginInfo info) {
+	ScriptRunner.getInstance().removePlugin(info.id);
+	gdk.Threads.threadsAddIdle(&uninstallPlugin_idleFetch, cast(void*)&(info.id));
+	spawn(&thread_uninstallPlugin, cast(immutable)info);
+	thread_uninstallPlugin_completed = false;
+}
 
 // Removes plugin from the local system
-public static void uninstallPlugin(PluginInfo info) {}
+private shared bool thread_uninstallPlugin_completed;
+private void thread_uninstallPlugin(immutable PluginInfo info) {
+	Pid pid = spawnProcess(["extrapanel-manager", "-u", info.id]);
+	ownerTid.send(wait(pid));
+
+	thread_uninstallPlugin_completed = true;
+}
+
+extern(C) nothrow private int uninstallPlugin_idleFetch(void* data) {
+	try {
+		receiveTimeout(dur!("msecs")(10), (int retValue) {
+			string id = *(cast(string*)data);
+			xPanelApp.uninstallRetCode(id, retValue);
+		});
+		if(thread_uninstallPlugin_completed) return 0;
+	} catch(Exception) return 0;
+
+	return 1;
+}

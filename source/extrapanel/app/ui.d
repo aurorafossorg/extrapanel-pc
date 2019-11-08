@@ -43,7 +43,10 @@ import gtk.Spinner;
 import gtk.Stack;
 import gtk.Switch;
 import gtk.ToggleButton;
+import gtk.TreeIter;
+import gtk.TreePath;
 import gtk.TreeView;
+import gtk.TreeViewColumn;
 import gtk.Widget;
 
 // Pango
@@ -54,12 +57,13 @@ import std.algorithm.searching;
 import std.array;
 import std.concurrency;
 import std.conv;
-import std.file;
+//import std.file;
 import std.json;
 import std.net.curl : download;
 import std.parallelism;
 import std.process;
 import std.stdio;
+import std.string;
 
 /**
  *	app.d - Main UI manager for the app
@@ -73,7 +77,7 @@ enum State {
 
 private static State wifiState = State.Disabled, bluetoothState = State.Disabled, usbState = State.Disabled;
 
-private static bool currentStatus, pluginsConfigLoaded;
+private static bool currentStatus, pluginsConfigLoaded, pluginsBrowserLoaded;
 private shared bool fetching;
 
 static ExtraPanelGUI xPanelApp; /// The global instance of the UI.
@@ -159,8 +163,46 @@ public:
 			trace("Plugin info is: ", info.id);
 			saveCurrentInterface();
 			mainInterface.setVisibleChild(pluginInfoInterface);
+			pluginManager.mapWidgetWithPlugin(info, piaUninstall);
 			sidebar.setVisible(false);
 			parseInfo(info, builder);
+		}
+	}
+
+	void lockWindowControl(bool value) {
+		window.setSensitive(!value);
+		setCursorLoading(value);
+	}
+
+	void btUninstall_onClicked(Button button) {
+		lockWindowControl(true);
+		PluginInfo pInfo = pluginManager.getMappedPlugin(button);
+		trace(pInfo);
+		uninstallPlugin(pInfo);
+	}
+
+	void uninstallRetCode(string id, int retCode) {
+		lockWindowControl(false);
+		if(!retCode) {
+			trace("Uninstall successfull!");
+			pluginListChanged();
+			if(savedInterface)
+				restoreSavedInterface();
+			TreeIter it = pluginManager.findTreeIterWithId(id);
+			if(it)
+				pPluginsTreeModel.setValue(it, ListStoreColumns.Installed, false);
+		}
+	}
+
+	void installRetCode(string id, int retCode) {
+		lockWindowControl(false);
+		if(!retCode) {
+			trace("Install successfull!");
+			pStatus.setText("Installed " ~ id);
+			pluginListChanged();
+			TreeIter it = pPluginsTreeView.getSelectedIter();
+			if(it)
+				pPluginsTreeModel.setValue(it, ListStoreColumns.Installed, true);
 		}
 	}
 
@@ -172,12 +214,21 @@ public:
 	 */
 	void addPluginListElement(PluginInfo pluginInfo) {
 		populateList(pluginInfo, pPluginsTreeModel);
-		downloadPlugin(pluginInfo);
+	}
+
+	void pluginListChanged() {
+		pluginManager.updateInstalledPluginList();
+		scriptRunner.cleanup();
+		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
+		cpLoadPlugins(true);
 	}
 
 private:
 	// Plugin Manager
 	PluginManager pluginManager;
+
+	// Script Runner
+	ScriptRunner scriptRunner;
 
 	// Constructor
 	Builder builder;
@@ -243,6 +294,8 @@ private:
 			Box cDevicesInterface;
 		Box aboutInterface;
 		Box pluginInfoInterface;
+			Button piaReset;
+			Button piaUninstall;
 
 	// Bottom Bar
 	Stack statusBar;
@@ -256,7 +309,7 @@ private:
 			ProgressBar pProgressBar;
 			Button pActionButton;
 
-	Widget savedSidebar = null, savedInterface = null;
+	Widget savedSidebar = null, savedInterface = null, savedStatusBar = null;
 
 	// TID for fetching process
 	Tid fetchTID;
@@ -368,6 +421,8 @@ private:
 		cDevicesInterface = cast(Box) builder.getObject("cDevicesInterface");
 		aboutInterface = cast(Box) builder.getObject("aboutInterface");
 		pluginInfoInterface = cast(Box) builder.getObject("pluginInfoInterface");
+		piaReset = cast(Button) builder.getObject("piaReset");
+		piaUninstall = cast(Button) builder.getObject("piaUninstall");
 
 		// Bottom Bar
 		statusBar = cast(Stack) builder.getObject("statusBar");
@@ -381,8 +436,9 @@ private:
 		pProgressBar = cast(ProgressBar) builder.getObject("pProgressBar");
 		pActionButton = cast(Button) builder.getObject("pActionButton");
 
-		// Plugin Manager
+		// Singletons
 		pluginManager = PluginManager.getInstance();
+		scriptRunner = ScriptRunner.getInstance();
 	}
 
 	void updateElements()
@@ -394,7 +450,7 @@ private:
 			startWizard.addOnCancel(&startWizard_onCancel);
 			startWizard.addOnApply(&startWizard_onApply);
 
-			window.setSensitive(false);
+			lockWindowControl(true);
 			startWizard.present();
 		}
 		// Defines the communication statuses
@@ -436,19 +492,23 @@ private:
 		ccbEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
 		ccuEnableCheck.addOnToggled(&ccEnableCheck_onToggled);
 
-		cPluginsInterface.addOnMap(&cpLoadPlugins);
+		cPluginsInterface.addOnMap(&cPluginsInterface_onMap);
 		cpLocalFolder.addOnClicked(&cpLocalFolder_onClicked);
 
 		backButton.addOnClicked(&backButton_onClicked);
 
 		pPluginsInterface.addOnMap(&pPluginsInterface_onMap);
+		pPluginsTreeView.addOnCursorChanged(&pPluginsTreeView_onCursorChanged);
+		pActionButton.addOnClicked(&pActionButton_onClicked);
 		ppRefresh.addOnClicked(&ppRefresh_onClicked);
+
+		pluginInfoInterface.addOnUnmap(&pPluginsInfoInterface_onUnmap);
+		piaUninstall.addOnClicked(&btUninstall_onClicked);
 
 		// Queries the state of the daemon
 		currentStatus = queryDaemon();
 		updateMetaElements();
-
-		pluginsLabel.setLabel("Plugins: " ~ to!string(pluginManager.getInstalledPlugins().length));
+		pluginListChanged();
 
 		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
@@ -463,7 +523,7 @@ private:
 		trace("startWizard: completed");
 		immutable bool installPack = wizardInstallPack.getActive();
 		this.startWizard.hide();
-		this.window.setSensitive(true);
+		lockWindowControl(false);
 		Configuration.setOption(Options.AcceptedWizard, true);
 	}
 
@@ -575,30 +635,60 @@ private:
 		if(savedSidebar !is null && savedInterface !is null) {
 			trace("\trestoring interface.");
 			restoreSavedInterface();
-			sidebar.setVisible(true);
 		} else {
 			trace("\tgoing back to main interface.");
 			sidebar.setVisibleChild(generalBar);
 			mainInterface.setVisibleChild(generalInterface);
+			statusBar.setVisibleChild(daemonStatusBar);
 			backButton.setVisible(false);
 			sidebar.setVisible(true);
 		}
 	}
 
 	void pPluginsInterface_onMap(Widget) {
-		trace("Plugins -> pPluginsInterface: map");
-		setCursorLoading(true);
-		trace("\tSpawning plugin fetching thread...");
-		ppRefresh.setSensitive(false);
-		gdk.Threads.threadsAddIdle(&processIdleFetch, null);
-		fetchTID = spawn(&fetchPlugins);
-		fetching = true;
+		if(!pluginsBrowserLoaded) {
+			pluginsBrowserLoaded = true;
+			fetching = true;
+			trace("Plugins -> pPluginsInterface: map");
+			setCursorLoading(true);
+			trace("\tSpawning plugin fetching thread...");
+			ppRefresh.setSensitive(false);
+			gdk.Threads.threadsAddIdle(&processIdleFetch, null);
+			fetchTID = spawn(&fetchPlugins);
+		}
+	}
+
+	void pPluginsTreeView_onCursorChanged(TreeView tv) {
+		trace("here");
+		if(!fetching) {
+			PluginInfo pInfo = pluginManager.getMappedTreeIter(tv.getSelectedIter());
+			pActionButton.setSensitive(!pInfo.installed);
+		}
+	}
+
+	void pActionButton_onClicked(Button) {
+		TreeIter it = pPluginsTreeView.getSelectedIter();
+		PluginInfo pInfo = pluginManager.getMappedTreeIter(it);
+		pActionButton.setSensitive(false);
+		pStatus.setText("Downloading " ~ pInfo.id ~ "...");
+		downloadPlugin(pInfo);
+		pStatus.setText("Installing " ~ pInfo.id ~ "...");
+		lockWindowControl(true);
+		installPlugin(pInfo);
 	}
 
 	void ppRefresh_onClicked(Button) {
+		pluginsBrowserLoaded = false;
+		fetching = true;
 		trace("Plugins -> ppRefresh: clicked");
 		pPluginsTreeModel.clear();
+		pluginManager.updateInstalledPluginList();
+		pluginManager.clearTreeIterMap();
 		pPluginsInterface_onMap(null);
+	}
+
+	void pPluginsInfoInterface_onUnmap(Widget) {
+		pluginManager.unmapWidget(piaUninstall);
 	}
 
 	bool updateDaemonStatus() {
@@ -632,7 +722,6 @@ private:
 		}
 	}
 
-
 	bool queryDaemon() {
 		if(exists(buildPath(appConfigPath, LOCK_PATH))) {
 			string pid = getDaemonPID();
@@ -655,28 +744,41 @@ private:
 		return File("/proc/" ~ pid ~ "/cmdline", "r").readln();
 	}
 
-		void cpLoadPlugins(Widget) {
+	void cPluginsInterface_onMap(Widget) {
+		cpLoadPlugins();
+	}
+
+	void cpLoadPlugins(bool forceRefresh = false) {
 		trace("Config -> Plugins: Loading plugin configuration menu's");
 
+		if(forceRefresh)
+			cpPanels.removeAll();
+
 		// Empty the container
-		if(!pluginsConfigLoaded) {
+		if(!pluginsConfigLoaded || forceRefresh) {
 			pluginsConfigLoaded = true;
-			foreach(pluginInfo; pluginManager.getInstalledPlugins()) {
+			PluginInfo[] pluginList = pluginManager.getInstalledPlugins(forceRefresh);
+			foreach(pluginInfo; pluginList) {
 				buildConfigPanel(pluginInfo, cpPanels, builder);
 			}
+			cpPanels.showAll();
 		}
 	}
 
 	void saveCurrentInterface() {
 		savedSidebar = sidebar.getVisibleChild();
 		savedInterface = mainInterface.getVisibleChild();
+		savedStatusBar = statusBar.getVisibleChild();
 	}
 
 	void restoreSavedInterface() {
 		sidebar.setVisibleChild(savedSidebar);
 		mainInterface.setVisibleChild(savedInterface);
+		statusBar.setVisibleChild(savedStatusBar);
+		sidebar.setVisible(true);
 		savedSidebar = null;
 		savedInterface = null;
+		savedStatusBar = null;
 	}
 
 	void setCursorLoading(bool loading) {
@@ -696,8 +798,10 @@ void fetchPlugins() {
 
 	foreach(plugin; taskPool.parallel(metaJson["official"].array)) {
 		try {
-			immutable string localPluginMetaPath = buildPath(createTempPath(), "pc", plugin.str.replace("/", "-"));
-			immutable string localPluginIconPath = buildPath(createTempPath(), "pc", plugin.str.replace("/meta.json", "-icon.png"));
+			string rootPath = buildPath(createTempPath(), "pc", plugin.str.replace("/meta.json", ""));
+			mkdir(rootPath);
+			immutable string localPluginMetaPath = buildPath(rootPath, "meta.json");
+			immutable string localPluginIconPath = buildPath(rootPath, "icon.png");
 			immutable string logoCdnPath = plugin.str.replace("meta.json", "icon.png");
 			download(CDN_PATH ~ plugin.str, localPluginMetaPath);
 			download(CDN_PATH ~ logoCdnPath, localPluginIconPath);
@@ -724,7 +828,7 @@ extern(C) nothrow static int processIdleFetch(void* data) {
 			xPanelApp.pProgressBar.setFraction(to!float(xPanelApp.currPlugin) / xPanelApp.maxPlugins);
 		});
 
-		if(!fetching) {
+		if(!fetching && xPanelApp.maxPlugins == xPanelApp.currPlugin) {
 			xPanelApp.setCursorLoading(false);
 			xPanelApp.ppRefresh.setSensitive(true);
 			xPanelApp.pSpinner.stop();
