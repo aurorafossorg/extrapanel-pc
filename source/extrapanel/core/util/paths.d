@@ -2,7 +2,7 @@ module extrapanel.core.util.paths;
 
 // STD
 public import std.path;
-import std.file;
+public import std.file;
 
 /**
  *	paths.d - Utility methods for path building
@@ -105,6 +105,10 @@ public static string pluginRootPath(string pluginID = null) {
 		return buildPath(appConfigPath(), PLUGIN_BASE_PATH);
 	else
 		return buildPath(appConfigPath(), PLUGIN_BASE_PATH, pluginID ~ dirSeparator);
+}
+
+public static void mkdir(string path) {
+	if(!exists(path)) std.file.mkdir(path);
 }
 
 @("Paths: Root config path exists")
