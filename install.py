@@ -8,6 +8,8 @@ import shutil
 project_name = "extrapanel"
 app_id = "org.aurorafoss.extrapanel"
 
+executable_names = ("extrapanel", "extrapanel-daemon", "extrapanel-manager", "extrapanel-tray")
+
 if sys.platform is "win32":
 	prefix = "C:/"
 else:
@@ -22,8 +24,9 @@ bindir = os.path.join(prefix, "bin")
 
 print("Installing the executables...")
 for executable in os.listdir("build"):
-    print("Found executable: ", executable)
-    shutil.copy2(os.path.join("build", executable), os.path.join(bindir, executable))
+    if(executable in executable_names):
+        print("Found executable: ", executable)
+        shutil.copy2(os.path.join("build", executable), os.path.join(bindir, executable))
 
 print("Updating icon cache...")
 icon_cache_dir = os.path.join(datadir, "icons", "hicolor")
