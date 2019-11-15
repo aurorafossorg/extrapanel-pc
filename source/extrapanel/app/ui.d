@@ -341,6 +341,8 @@ private:
 
 		// Show
 		this.window.present();
+		if(Configuration.isFirstTime)
+			lockWindowControl(true);
 	}
 
 	void onAppDestroy(GApplication) {
@@ -439,6 +441,8 @@ private:
 		// Singletons
 		pluginManager = PluginManager.getInstance();
 		scriptRunner = ScriptRunner.getInstance();
+
+		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
 
 	void updateElements()
@@ -450,7 +454,6 @@ private:
 			startWizard.addOnCancel(&startWizard_onCancel);
 			startWizard.addOnApply(&startWizard_onApply);
 
-			lockWindowControl(true);
 			startWizard.present();
 		}
 		// Defines the communication statuses
@@ -509,8 +512,6 @@ private:
 		currentStatus = queryDaemon();
 		updateMetaElements();
 		pluginListChanged();
-
-		loadingCursor = new Cursor(window.getDisplay(), GdkCursorType.WATCH);
 	}
 
 	// Callbacks
@@ -782,6 +783,10 @@ private:
 	}
 
 	void setCursorLoading(bool loading) {
+		trace(window);
+		trace(window.getWindow());
+		trace(loading);
+		trace(loadingCursor);
 		window.getWindow().setCursor(loading ? loadingCursor : null);
 	}
 }
