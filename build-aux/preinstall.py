@@ -8,7 +8,7 @@ import shutil
 project_name = "extrapanel"
 app_id = "org.aurorafoss.extrapanel"
 
-if sys.platform is "win32":
+if sys.platform == "win32":
 	prefix = "C:/"
 else:
 	prefix = "/usr/local/"
