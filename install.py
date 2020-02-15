@@ -10,10 +10,14 @@ app_id = "org.aurorafoss.extrapanel"
 
 executable_names = ("extrapanel", "extrapanel-daemon", "extrapanel-manager", "extrapanel-tray")
 
-if sys.platform is "win32":
-	prefix = "C:/"
+if 'DESTDIR' in os.environ:
+	prefix = os.environ['DESTDIR']
+	print("Dir: ", prefix)
 else:
-	prefix = "/usr/local/"
+	if sys.platform is "win32":
+		prefix = "C:/"
+	else:
+		prefix = "/usr/"
 
 datadir = os.path.join(prefix, "share")
 builddatadir = os.path.join(os.getcwd(), "data")
@@ -21,6 +25,13 @@ desktopdir = os.path.join(datadir, "applications")
 pkgdatadir = os.path.join(datadir, project_name)
 appdatadir = os.path.join(datadir, "appdata")
 bindir = os.path.join(prefix, "bin")
+iconcachedir = os.path.join(datadir, "icons", "hicolor")
+schemasdir = os.path.join(datadir, "glib-2.0", "schemas")
+
+print("Creating non existing folders...")
+for path in [prefix, datadir, bindir, desktopdir, pkgdatadir, appdatadir, iconcachedir, schemasdir]:
+	if not os.path.exists(path):
+		os.makedirs(path)
 
 print("Installing the executables...")
 for executable in os.listdir("build"):
@@ -28,17 +39,12 @@ for executable in os.listdir("build"):
         print("Found executable: ", executable)
         shutil.copy2(os.path.join("build", executable), os.path.join(bindir, executable))
 
-print("Updating icon cache...")
-icon_cache_dir = os.path.join(datadir, "icons", "hicolor")
-if not os.path.exists(icon_cache_dir):
-    os.makedirs(icon_cache_dir)
-subprocess.call(["gtk-update-icon-cache", "-qtf", icon_cache_dir])
+if not "--no-gnome-update" in sys.argv:
+	print("Updating icon cache...")
+	subprocess.call(["gtk-update-icon-cache", "-qtf", iconcachedir])
 
-print("Updating desktop database...")
-desktop_database_dir = os.path.join(datadir, "applications")
-if not os.path.exists(desktop_database_dir):
-    os.makedirs(desktop_database_dir)
-subprocess.call(["update-desktop-database", "-q", desktop_database_dir])
+	print("Updating desktop database...")
+	subprocess.call(["update-desktop-database", "-q", desktopdir])
 
 print("Copying desktop and appdata files...")
 src_desktop = os.path.join("data", "org.aurorafoss.extrapanel.desktop")
@@ -58,7 +64,6 @@ dest_resources_dir = os.path.join(pkgdatadir, app_id + ".gresource")
 shutil.copyfile(os.path.join("data", app_id + ".gresource"), dest_resources_dir)
 
 print("Compiling GSettings schemas...")
-schemas_dir = os.path.join(datadir, "glib-2.0", "schemas")
-if not os.path.exists(schemas_dir):
-    os.makedirs(schemas_dir)
-subprocess.call(["glib-compile-schemas", schemas_dir])
+subprocess.call(["glib-compile-schemas", schemasdir])
+
+print("Done")

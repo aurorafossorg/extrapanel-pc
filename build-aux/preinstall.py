@@ -11,7 +11,7 @@ app_id = "org.aurorafoss.extrapanel"
 if sys.platform == "win32":
 	prefix = "C:/"
 else:
-	prefix = "/usr/local/"
+	prefix = "/usr/"
 
 datadir = os.path.join(prefix, "share")
 
